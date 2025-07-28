@@ -1,0 +1,331 @@
+<context>
+# Overview  
+The MEDDSAI benchmark is an evaluation framework designed to assess AI models' performance on medical domain-specific tasks. It addresses the critical need for standardized evaluation of AI capabilities in healthcare contexts, where accuracy, reliability, and domain-specific understanding are paramount. This benchmark serves researchers, healthcare AI developers, and medical institutions by providing a comprehensive testing framework to evaluate and improve AI models for medical applications.
+
+The benchmark solves several key problems:
+- Lack of standardized evaluation metrics for medical AI
+- Need for domain-specific testing in healthcare contexts
+- Requirement for reproducible and fair comparison between models
+- Gap in assessing AI models' medical reasoning and knowledge application
+
+# Core Features  
+## Modular Evaluation Harness
+- **What it does**: Provides a central framework that orchestrates task execution, model evaluation, and metric calculation
+- **Why it's important**: Ensures consistent evaluation methodology across different models and tasks
+- **How it works**: Coordinates loading of tasks, running models on inputs, calculating metrics, and aggregating results
+
+## Domain-Specific Tasks
+- **What it does**: Implements various medical domain tasks (diagnostic reasoning, QA, summarization, patient communication)
+- **Why it's important**: Tests AI capabilities on tasks that directly reflect real medical use cases
+- **How it works**: Each task defines inputs, expected outputs, and specialized evaluation procedures
+
+## Specialized Medical Metrics
+- **What it does**: Implements evaluation metrics specific to medical domain tasks
+- **Why it's important**: Standard NLP metrics often fail to capture the nuances of medical knowledge and reasoning
+- **How it works**: Custom metrics assess clinical accuracy, medical reasoning, and domain-specific understanding
+
+## Containerized Environment
+- **What it does**: Provides Docker configurations for consistent evaluation across platforms
+- **Why it's important**: Ensures reproducibility and eliminates environment-specific variables
+- **How it works**: Docker containers package all dependencies and configurations needed for evaluation
+
+# User Experience  
+## User Personas
+
+### Academic Researcher
+- Evaluates novel AI models against established benchmarks
+- Needs detailed metrics and analysis capabilities
+- Focuses on specific medical sub-domains
+
+### Healthcare AI Developer
+- Builds and improves AI models for medical applications
+- Needs continuous evaluation during development
+- Requires benchmark for comparing against state-of-the-art
+
+### Medical Institution Technologist
+- Assesses AI solutions for potential deployment
+- Needs trustworthy evaluation on relevant medical tasks
+- Requires transparency in evaluation methodology
+
+## Key User Flows
+
+### Model Evaluation Flow
+1. User prepares model according to interface specifications
+2. User selects relevant medical tasks for evaluation
+3. User runs evaluation framework via CLI or Python API
+4. System executes tasks and calculates metrics
+5. User reviews detailed performance reports
+
+### Task Development Flow
+1. Developer identifies new medical task for inclusion
+2. Developer implements task using the framework interfaces
+3. Developer adds validation tests and documentation
+4. Task undergoes review process
+5. Task is integrated into the benchmark suite
+
+## UI/UX Considerations
+- Command-line interface prioritizes clarity and consistency
+- Detailed documentation provides clear onboarding path
+- Example notebooks demonstrate usage patterns
+- Results presented in both machine-readable and human-friendly formats
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+1. **Core Evaluation Framework**
+   - Task Loader: Loads task definitions and data from dataset sources
+   - Model Runner: Interface for executing predictions on models
+   - Metric Calculator: Computes evaluation metrics for model outputs
+   - Result Aggregator: Combines results across tasks and metrics
+
+2. **Task Implementation Modules**
+   - Diagnostic Reasoning: Tasks focused on medical diagnosis
+   - Medical QA: Question-answering tasks with medical context
+   - Clinical Summarization: Summarizing medical documents and encounters
+   - Patient Communication: Evaluating appropriate patient interactions
+
+3. **Metrics Implementation**
+   - Clinical Accuracy: Measures correctness of medical information
+   - Reasoning Quality: Evaluates logical reasoning in medical contexts
+   - Domain-Specific Metrics: Specialized for particular medical fields
+
+4. **Docker Environment**
+   - Base container with Python dependencies
+   - CUDA support for GPU acceleration
+   - Test execution environment
+
+## Data Models
+1. **Task Schema**
+   ```python
+   class MedicalTask:
+       task_id: str
+       task_type: Enum[DiagnosticReasoning, QA, Summarization, Communication]
+       description: str
+       inputs: List[Dict]  # Structured input data
+       expected_outputs: List[Dict]  # Reference outputs for evaluation
+       metrics: List[str]  # Metrics used for this task
+   ```
+
+2. **Evaluation Result Schema**
+   ```python
+   class EvaluationResult:
+       model_id: str
+       task_id: str
+       inputs: List[Dict]
+       model_outputs: List[Dict]
+       metrics_results: Dict[str, float]  # Metric name to score
+       metadata: Dict  # Additional information (runtime, model version, etc.)
+   ```
+
+3. **Benchmark Report Schema**
+   ```python
+   class BenchmarkReport:
+       model_id: str
+       timestamp: datetime
+       overall_scores: Dict[str, float]
+       task_scores: Dict[str, Dict[str, float]]
+       detailed_results: List[EvaluationResult]
+   ```
+
+## APIs and Integrations
+1. **Model Interface**
+   - Standard predict() method for model execution
+   - Model registration protocol
+   - Support for various model types (local, API-based, HuggingFace)
+
+2. **Dataset Connectors**
+   - Interfaces for medical datasets (MIMIC, PubMed, etc.)
+   - Data preprocessing pipelines
+   - Secure data handling for sensitive medical information
+
+3. **Reporting Interface**
+   - JSON result export
+   - Markdown report generation
+   - Integration with visualization tools
+
+## Infrastructure Requirements
+1. **Compute Resources**
+   - CPU: 8+ cores recommended for parallel evaluation
+   - RAM: 16GB+ (32GB+ for larger models)
+   - GPU: Optional but recommended, 8GB+ VRAM
+   - Storage: 20GB+ for framework and datasets
+
+2. **Software Dependencies**
+   - Python 3.8+ (3.10 recommended)
+   - PyTorch/TensorFlow for model execution
+   - Docker for containerized evaluation
+   - Git for version control
+
+3. **External Services**
+   - Optional API keys for model services
+   - Optional cloud resources for distributed evaluation
+
+# Development Roadmap  
+## Phase 1: Foundation (MVP)
+1. **Core Evaluation Framework**
+   - Implement basic task execution pipeline
+   - Develop task interface and base classes
+   - Create fundamental metric calculations
+   - Set up Docker environment
+
+2. **Initial Task Set**
+   - Implement medical QA tasks
+   - Develop diagnostic reasoning tasks
+   - Create basic clinical summarization tasks
+
+3. **Documentation and Examples**
+   - Write comprehensive developer documentation
+   - Create usage examples
+   - Establish contribution guidelines
+
+## Phase 2: Enhancement
+1. **Extended Task Coverage**
+   - Add patient communication tasks
+   - Expand diagnostic reasoning complexity
+   - Incorporate real-world medical scenarios
+
+2. **Advanced Metrics**
+   - Implement specialized clinical accuracy metrics
+   - Develop reasoning quality assessment
+   - Create domain-specific evaluation methods
+
+3. **Improved Model Integration**
+   - Support for more model types and services
+   - Enhanced parallelization for evaluation
+   - Model-specific optimizations
+
+## Phase 3: Expansion
+1. **Federated Evaluation**
+   - Secure communication layer
+   - Local evaluation runners
+   - Result aggregation and verification
+   - Privacy-preserving techniques
+
+2. **Multimodal Tasks**
+   - Support for medical imaging (X-ray, CT, MRI)
+   - Integration of wearable data
+   - Combined text-image tasks
+
+3. **Comprehensive Benchmark Suite**
+   - Standard model leaderboard
+   - Regular benchmark updates
+   - Community contribution framework
+
+# Logical Dependency Chain
+## Foundation Layer (Build First)
+1. **Core Framework Structure**
+   - Task and metric interfaces
+   - Evaluation harness skeleton
+   - Result storage and reporting
+
+2. **Basic Task Implementations**
+   - Simple medical QA tasks
+   - Basic diagnostic tasks
+   - Initial metrics implementation
+
+3. **Docker Environment**
+   - Base container setup
+   - Dependency management
+   - Reproducible execution environment
+
+## Interactive Layer (Get to Working Prototype)
+1. **Command Line Interface**
+   - Task selection and configuration
+   - Model registration
+   - Evaluation execution
+   - Result reporting
+
+2. **Example Notebooks**
+   - Basic usage demonstrations
+   - Custom task creation examples
+   - Result analysis templates
+
+3. **Initial Documentation**
+   - Getting started guide
+   - Framework architecture
+   - Contribution workflow
+
+## Extension Layer (Build Upon Core)
+1. **Advanced Task Types**
+   - Complex diagnostic reasoning
+   - Patient communication scenarios
+   - Clinical summarization challenges
+
+2. **Enhanced Metrics**
+   - Specialized medical accuracy metrics
+   - Reasoning quality assessment
+   - Domain knowledge evaluation
+
+3. **Integration Capabilities**
+   - Model service connectors
+   - Dataset integration tools
+   - Result visualization components
+
+## Future Expansion (After MVP)
+1. **Federated Evaluation System**
+   - Security and privacy components
+   - Distributed execution framework
+   - Result verification protocol
+
+2. **Multimodal Support**
+   - Image processing pipelines
+   - Time series data handling
+   - Multi-input task definitions
+
+# Risks and Mitigations  
+## Technical Challenges
+1. **Risk**: Difficulty in objectively evaluating subjective medical reasoning
+   **Mitigation**: Develop multi-dimensional metrics, involve medical professionals in metric design, use consensus-based evaluation
+
+2. **Risk**: Performance issues with large models and complex tasks
+   **Mitigation**: Implement efficient batching, optional GPU acceleration, distributed evaluation options
+
+3. **Risk**: Reproducibility challenges across environments
+   **Mitigation**: Strict versioning, containerization, deterministic evaluation protocols
+
+## Core Framework Risks
+1. **Risk**: Task interface may not accommodate all medical AI use cases
+   **Mitigation**: Design flexible and extensible interfaces, regular consultation with domain experts
+
+2. **Risk**: Metrics may not capture nuanced medical performance
+   **Mitigation**: Layered metric approach combining general and specialized evaluations, ongoing metric refinement
+
+## Resource Constraints
+1. **Risk**: Limited availability of labeled medical data for tasks
+   **Mitigation**: Synthetic data generation, collaboration with medical institutions, efficient use of available data
+
+2. **Risk**: Computational demands for evaluating large models
+   **Mitigation**: Sampling strategies, optimization of evaluation pipeline, cloud execution options
+
+3. **Risk**: Medical expertise required for task and metric development
+   **Mitigation**: Establish medical advisory committee, open collaboration with healthcare professionals
+
+# Appendix  
+## Research Findings
+1. **Literature Review**
+   - Current medical AI evaluation largely relies on generic NLP metrics
+   - Medical experts frequently disagree with automated evaluation results
+   - Domain-specific evaluation shows higher correlation with practical utility
+
+2. **User Needs Analysis**
+   - Researchers require reproducible benchmarks for publication
+   - Developers need continuous evaluation during model improvement
+   - Medical institutions demand trustworthy assessment of AI capabilities
+
+## Technical Specifications
+1. **Supported Model Types**
+   - Local Python models (PyTorch, TensorFlow)
+   - HuggingFace Transformers
+   - API-based models (OpenAI, Claude, etc.)
+   - Custom model integrations
+
+2. **Evaluation Scaling**
+   - Single machine: Up to 50 tasks
+   - Distributed mode: 500+ tasks
+   - Performance metrics tracked alongside results
+
+3. **Security Considerations**
+   - Data encryption for sensitive medical information
+   - Model isolation during evaluation
+   - Configurable data access controls
+</PRD>
