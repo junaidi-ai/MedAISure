@@ -147,7 +147,7 @@ We welcome contributions from the medical, AI, and open-source communities! To c
 @inproceedings{
     meddsai2025,
     title={{MEDDSAI}: A Benchmark for Evaluating Large Language Models in Healthcare},
-    author={Junaidi Ahmad and Team MEDDSAI},
+    author={Kresna Sucandra and Team MEDDSAI},
     booktitle={TBD},
     year={2025},
     url={https://www.meddsai.org}
