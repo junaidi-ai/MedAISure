@@ -9,6 +9,9 @@ dev-debug.log
 # Dependency directories
 node_modules/
 
+# Virtual Environment
+venv/
+
 # Environment variables
 .env
 
