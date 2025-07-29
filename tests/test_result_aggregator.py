@@ -1,6 +1,6 @@
 """Tests for the ResultAggregator component."""
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 from bench.evaluation.result_aggregator import ResultAggregator, TaskResult, BenchmarkReport
@@ -13,7 +13,7 @@ def result_aggregator(tmp_path):
 @pytest.fixture
 def sample_task_results():
     """Create sample task results for testing."""
-    timestamp = datetime.utcnow().isoformat()
+    timestamp = datetime.now(timezone.utc).isoformat()
     return [
         TaskResult(
             task_id="task1",

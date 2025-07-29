@@ -152,21 +152,43 @@ class MetricCalculator:
         Returns:
             Tuple of (y_true, y_pred) for the metric function
         """
-        # Default behavior: extract 'label' from references and 'prediction' from predictions
+        # Default behavior: extract 'label' from references and handle both 'label' and 'prediction' from predictions
         try:
+            # Extract true labels from references
             y_true = [ref.get('label') for ref in references]
-            y_pred = [pred.get('prediction') for pred in predictions]
+            
+            # Extract predictions - try 'label' first, then fall back to 'prediction'
+            y_pred = []
+            for pred in predictions:
+                if isinstance(pred, dict):
+                    if 'label' in pred:
+                        y_pred.append(pred['label'])
+                    elif 'prediction' in pred:
+                        y_pred.append(pred['prediction'])
+                    else:
+                        y_pred.append(None)
+                else:
+                    y_pred.append(pred)
             
             # Handle binary classification metrics that require probabilities
             if metric_name in ['roc_auc', 'average_precision']:
                 # For binary classification, we expect probabilities in the prediction
-                if all(isinstance(p, dict) and 'score' in p for p in y_pred):
-                    y_pred = [p['score'] for p in y_pred]
+                if all(isinstance(p, dict) and 'score' in p for p in predictions):
+                    y_pred = [p.get('score') for p in predictions]
                 
                 # Ensure binary labels are 0/1 for scikit-learn metrics
                 if len(set(y_true)) == 2 and set(y_true) != {0, 1}:
                     unique_labels = sorted(set(y_true))
                     y_true = [1 if label == unique_labels[1] else 0 for label in y_true]
+            
+            # Ensure all labels are numeric for classification metrics
+            if metric_name not in ['roc_auc', 'average_precision'] and y_true and y_pred:
+                # Convert string labels to integers if needed
+                if isinstance(y_true[0], str) or isinstance(y_pred[0], str):
+                    all_labels = sorted(set(y_true + y_pred))
+                    label_to_int = {label: i for i, label in enumerate(all_labels)}
+                    y_true = [label_to_int.get(label, -1) for label in y_true]
+                    y_pred = [label_to_int.get(label, -1) for label in y_pred]
             
             return y_true, y_pred
             

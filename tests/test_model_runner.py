@@ -5,8 +5,20 @@ from bench.evaluation.model_runner import ModelRunner
 
 class MockModel:
     """A mock model for testing purposes."""
+    def __init__(self):
+        # Initialize a counter to track the number of calls
+        self.call_count = 0
+        
     def __call__(self, texts, **kwargs):
-        return [{"label": "entailment", "score": 0.9} for _ in texts]
+        # Return different results based on the call count
+        results = []
+        for _ in texts:
+            if self.call_count % 2 == 0:
+                results.append({"label": "entailment", "score": 0.9})
+            else:
+                results.append({"label": "neutral", "score": 0.8})
+            self.call_count += 1
+        return results
 
 @pytest.fixture
 def mock_model():

@@ -4,6 +4,7 @@ from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, asdict, field
 import json
 import datetime
+from datetime import timezone
 import hashlib
 from collections import defaultdict
 import logging
@@ -16,7 +17,7 @@ class TaskResult:
     task_id: str
     metrics: Dict[str, float]
     num_examples: int
-    timestamp: str = field(default_factory=lambda: datetime.datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.datetime.now(timezone.utc).isoformat())
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
@@ -126,7 +127,7 @@ class ResultAggregator:
         # Create the report
         report = BenchmarkReport(
             run_id=run_id,
-            timestamp=datetime.datetime.utcnow().isoformat(),
+            timestamp=datetime.datetime.now(timezone.utc).isoformat(),
             model_name=model_name,
             task_results=self.results[run_id].copy(),
             metrics_summary=metrics_summary,
@@ -166,21 +167,29 @@ class ResultAggregator:
         if run_id not in self.results or not self.results[run_id]:
             return {}
         
-        # Group metrics by name and collect their values
-        metric_values = defaultdict(list)
+        # Initialize dictionaries to store metric values and weights
+        metric_sums = defaultdict(float)
+        total_weight = 0
         
+        # Calculate weighted sum for each metric
         for task_result in self.results[run_id].values():
+            weight = task_result.num_examples
+            total_weight += weight
+            
             for metric_name, value in task_result.metrics.items():
-                metric_values[metric_name].append(value)
+                metric_sums[metric_name] += value * weight
         
-        # Compute mean for each metric
-        metrics_summary = {
-            f"mean_{metric}": sum(values) / len(values)
-            for metric, values in metric_values.items()
-        }
+        # Compute weighted average for each metric
+        metrics_summary = {}
+        if total_weight > 0:
+            metrics_summary = {
+                metric: total / total_weight
+                for metric, total in metric_sums.items()
+            }
         
-        # Add count of tasks
+        # Add count of tasks and total examples
         metrics_summary["num_tasks"] = len(self.results[run_id])
+        metrics_summary["total_examples"] = total_weight
         
         return metrics_summary
     
@@ -204,7 +213,7 @@ class ResultAggregator:
             A deterministic run ID string.
         """
         if timestamp is None:
-            timestamp = datetime.datetime.utcnow().isoformat()
+            timestamp = datetime.datetime.now(timezone.utc).isoformat()
         
         # Create a unique string
         unique_str = f"{model_name}:{':'.join(sorted(task_ids))}:{timestamp}"

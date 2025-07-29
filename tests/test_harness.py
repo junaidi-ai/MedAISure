@@ -85,23 +85,31 @@ def test_harness_initialization(test_harness, tmp_path):
     assert isinstance(test_harness.result_aggregator, ResultAggregator)
 
 @patch('bench.evaluation.EvaluationHarness._evaluate_task')
-def test_evaluate(mock_evaluate_task, test_harness):
+@patch('bench.evaluation.model_runner.ModelRunner.load_model')
+def test_evaluate(mock_load_model, mock_evaluate_task, test_harness, tmp_path):
     """Test the main evaluate method."""
-    # Setup mock
+    # Setup mocks
     mock_evaluate_task.return_value = MagicMock(
         task_id="test_task",
         metrics={"accuracy": 0.9},
         num_examples=1
     )
     
+    # Create a dummy model file
+    model_path = tmp_path / "model"
+    model_path.mkdir()
+    (model_path / "config.json").write_text("{}")
+    (model_path / "pytorch_model.bin").write_text("")
+
     # Run evaluation
     model_id = "test_model"
     task_ids = ["test_task"]
-    
+
     report = test_harness.evaluate(
         model_id=model_id,
         task_ids=task_ids,
         model_type="local",
+        model_path=str(model_path),
         save_results=False
     )
     
@@ -138,37 +146,42 @@ def test_get_task_info(test_harness):
 @patch('builtins.open', new_callable=MagicMock)
 def test_save_to_cache(mock_open, mock_json_dump, test_harness, tmp_path):
     """Test saving results to cache."""
-    # Setup
+    from dataclasses import dataclass, asdict
+    
+    @dataclass
+    class TestData:
+        test: str
+    
     cache_key = str(tmp_path / "cache" / "test_cache.json")
-    data = {"test": "data"}
+    data = TestData(test="data")
     mock_file = MagicMock()
     mock_open.return_value.__enter__.return_value = mock_file
     
-    # Execute
     test_harness._save_to_cache(cache_key, data)
     
-    # Verify
     mock_open.assert_called_once_with(cache_key, 'w')
-    mock_json_dump.assert_called_once_with(data, mock_file)
+    args, _ = mock_json_dump.call_args
+    assert args[0] == asdict(data)
 
 @patch('json.load')
 @patch('builtins.open', new_callable=MagicMock)
-def test_load_from_cache(mock_open, mock_json_load, test_harness, tmp_path):
+@patch('pathlib.Path.exists')
+@patch('bench.evaluation.result_aggregator.TaskResult')
+def test_load_from_cache(mock_task_result, mock_exists, mock_open, mock_json_load, test_harness, tmp_path):
     """Test loading results from cache."""
-    # Setup
     cache_key = str(tmp_path / "cache" / "test_cache.json")
-    expected_data = {"test": "data"}
     mock_file = MagicMock()
     mock_open.return_value.__enter__.return_value = mock_file
-    mock_json_load.return_value = expected_data
+    mock_json_load.return_value = {"test": "data"}
+    mock_exists.return_value = True  # Make Path.exists() return True
     
-    # Execute
     result = test_harness._load_from_cache(cache_key)
     
-    # Verify
-    assert result == expected_data
+    assert result == mock_task_result.return_value
+    mock_exists.assert_called_once()
     mock_open.assert_called_once_with(cache_key, 'r')
     mock_json_load.assert_called_once_with(mock_file)
+    mock_task_result.assert_called_once_with(**{"test": "data"})
 
 def test_generate_run_id(test_harness):
     """Test generating a run ID."""
