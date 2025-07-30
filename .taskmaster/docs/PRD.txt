@@ -1,5 +1,5 @@
 <context>
-# Overview  
+# Overview
 The MEDDSAI benchmark is an evaluation framework designed to assess AI models' performance on medical domain-specific tasks. It addresses the critical need for standardized evaluation of AI capabilities in healthcare contexts, where accuracy, reliability, and domain-specific understanding are paramount. This benchmark serves researchers, healthcare AI developers, and medical institutions by providing a comprehensive testing framework to evaluate and improve AI models for medical applications.
 
 The benchmark solves several key problems:
@@ -8,7 +8,7 @@ The benchmark solves several key problems:
 - Requirement for reproducible and fair comparison between models
 - Gap in assessing AI models' medical reasoning and knowledge application
 
-# Core Features  
+# Core Features
 ## Modular Evaluation Harness
 - **What it does**: Provides a central framework that orchestrates task execution, model evaluation, and metric calculation
 - **Why it's important**: Ensures consistent evaluation methodology across different models and tasks
@@ -29,7 +29,7 @@ The benchmark solves several key problems:
 - **Why it's important**: Ensures reproducibility and eliminates environment-specific variables
 - **How it works**: Docker containers package all dependencies and configurations needed for evaluation
 
-# User Experience  
+# User Experience
 ## User Personas
 
 ### Academic Researcher
@@ -70,7 +70,7 @@ The benchmark solves several key problems:
 - Results presented in both machine-readable and human-friendly formats
 </context>
 <PRD>
-# Technical Architecture  
+# Technical Architecture
 ## System Components
 1. **Core Evaluation Framework**
    - Task Loader: Loads task definitions and data from dataset sources
@@ -160,7 +160,7 @@ The benchmark solves several key problems:
    - Optional API keys for model services
    - Optional cloud resources for distributed evaluation
 
-# Development Roadmap  
+# Development Roadmap
 ## Phase 1: Foundation (MVP)
 1. **Core Evaluation Framework**
    - Implement basic task execution pipeline
@@ -272,7 +272,7 @@ The benchmark solves several key problems:
    - Time series data handling
    - Multi-input task definitions
 
-# Risks and Mitigations  
+# Risks and Mitigations
 ## Technical Challenges
 1. **Risk**: Difficulty in objectively evaluating subjective medical reasoning
    **Mitigation**: Develop multi-dimensional metrics, involve medical professionals in metric design, use consensus-based evaluation
@@ -300,7 +300,7 @@ The benchmark solves several key problems:
 3. **Risk**: Medical expertise required for task and metric development
    **Mitigation**: Establish medical advisory committee, open collaboration with healthcare professionals
 
-# Appendix  
+# Appendix
 ## Research Findings
 1. **Literature Review**
    - Current medical AI evaluation largely relies on generic NLP metrics

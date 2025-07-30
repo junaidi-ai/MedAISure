@@ -51,7 +51,7 @@ The MEDDSAI benchmark is structured as follows:
 ```
 meddsai-benchmark/
 ├── meddsai/                 # Main package
-│   ├── __init__.py          
+│   ├── __init__.py
 │   ├── harness/             # Evaluation harness
 │   │   ├── __init__.py
 │   │   ├── run_evaluation.py
@@ -168,16 +168,16 @@ Use Google-style docstrings:
 ```python
 def function_name(param1, param2):
     """Short description of function.
-    
+
     Longer description of function if needed.
-    
+
     Args:
         param1 (type): Description of param1.
         param2 (type): Description of param2.
-        
+
     Returns:
         return_type: Description of return value.
-        
+
     Raises:
         ExceptionType: When and why this exception is raised.
     """

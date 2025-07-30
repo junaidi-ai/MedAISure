@@ -1,14 +1,80 @@
 # MEDDSAI Benchmark: Evaluating Large Language Models in Healthcare
 
-[![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://meddsai.readthedocs.io/)
-[![Leaderboard](https://img.shields.io/badge/leaderboard-View%20Rankings-brightgreen)](https://www.meddsai.org/leaderboard)
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Tests](https://github.com/meddsai/meddsai-benchmark/actions/workflows/tests.yml/badge.svg)](https://github.com/meddsai/meddsai-benchmark/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/meddsai/meddsai-benchmark/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/meddsai/meddsai-benchmark)
 
-[日本語](README_ja.md) | [中文简体](README_zh.md) | [Bahasa Indonesia](README_id.md)
+A comprehensive framework for evaluating Large Language Models (LLMs) in healthcare applications. The MEDDSAI Benchmark provides a standardized way to assess model performance on various medical NLP tasks.
 
-## 📰 News
+## ✨ Features
 
-- **July 28, 2025**: Initial development of MEDDSAI Benchmark announced! Includes 200 tasks across diagnostics, summarization, and patient communication, with a future public leaderboard on [dashboard.meddsai.org](https://dashboard.meddsai.org).
-- **Future**: Planning federated evaluation track inspired by MedPerf for privacy-sensitive data, and multimodal tasks with imaging, inspired by MedArena.
+- **Modular Architecture**: Easily extensible with custom models, tasks, and metrics
+- **Support for Multiple Model Types**: Local models, Hugging Face models, and API-based models
+- **Comprehensive Evaluation**: Multiple metrics and aggregation methods
+- **Reproducible Results**: Caching and versioning support
+- **Pre-configured Medical Tasks**: Includes tasks for clinical text classification, NLI, and more
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/meddsai/meddsai-benchmark.git
+cd meddsai-benchmark
+
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install the package in development mode
+pip install -e .[dev]  # Includes development dependencies
+```
+
+### Basic Usage
+
+```python
+from bench.evaluation import EvaluationHarness
+
+# Initialize the evaluation harness
+harness = EvaluationHarness(
+    tasks_dir="path/to/tasks",
+    results_dir="path/to/results",
+    cache_dir="path/to/cache"
+)
+
+# List available tasks
+tasks = harness.list_available_tasks()
+print(f"Available tasks: {[t['task_id'] for t in tasks]}")
+
+# Run evaluation on a specific task
+results = harness.evaluate(
+    model_id="my-model",
+    task_ids=["medical_nli"],
+    model_type="local",
+    model_path="path/to/model"
+)
+
+print(f"Evaluation results: {results}")
+```
+
+## 📚 Documentation
+
+For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://meddsai.github.io/meddsai-benchmark/).
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information.
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📧 Contact
+
+For questions or feedback, please open an issue or contact the maintainers.
 
 ## 👋 Overview
 

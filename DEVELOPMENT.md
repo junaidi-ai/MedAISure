@@ -80,7 +80,7 @@ bench/
 2. Test your task:
    ```python
    from bench.evaluation import TaskLoader
-   
+
    loader = TaskLoader(tasks_dir="bench/tasks")
    task = loader.load_task("your_task_name")
    print(f"Loaded task: {task.name}")
@@ -98,7 +98,7 @@ bench/
    def calculate_custom_metric(self, y_true, y_pred, **kwargs):
        # Your metric implementation
        return score
-   
+
    # Register the metric
    metric_calculator.register_metric("custom_metric", calculate_custom_metric)
    ```

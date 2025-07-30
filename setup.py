@@ -1,7 +1,16 @@
-from setuptools import setup, find_packages
+from pathlib import Path
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+from setuptools import find_packages, setup
+
+# Read the contents of README.md
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text(encoding="utf-8")
+
+# Read requirements
+with open("requirements.txt") as f:
+    requirements = [
+        line.strip() for line in f if line.strip() and not line.startswith("#")
+    ]
 
 setup(
     name="meddsai-benchmark",
@@ -12,24 +21,52 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/meddsai/meddsai-benchmark",
-    packages=find_packages(include=["bench*", "bench.evaluation*"]),
+    # Package discovery
+    packages=find_packages(include=["bench", "bench.*"]),
     package_data={
         "bench": ["tasks/*.yaml", "tasks/*.yml", "tasks/*.json"],
     },
-    install_requires=open('requirements.txt').read().splitlines(),
+    include_package_data=True,
+    zip_safe=False,
+    # Dependencies
+    install_requires=requirements,
     python_requires=">=3.8",
+    # Development dependencies
+    extras_require={
+        "dev": [
+            "black>=22.0.0",
+            "flake8>=4.0.0",
+            "isort>=5.10.0",
+            "mypy>=0.910",
+            "pytest>=7.0.0",
+            "pytest-cov>=3.0.0",
+        ],
+    },
+    # Metadata
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Healthcare Industry",
         "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Medical Science Apps.",
     ],
+    # Entry points
     entry_points={
         "console_scripts": [
             "meddsai-benchmark=bench.cli:main",
         ],
+    },
+    # Other
+    keywords=["medical", "ai", "benchmark", "evaluation", "nlp", "healthcare"],
+    project_urls={
+        "Bug Reports": "https://github.com/meddsai/meddsai-benchmark/issues",
+        "Source": "https://github.com/meddsai/meddsai-benchmark",
     },
 )

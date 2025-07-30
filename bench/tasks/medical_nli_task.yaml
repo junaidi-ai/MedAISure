@@ -1,4 +1,4 @@
-name: "Medical NLI (Natural Language Inference)
+name: "Medical NLI (Natural Language Inference)"
 description: "Determine if a hypothesis is entailed by, contradicts, or is neutral with respect to a given medical premise."
 input_schema:
   type: "object"
@@ -37,6 +37,7 @@ metrics:
     average: "macro"
 
 dataset:
+  # Hypertension examples
   - id: 1
     premise: "The patient has a history of hypertension."
     hypothesis: "The patient has high blood pressure."
@@ -50,30 +51,164 @@ dataset:
     hypothesis: "The patient has diabetes."
     label: "neutral"
   - id: 4
+    premise: "The patient was prescribed lisinopril for hypertension."
+    hypothesis: "The patient is taking an ACE inhibitor."
+    label: "entailment"
+  - id: 5
+    premise: "The patient was prescribed lisinopril for hypertension."
+    hypothesis: "The patient is taking a beta blocker."
+    label: "contradiction"
+  - id: 6
+    premise: "The patient has stage 2 hypertension."
+    hypothesis: "The patient's blood pressure is well-controlled."
+    label: "contradiction"
+
+  # Pain management examples
+  - id: 7
     premise: "The patient was prescribed ibuprofen for pain relief."
     hypothesis: "The patient is taking a non-steroidal anti-inflammatory drug."
     label: "entailment"
-  - id: 5
+  - id: 8
     premise: "The patient was prescribed ibuprofen for pain relief."
     hypothesis: "The patient is allergic to NSAIDs."
     label: "contradiction"
-  - id: 6
+  - id: 9
+    premise: "The patient was prescribed oxycodone for severe pain."
+    hypothesis: "The patient is taking an opioid medication."
+    label: "entailment"
+  - id: 10
+    premise: "The patient was prescribed oxycodone for severe pain."
+    hypothesis: "The patient has mild pain."
+    label: "contradiction"
+  - id: 11
+    premise: "The patient takes acetaminophen for headaches."
+    hypothesis: "The patient experiences migraines."
+    label: "neutral"
+
+  # Infection and lab results
+  - id: 12
     premise: "The patient's blood test shows elevated white blood cell count."
     hypothesis: "The patient has an infection."
     label: "neutral"
-  - id: 7
+  - id: 13
     premise: "The patient's blood test shows elevated white blood cell count."
     hypothesis: "The patient has a normal white blood cell count."
     label: "contradiction"
-  - id: 8
+  - id: 14
+    premise: "The patient has a fever and elevated CRP levels."
+    hypothesis: "The patient shows signs of inflammation."
+    label: "entailment"
+  - id: 15
+    premise: "The patient's urinalysis shows no bacteria or white blood cells."
+    hypothesis: "The patient has a urinary tract infection."
+    label: "contradiction"
+  - id: 16
+    premise: "The patient's throat culture was positive for Group A Streptococcus."
+    hypothesis: "The patient has strep throat."
+    label: "entailment"
+
+  # Cardiovascular examples
+  - id: 17
     premise: "The patient has been experiencing chest pain for the past hour."
     hypothesis: "The patient has chest pain."
     label: "entailment"
-  - id: 9
+  - id: 18
     premise: "The patient has been experiencing chest pain for the past hour."
     hypothesis: "The patient has no pain."
     label: "contradiction"
-  - id: 10
+  - id: 19
     premise: "The patient has been experiencing chest pain for the past hour."
     hypothesis: "The patient has a history of heart disease."
     label: "neutral"
+  - id: 20
+    premise: "The patient's EKG shows ST-segment elevation in leads II, III, and aVF."
+    hypothesis: "The patient is having an inferior myocardial infarction."
+    label: "entailment"
+  - id: 21
+    premise: "The patient's EKG shows ST-segment elevation in leads II, III, and aVF."
+    hypothesis: "The patient has a normal EKG."
+    label: "contradiction"
+
+  # Diabetes examples
+  - id: 22
+    premise: "The patient has type 2 diabetes with an HbA1c of 8.5%."
+    hypothesis: "The patient's blood sugar is poorly controlled."
+    label: "entailment"
+  - id: 23
+    premise: "The patient has type 2 diabetes with an HbA1c of 5.8%."
+    hypothesis: "The patient's blood sugar is well-controlled."
+    label: "entailment"
+  - id: 24
+    premise: "The patient has type 2 diabetes."
+    hypothesis: "The patient is insulin-dependent."
+    label: "neutral"
+  - id: 25
+    premise: "The patient has type 1 diabetes."
+    hypothesis: "The patient requires insulin therapy."
+    label: "entailment"
+
+  # Respiratory examples
+  - id: 26
+    premise: "The patient has a productive cough and fever."
+    hypothesis: "The patient has pneumonia."
+    label: "neutral"
+  - id: 27
+    premise: "The patient has a history of COPD and is experiencing increased dyspnea."
+    hypothesis: "The patient is having a COPD exacerbation."
+    label: "entailment"
+  - id: 28
+    premise: "The patient has a peak flow measurement of 60% of predicted."
+    hypothesis: "The patient has severe asthma."
+    label: "entailment"
+  - id: 29
+    premise: "The patient's chest X-ray shows no infiltrates."
+    hypothesis: "The patient has pneumonia."
+    label: "contradiction"
+  - id: 30
+    premise: "The patient has a positive COVID-19 test."
+    hypothesis: "The patient has a viral respiratory infection."
+    label: "entailment"
+
+  # Medication examples
+  - id: 31
+    premise: "The patient is taking metformin 1000mg twice daily."
+    hypothesis: "The patient has type 2 diabetes."
+    label: "neutral"
+  - id: 32
+    premise: "The patient is allergic to penicillin."
+    hypothesis: "The patient can take amoxicillin."
+    label: "contradiction"
+  - id: 33
+    premise: "The patient is taking warfarin."
+    hypothesis: "The patient is on an anticoagulant."
+    label: "entailment"
+  - id: 34
+    premise: "The patient takes levothyroxine 75mcg daily."
+    hypothesis: "The patient has hypothyroidism."
+    label: "neutral"
+  - id: 35
+    premise: "The patient is on a beta blocker."
+    hypothesis: "The patient has hypertension."
+    label: "neutral"
+
+  # General medical concepts
+  - id: 36
+    premise: "The patient's blood pressure is 165/95 mmHg."
+    hypothesis: "The patient has stage 2 hypertension."
+    label: "entailment"
+  - id: 37
+    premise: "The patient's BMI is 32 kg/m²."
+    hypothesis: "The patient is obese."
+    label: "entailment"
+  - id: 38
+    premise: "The patient has a family history of breast cancer."
+    hypothesis: "The patient has breast cancer."
+    label: "neutral"
+  - id: 39
+    premise: "The patient has a history of DVT and is non-ambulatory."
+    hypothesis: "The patient is at risk for pulmonary embolism."
+    label: "entailment"
+  - id: 40
+    premise: "The patient had a total knee replacement 3 days ago."
+    hypothesis: "The patient requires DVT prophylaxis."
+    label: "entailment"

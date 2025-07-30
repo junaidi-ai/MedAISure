@@ -2,7 +2,7 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
+yarn-debug.log
 yarn-error.log*
 dev-debug.log
 
@@ -11,13 +11,59 @@ node_modules/
 
 # Virtual Environment
 venv/
+ENV/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
-# Editor directories and files
-.idea
-.vscode
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Model files
+models/
+!models/README.md
+
+# Test and coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE and Editor
+.idea/
+.vscode/
 *.suo
 *.ntvs*
 *.njsproj
@@ -26,3 +72,18 @@ venv/
 
 # OS specific
 .DS_Store
+Thumbs.db
+
+# Local development
+bench/results/
+bench/training/__pycache__/
+bench/examples/__pycache__/
+
+# Package
+meddsai_benchmark.egg-info/
+
+# Local development scripts
+verify_imports.py
+
+# Pre-commit
+.pre-commit-config.yaml
