@@ -69,8 +69,15 @@ def test_load_local_model(model_runner, mock_model, tmp_path):
 
 def test_run_model(model_runner, mock_model):
     """Test running a model on a batch of inputs."""
-    # Register the mock model
-    model_runner._models["test_model"] = mock_model
+    # Register the mock model and its configuration
+    model_id = "test_model"
+    model_runner._models[model_id] = mock_model
+    model_runner._model_configs[model_id] = {
+        "type": "local",
+        "path": "/path/to/test_model",
+        "module": "test_module",
+        "load_func": "load_model",
+    }
 
     # Configure the mock to return a specific result
     expected_results = [

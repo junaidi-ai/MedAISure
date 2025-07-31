@@ -4,16 +4,20 @@ import json
 import logging
 import time
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypeVar
 
 import yaml
 from tqdm import tqdm
 
+from ..models.benchmark_report import BenchmarkReport
+from ..models.evaluation_result import EvaluationResult
+from ..models.medical_task import MedicalTask
 from .metric_calculator import MetricCalculator
 from .model_runner import ModelRunner
-from .result_aggregator import BenchmarkReport, ResultAggregator, TaskResult
-from .task_loader import MedicalTask, TaskLoader
+from .result_aggregator import ResultAggregator
+from .task_loader import TaskLoader
 
 logger = logging.getLogger(__name__)
 
@@ -138,11 +142,18 @@ class EvaluationHarness:
                 # Store results
                 task_results[task_id] = task_result
 
-                # Log progress
-                logger.info(
-                    f"Completed task {task_id} - "
-                    f"Metrics: {json.dumps(task_result.metrics, indent=2)}"
-                )
+                # Log progress - access metrics_results from the EvaluationResult object
+                if (
+                    hasattr(task_result, "detailed_results")
+                    and task_result.detailed_results
+                ):
+                    metrics = task_result.detailed_results[0].metrics_results
+                    logger.info(
+                        f"Completed task {task_id} - "
+                        f"Metrics: {json.dumps(metrics, indent=2)}"
+                    )
+                else:
+                    logger.warning(f"No detailed results available for task {task_id}")
 
             except Exception as e:
                 logger.error(
@@ -154,13 +165,69 @@ class EvaluationHarness:
         # Calculate total time
         total_time = time.time() - start_time
 
-        # Create benchmark report
+        # Prepare task scores and detailed results
+        task_scores = {}
+        detailed_results = []
+
+        for task_id, result in task_results.items():
+            # Extract metrics from the result
+            if hasattr(result, "metrics_results"):
+                metrics = result.metrics_results
+            elif hasattr(result, "detailed_results") and result.detailed_results:
+                metrics = result.detailed_results[0].metrics_results
+            else:
+                metrics = {}
+
+            # Add to task scores (using the first metric as the score for now)
+            if metrics and isinstance(metrics, dict) and metrics:
+                # Get the first metric value and ensure it's a float
+                first_metric_value = next(iter(metrics.values()))
+                if isinstance(first_metric_value, (int, float)):
+                    task_scores[task_id] = {"average_score": float(first_metric_value)}
+                else:
+                    task_scores[task_id] = {"average_score": 0.0}
+                    logger.warning(
+                        f"Non-numeric metric value for task {task_id}: "
+                        f"{first_metric_value}"
+                    )
+            else:
+                task_scores[task_id] = {"average_score": 0.0}
+                if not metrics:
+                    logger.warning(f"No metrics available for task {task_id}")
+
+            # Add to detailed results
+            if hasattr(result, "detailed_results"):
+                detailed_results.extend(result.detailed_results)
+
+        # Calculate overall scores (average of all task scores)
+        overall_scores = {"average_score": 0.0}
+        if task_scores:
+            overall_scores["average_score"] = sum(
+                score["average_score"] for score in task_scores.values()
+            ) / len(task_scores)
+
+        # Create benchmark report with all required fields
         report = BenchmarkReport(
-            run_id=run_id,
-            timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            model_name=model_id,
-            task_results=task_results,
+            model_id=model_id,
+            overall_scores=overall_scores,
+            task_scores=task_scores,
+            detailed_results=detailed_results
+            or [
+                EvaluationResult(
+                    model_id=model_id,
+                    task_id="unknown",
+                    inputs=[],
+                    model_outputs=[],
+                    metrics_results={"score": 0.0},
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    metadata={
+                        "note": "Placeholder result - no tasks completed successfully"
+                    },
+                )
+            ],
             metadata={
+                "run_id": run_id,
+                "model_name": model_id,
                 "total_time_seconds": total_time,
                 "num_tasks": len(task_results),
                 "batch_size": batch_size,
@@ -183,7 +250,7 @@ class EvaluationHarness:
         model_id: str,
         task: MedicalTask,
         batch_size: int = 8,
-    ) -> TaskResult:
+    ) -> EvaluationResult:
         """Evaluate a single task.
 
         Args:
@@ -193,7 +260,7 @@ class EvaluationHarness:
             batch_size: Batch size for evaluation
 
         Returns:
-            TaskResult containing evaluation results
+            EvaluationResult containing evaluation results
         """
 
         # Prepare inputs
@@ -209,25 +276,34 @@ class EvaluationHarness:
 
         # Calculate metrics
         logger.info("Calculating metrics...")
+        # Extract metric names, handling both dict and str cases
+        metric_names: List[str] = []
+        if hasattr(task, "metrics") and task.metrics:
+            for m in task.metrics:
+                if isinstance(m, dict) and "name" in m:
+                    metric_names.append(str(m["name"]))
+                elif isinstance(m, str):
+                    metric_names.append(m)
+
         metric_results = self.metric_calculator.calculate_metrics(
             task_id=task.task_id,
             predictions=predictions,
             references=inputs,
-            metric_names=[m["name"] for m in task.metrics],
+            metric_names=metric_names,
         )
 
         # Extract metric values
         metrics = {name: result.value for name, result in metric_results.items()}
 
-        # Create task result
-        return TaskResult(
+        # Create evaluation result
+        return EvaluationResult(
+            model_id=model_id,
             task_id=task.task_id,
-            metrics=metrics,
-            num_examples=len(inputs),
+            inputs=inputs,
+            model_outputs=predictions,
+            metrics_results=metrics,
             metadata={
                 "timestamp": time.time(),
-                "model_id": model_id,
-                "task_id": task.task_id,
                 "batch_size": batch_size,
                 "metrics_metadata": {
                     name: asdict(result) for name, result in metric_results.items()
@@ -275,7 +351,7 @@ class EvaluationHarness:
             cache_key: Path to the cache file, or None if caching is disabled
 
         Returns:
-            Cached TaskResult if available and valid, None otherwise
+            Cached EvaluationResult if available and valid, None otherwise
         """
         if not cache_key or not Path(cache_key).exists():
             return None
@@ -284,10 +360,10 @@ class EvaluationHarness:
             with open(cache_key, "r") as f:
                 data = json.load(f)
 
-            # Import here to avoid circular imports
-            from .result_aggregator import TaskResult as ResultAggregatorTaskResult
+            # Convert the loaded data into an EvaluationResult
+            from ..models.evaluation_result import EvaluationResult
 
-            return ResultAggregatorTaskResult(**data)
+            return EvaluationResult(**data)
 
         except Exception as e:
             logger.warning(f"Error loading from cache {cache_key}: {str(e)}")
@@ -298,14 +374,26 @@ class EvaluationHarness:
 
         Args:
             cache_key: Path to the cache file, or None if caching is disabled
-            data: Data to cache (must be serializable)
+            data: Data to cache (must be an EvaluationResult or serializable dict)
         """
         if not cache_key:
             return
 
         try:
-            with open(cache_key, "w") as f:
-                json.dump(asdict(data), f, indent=2)
+            # Create parent directories if they don't exist
+            cache_path = Path(cache_key)
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Convert data to dict if it's an EvaluationResult
+            if hasattr(data, "model_dump"):
+                data_dict = data.model_dump()
+            elif hasattr(data, "dict"):
+                data_dict = data.dict()  # Fallback for older Pydantic versions
+            else:
+                data_dict = data
+
+            with open(cache_path, "w") as f:
+                json.dump(data_dict, f, indent=2, default=str)
         except Exception as e:
             logger.warning(f"Error saving to cache {cache_key}: {str(e)}")
 

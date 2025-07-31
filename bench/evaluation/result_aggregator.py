@@ -1,64 +1,14 @@
 """Result aggregation for MEDDSAI benchmark."""
 
-import datetime
-import hashlib
-import json
 import logging
-from collections import defaultdict
-from dataclasses import asdict, dataclass, field
-from datetime import timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
+
+from ..models.benchmark_report import BenchmarkReport
+from ..models.evaluation_result import EvaluationResult
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TaskResult:
-    """Stores evaluation results for a single task."""
-
-    task_id: str
-    metrics: Dict[str, float]
-    num_examples: int
-    timestamp: str = field(
-        default_factory=lambda: datetime.datetime.now(timezone.utc).isoformat()
-    )
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class BenchmarkReport:
-    """Stores aggregated evaluation results across multiple tasks."""
-
-    run_id: str
-    timestamp: str
-    model_name: str
-    task_results: Dict[str, TaskResult]
-    metrics_summary: Dict[str, float] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert the report to a dictionary."""
-        return {
-            "run_id": self.run_id,
-            "timestamp": self.timestamp,
-            "model_name": self.model_name,
-            "task_results": {
-                task_id: asdict(result) for task_id, result in self.task_results.items()
-            },
-            "metrics_summary": self.metrics_summary,
-            "metadata": self.metadata,
-        }
-
-    def save(self, output_path: Union[str, Path]) -> None:
-        """Save the report to a JSON file."""
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
-
-        logger.info(f"Saved benchmark report to {output_path}")
 
 
 class ResultAggregator:
@@ -80,65 +30,60 @@ class ResultAggregator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # In-memory storage of results
-        self.results: Dict[str, Dict[str, TaskResult]] = {}
+        self.reports: Dict[str, BenchmarkReport] = {}
 
-    def add_result(
+    def add_evaluation_result(
         self,
-        run_id: str,
-        task_id: str,
-        metrics: Dict[str, float],
-        num_examples: int,
-        metadata: Optional[Dict[str, Any]] = None,
+        evaluation_result: EvaluationResult,
+        run_id: Optional[str] = None,
     ) -> None:
-        """Add a task result to the aggregator.
+        """Add an evaluation result to the aggregator.
 
         Args:
-            run_id: Unique identifier for this evaluation run.
-            task_id: Identifier for the evaluated task.
-            metrics: Dictionary of metric names to values.
-            num_examples: Number of examples evaluated.
-            metadata: Additional metadata about the evaluation.
+            evaluation_result: The evaluation result to add
+            run_id: Optional run ID to associate with this result. If not provided,
+                   a new run will be created.
         """
-        if run_id not in self.results:
-            self.results[run_id] = {}
+        if run_id is None:
+            # Generate a deterministic run ID if not provided
+            run_id = self.generate_run_id(
+                model_name=evaluation_result.metadata.get("model_name", "unknown"),
+                task_ids=[evaluation_result.task_id],
+                timestamp=evaluation_result.timestamp.isoformat(),
+            )
 
-        self.results[run_id][task_id] = TaskResult(
-            task_id=task_id,
-            metrics=metrics,
-            num_examples=num_examples,
-            metadata=metadata or {},
-        )
+        if run_id not in self.reports:
+            # Create a new report for this run
+            self.reports[run_id] = BenchmarkReport(
+                model_id=evaluation_result.model_id,
+                timestamp=evaluation_result.timestamp,
+                overall_scores={},
+                task_scores={},
+                detailed_results=[],
+                metadata={
+                    "run_id": run_id,
+                    "start_time": evaluation_result.timestamp.isoformat(),
+                },
+            )
 
-    def generate_report(
-        self, run_id: str, model_name: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> BenchmarkReport:
-        """Generate a benchmark report for the given run.
+        # Add the evaluation result to the report
+        self.reports[run_id].add_evaluation_result(evaluation_result)
+
+    def get_report(self, run_id: str) -> BenchmarkReport:
+        """Get a benchmark report for the given run ID.
 
         Args:
-            run_id: The run to generate a report for.
-            model_name: Name of the model being evaluated.
-            metadata: Additional metadata to include in the report.
+            run_id: The run ID to get the report for.
 
         Returns:
-            A BenchmarkReport object with aggregated results.
+            The BenchmarkReport for the specified run.
+
+        Raises:
+            ValueError: If no report exists for the given run_id.
         """
-        if run_id not in self.results or not self.results[run_id]:
-            raise ValueError(f"No results found for run_id: {run_id}")
-
-        # Aggregate metrics across tasks
-        metrics_summary = self._aggregate_metrics(run_id)
-
-        # Create the report
-        report = BenchmarkReport(
-            run_id=run_id,
-            timestamp=datetime.datetime.now(timezone.utc).isoformat(),
-            model_name=model_name,
-            task_results=self.results[run_id].copy(),
-            metrics_summary=metrics_summary,
-            metadata=metadata or {},
-        )
-
-        return report
+        if run_id not in self.reports:
+            raise ValueError(f"No report found for run {run_id}")
+        return self.reports[run_id]
 
     def save_report(
         self, report: BenchmarkReport, output_path: Optional[Union[str, Path]] = None
@@ -157,7 +102,7 @@ class ResultAggregator:
             safe_model_name = "".join(
                 c if c.isalnum() else "_" for c in report.model_name
             )
-            timestamp = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
             output_path = self.output_dir / f"{safe_model_name}_{timestamp}.json"
         else:
             output_path = Path(output_path)
@@ -167,34 +112,21 @@ class ResultAggregator:
         return output_path
 
     def _aggregate_metrics(self, run_id: str) -> Dict[str, float]:
-        """Compute aggregate metrics across all tasks in a run."""
-        if run_id not in self.results or not self.results[run_id]:
+        """Compute aggregate metrics across all tasks in a run.
+
+        Args:
+            run_id: The run ID to aggregate metrics for.
+
+        Returns:
+            Dictionary of aggregated metric names to values.
+
+        Note:
+            This method is kept for backward compatibility but is no longer used
+            internally as aggregation is now handled by the BenchmarkReport class.
+        """
+        if run_id not in self.reports:
             return {}
-
-        # Initialize dictionaries to store metric values and weights
-        metric_sums: Dict[str, float] = defaultdict(float)
-        total_weight = 0
-
-        # Calculate weighted sum for each metric
-        for task_result in self.results[run_id].values():
-            weight = task_result.num_examples
-            total_weight += weight
-
-            for metric_name, value in task_result.metrics.items():
-                metric_sums[metric_name] += value * weight
-
-        # Compute weighted average for each metric
-        metrics_summary = {}
-        if total_weight > 0:
-            metrics_summary = {
-                metric: total / total_weight for metric, total in metric_sums.items()
-            }
-
-        # Add count of tasks and total examples
-        metrics_summary["num_tasks"] = len(self.results[run_id])
-        metrics_summary["total_examples"] = total_weight
-
-        return metrics_summary
+        return self.reports[run_id].overall_scores
 
     @classmethod
     def generate_run_id(
@@ -215,18 +147,19 @@ class ResultAggregator:
         Returns:
             A deterministic run ID string.
         """
-        if timestamp is None:
-            timestamp = datetime.datetime.now(timezone.utc).isoformat()
+        import hashlib
 
-        # Create a unique string
+        if timestamp is None:
+            timestamp = datetime.utcnow().isoformat()
+
+        # Create a unique string from the inputs
         unique_str = f"{model_name}:{':'.join(sorted(task_ids))}:{timestamp}"
 
         # Generate a hash
-        hash_obj = hashlib.md5(unique_str.encode("utf-8"))
-        short_hash = hash_obj.hexdigest()[:8]
+        hash_obj = hashlib.sha256(unique_str.encode())
+        hash_hex = hash_obj.hexdigest()
 
-        # Create a readable prefix
-        safe_model = "".join(c if c.isalnum() else "_" for c in model_name.lower())
-        prefix = f"{safe_model[:12]}_{short_hash}"
-
-        return prefix[-max_length:] if max_length > 0 else prefix
+        # Truncate to max_length if needed
+        if len(hash_hex) > max_length:
+            return hash_hex[:max_length]
+        return hash_hex.lower()

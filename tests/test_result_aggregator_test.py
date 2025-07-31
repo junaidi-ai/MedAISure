@@ -1,10 +1,12 @@
 """Tests for the ResultAggregator component."""
 
+import json
 from datetime import datetime, timezone
 
 import pytest
 
-from bench.evaluation.result_aggregator import ResultAggregator, TaskResult
+from bench.evaluation.result_aggregator import ResultAggregator
+from bench.models.evaluation_result import EvaluationResult
 
 
 @pytest.fixture
@@ -14,113 +16,104 @@ def result_aggregator(tmp_path):
 
 
 @pytest.fixture
-def sample_task_results():
-    """Create sample task results for testing."""
-    timestamp = datetime.now(timezone.utc).isoformat()
+def sample_evaluation_results():
+    """Create sample evaluation results for testing."""
+    timestamp = datetime.now(timezone.utc)
     return [
-        TaskResult(
+        EvaluationResult(
+            model_id="test_model",
             task_id="task1",
-            metrics={"accuracy": 0.9, "f1": 0.85},
-            num_examples=100,
+            inputs=[{"input": "test input 1"}],
+            model_outputs=[{"output": "test output 1"}],
+            metrics_results={"accuracy": 0.9, "f1": 0.85},
+            metadata={"num_examples": 100},
             timestamp=timestamp,
-            metadata={"model": "test_model"},
         ),
-        TaskResult(
+        EvaluationResult(
+            model_id="test_model",
             task_id="task2",
-            metrics={"accuracy": 0.8, "f1": 0.75},
-            num_examples=200,
+            inputs=[{"input": "test input 2"}],
+            model_outputs=[{"output": "test output 2"}],
+            metrics_results={"accuracy": 0.8, "f1": 0.75},
+            metadata={"num_examples": 200},
             timestamp=timestamp,
-            metadata={"model": "test_model"},
         ),
     ]
 
 
 def test_add_result(result_aggregator):
-    """Test adding task results to the aggregator."""
+    """Test adding evaluation results to the aggregator."""
     run_id = "test_run"
-    TaskResult(task_id="test_task", metrics={"accuracy": 0.9}, num_examples=100)
-
-    result_aggregator.add_result(
-        run_id=run_id, task_id="test_task", metrics={"accuracy": 0.9}, num_examples=100
+    result = EvaluationResult(
+        model_id="test_model",
+        task_id="test_task",
+        inputs=[{"input": "test input"}],
+        model_outputs=[{"output": "test output"}],
+        metrics_results={"accuracy": 0.9},
+        metadata={"num_examples": 100},
     )
 
-    assert run_id in result_aggregator.results
-    assert "test_task" in result_aggregator.results[run_id]
-    assert result_aggregator.results[run_id]["test_task"].metrics["accuracy"] == 0.9
+    result_aggregator.add_evaluation_result(result, run_id)
+    report = result_aggregator.get_report(run_id)
+
+    assert report is not None
+    assert report.model_id == "test_model"
+    assert "test_task" in report.task_scores
+    assert report.task_scores["test_task"]["accuracy"] == 0.9
 
 
-def test_generate_report(result_aggregator, sample_task_results):
+def test_generate_report(result_aggregator, sample_evaluation_results):
     """Test generating a benchmark report."""
     run_id = "test_run"
-    model_name = "test_model"
 
-    # Add sample results
-    for task_result in sample_task_results:
-        result_aggregator.add_result(
-            run_id=run_id,
-            task_id=task_result.task_id,
-            metrics=task_result.metrics,
-            num_examples=task_result.num_examples,
-            metadata=task_result.metadata,
-        )
+    # Add multiple evaluation results
+    for result in sample_evaluation_results:
+        result_aggregator.add_evaluation_result(result, run_id)
 
-    # Generate report
-    report = result_aggregator.generate_report(
-        run_id=run_id, model_name=model_name, metadata={"version": "1.0"}
-    )
+    # Generate and get report
+    report = result_aggregator.get_report(run_id)
 
-    # Check report
-    assert report.run_id == run_id
-    assert report.model_name == model_name
-    assert len(report.task_results) == 2
-    assert "task1" in report.task_results
-    assert "task2" in report.task_results
-    assert report.metadata["version"] == "1.0"
+    # Verify report structure
+    assert report is not None
+    assert report.model_id == "test_model"
+    assert len(report.task_scores) == 2
+    assert "task1" in report.task_scores
+    assert "task2" in report.task_scores
 
-    # Check metrics summary (weighted average)
-    # Only check if metrics_summary exists and has the expected keys
-    assert hasattr(report, "metrics_summary")
-    assert isinstance(report.metrics_summary, dict)
+    # Verify metrics aggregation (simple average across tasks)
+    assert report.overall_scores["accuracy"] == pytest.approx(0.85)  # (0.9 + 0.8) / 2
+    assert report.overall_scores["f1"] == pytest.approx(0.8)  # (0.85 + 0.75) / 2
 
-    # If there are metrics in the summary, check the calculation
-    if report.metrics_summary:
-        expected_accuracy = (0.9 * 100 + 0.8 * 200) / 300
-        assert (
-            abs(report.metrics_summary.get("accuracy", 0) - expected_accuracy) < 0.0001
-        )
+    # Verify detailed results
+    assert len(report.detailed_results) == 2
 
 
-def test_save_report(result_aggregator, sample_task_results, tmp_path):
+def test_save_report(result_aggregator, sample_evaluation_results, tmp_path):
     """Test saving a benchmark report to disk."""
     run_id = "test_run"
 
-    # Add sample results and generate report
-    for task_result in sample_task_results:
-        result_aggregator.add_result(
-            run_id=run_id,
-            task_id=task_result.task_id,
-            metrics=task_result.metrics,
-            num_examples=task_result.num_examples,
-            metadata=task_result.metadata,
-        )
+    # Add some results
+    for result in sample_evaluation_results:
+        result_aggregator.add_evaluation_result(result, run_id)
 
-    report = result_aggregator.generate_report(run_id=run_id, model_name="test_model")
+    # Get the report and save it
+    report = result_aggregator.get_report(run_id)
+    output_file = tmp_path / "test_report.json"
+    result_aggregator.save_report(report, output_file)
 
-    # Save report
-    output_path = tmp_path / "test_report.json"
-    saved_path = result_aggregator.save_report(report, output_path=output_path)
+    # Verify file was created
+    assert output_file.exists()
 
-    # Check file was created
-    assert saved_path == output_path
-    assert output_path.exists()
+    # Load and verify the saved data
+    with open(output_file, "r") as f:
+        data = json.load(f)
 
-    # Check file content
-    with open(output_path, "r") as f:
-        data = f.read()
-        assert run_id in data
-        assert "test_model" in data
-        assert "task1" in data
-        assert "task2" in data
+    assert data["model_id"] == "test_model"
+    assert len(data["task_scores"]) == 2
+    assert "task1" in data["task_scores"]
+    assert "task2" in data["task_scores"]
+    assert "overall_scores" in data
+    assert "detailed_results" in data
 
 
 def test_generate_run_id():

@@ -86,9 +86,7 @@ def run_example() -> None:
         use_cache = False
 
         # Load the task to inspect the dataset
-        from bench.evaluation.task_loader import (  # Import the MedicalTask class
-            MedicalTask,
-        )
+        from bench.models.medical_task import MedicalTask
 
         task: MedicalTask = harness.task_loader.load_task(task_id)
         print(f"\nTask dataset has {len(task.dataset) if task.dataset else 0} examples")
