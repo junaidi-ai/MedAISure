@@ -8,6 +8,7 @@ import pytest
 
 from bench.evaluation import EvaluationHarness
 from bench.models.benchmark_report import BenchmarkReport
+from bench.models.evaluation_result import EvaluationResult
 from bench.models.medical_task import MedicalTask, TaskType
 
 
@@ -181,7 +182,6 @@ def test_evaluate(
     mock_metric_calculator = MagicMock()
 
     # Create a mock task result to be returned by _evaluate_task
-    from bench.models.evaluation_result import EvaluationResult
 
     mock_task_result = EvaluationResult(
         model_id="test_model",

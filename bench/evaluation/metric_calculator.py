@@ -123,8 +123,6 @@ class MetricCalculator:
         text = text.lower()
         text = re.sub(r"\s+", " ", text).strip()
         # remove simple punctuation
-        text = re.sub(r"[\p{Punct}]", "", text)
-        # Fallback if \p{Punct} unsupported in some regex engines
         text = re.sub(r"[\.,!?;:\-\(\)\[\]\{\}\'\"]", "", text)
         return text
 

@@ -1,7 +1,7 @@
 """Result aggregation for MEDDSAI benchmark."""
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -102,7 +102,7 @@ class ResultAggregator:
             safe_model_name = "".join(
                 c if c.isalnum() else "_" for c in report.model_name
             )
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             output_path = self.output_dir / f"{safe_model_name}_{timestamp}.json"
         else:
             output_path = Path(output_path)
@@ -150,7 +150,7 @@ class ResultAggregator:
         import hashlib
 
         if timestamp is None:
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = datetime.now(UTC).isoformat()
 
         # Create a unique string from the inputs
         unique_str = f"{model_name}:{':'.join(sorted(task_ids))}:{timestamp}"
