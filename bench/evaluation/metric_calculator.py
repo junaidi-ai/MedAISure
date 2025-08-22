@@ -1,6 +1,23 @@
-"""Metric calculator implementation for MEDDSAI benchmark."""
+"""Metric calculator implementation for MEDDSAI benchmark.
+
+Adds simple built-in medical metrics:
+- clinical_correctness: normalized string match between predicted answer and
+  reference answer
+- diagnostic_accuracy: alias of accuracy for diagnosis classification
+- reasoning_quality: token-overlap F1 between predicted and reference
+  rationale/explanation
+- rouge_l: ROUGE-L F1 between predicted summary and reference summary
+- clinical_relevance: token Jaccard between predicted summary and source
+  note/context
+- factual_consistency: token-overlap F1 between predicted summary and reference
+  summary
+
+These are lightweight heuristics to enable basic evaluations for QA, diagnostic, and
+summarization tasks without introducing heavy dependencies (except rouge-score).
+"""
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -47,6 +64,7 @@ class MetricCalculator:
     def __init__(self) -> None:
         self.metrics: Dict[str, Dict[str, Any]] = {}
         self._register_builtin_metrics()
+        self._register_medical_metrics()
 
     def _register_builtin_metrics(self) -> None:
         """Register all built-in metrics."""
@@ -67,6 +85,143 @@ class MetricCalculator:
             **default_kwargs: Default arguments to pass to the metric function
         """
         self.metrics[name] = {"function": metric_func, "default_kwargs": default_kwargs}
+
+    # ----------------------------
+    # Medical metrics registration
+    # ----------------------------
+    def _register_medical_metrics(self) -> None:
+        """Register additional medical-specific metrics with simple heuristics."""
+        # Diagnostic accuracy is simply accuracy over diagnosis labels
+        self.register_metric("diagnostic_accuracy", accuracy_score)
+
+        # Clinical correctness: normalized exact/substring match between
+        # prediction and reference answer
+        self.register_metric("clinical_correctness", self._metric_clinical_correctness)
+
+        # Reasoning quality: token overlap F1 between predicted and reference
+        # rationale/explanation
+        self.register_metric("reasoning_quality", self._metric_text_f1)
+
+        # ROUGE-L for summaries (implemented via rouge-score)
+        self.register_metric("rouge_l", self._metric_rouge_l)
+
+        # Clinical relevance: Jaccard similarity between predicted summary and
+        # source note/context
+        self.register_metric("clinical_relevance", self._metric_jaccard)
+
+        # Factual consistency: token-overlap F1 between predicted and reference summary
+        self.register_metric("factual_consistency", self._metric_text_f1)
+
+    # ----------------------------
+    # Helpers for text normalization
+    # ----------------------------
+    @staticmethod
+    def _normalize_text(s: Any) -> str:
+        if s is None:
+            return ""
+        text = str(s)
+        text = text.lower()
+        text = re.sub(r"\s+", " ", text).strip()
+        # remove simple punctuation
+        text = re.sub(r"[\p{Punct}]", "", text)
+        # Fallback if \p{Punct} unsupported in some regex engines
+        text = re.sub(r"[\.,!?;:\-\(\)\[\]\{\}\'\"]", "", text)
+        return text
+
+    @staticmethod
+    def _tokenize(s: Any) -> List[str]:
+        norm = MetricCalculator._normalize_text(s)
+        return norm.split() if norm else []
+
+    # ----------------------------
+    # Metric implementations
+    # ----------------------------
+    def _metric_clinical_correctness(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
+        """Binary correctness via normalized exact or substring match of answers."""
+        scores: List[float] = []
+        for t, p in zip(y_true, y_pred):
+            t_norm = self._normalize_text(t)
+            p_norm = self._normalize_text(p)
+            if not t_norm and not p_norm:
+                scores.append(1.0)
+            elif not t_norm or not p_norm:
+                scores.append(0.0)
+            elif t_norm == p_norm or (t_norm in p_norm) or (p_norm in t_norm):
+                scores.append(1.0)
+            else:
+                scores.append(0.0)
+        return float(sum(scores) / len(scores)) if scores else float("nan")
+
+    def _metric_text_f1(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
+        """Simple token-overlap F1 score averaged across examples."""
+
+        def f1_score_text(a: Any, b: Any) -> float:
+            a_tokens = self._tokenize(a)
+            b_tokens = self._tokenize(b)
+            if not a_tokens and not b_tokens:
+                return 1.0
+            if not a_tokens or not b_tokens:
+                return 0.0
+            common = 0
+            b_count: Dict[str, int] = {}
+            for tok in b_tokens:
+                b_count[tok] = b_count.get(tok, 0) + 1
+            for tok in a_tokens:
+                if b_count.get(tok, 0) > 0:
+                    common += 1
+                    b_count[tok] -= 1
+            precision = common / len(b_tokens)
+            recall = common / len(a_tokens)
+            if precision + recall == 0:
+                return 0.0
+            return 2 * precision * recall / (precision + recall)
+
+        scores = [f1_score_text(t, p) for t, p in zip(y_true, y_pred)]
+        return float(sum(scores) / len(scores)) if scores else float("nan")
+
+    def _metric_jaccard(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
+        """Token Jaccard similarity averaged across examples."""
+        scores: List[float] = []
+        for t, p in zip(y_true, y_pred):
+            set_t = set(self._tokenize(t))
+            set_p = set(self._tokenize(p))
+            if not set_t and not set_p:
+                scores.append(1.0)
+            elif not set_t or not set_p:
+                scores.append(0.0)
+            else:
+                inter = len(set_t & set_p)
+                union = len(set_t | set_p)
+                scores.append(inter / union if union else 0.0)
+        return float(sum(scores) / len(scores)) if scores else float("nan")
+
+    def _metric_rouge_l(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
+        """Compute average ROUGE-L F1 using rouge-score. Returns NaN if unavailable."""
+        try:
+            from rouge_score import rouge_scorer
+        except Exception as e:  # pragma: no cover - soft dependency
+            logger.error(f"rouge-score not available: {e}")
+            return float("nan")
+
+        scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
+        scores: List[float] = []
+        for t, p in zip(y_true, y_pred):
+            t_s = str(t) if t is not None else ""
+            p_s = str(p) if p is not None else ""
+            try:
+                res = scorer.score(t_s, p_s)
+                scores.append(float(res["rougeL"].fmeasure))
+            except Exception:
+                scores.append(0.0)
+        return float(sum(scores) / len(scores)) if scores else float("nan")
 
     def calculate_metrics(
         self,
@@ -234,21 +389,62 @@ class MetricCalculator:
             Tuple of (y_true, y_pred) for the metric function
         """
         # Default behavior: extract 'label' from references and handle both
-        # 'label' and 'prediction' from predictions
+        # 'label' and 'prediction' from predictions. Some metrics override
+        # fields to better fit task types (QA, diagnostic, summarization).
         try:
-            # Extract true labels from references
-            y_true: List[Any] = [ref.get("label") for ref in references]
+            # Choose reference and prediction fields based on metric
+            ref_field = "label"
+            pred_field_candidates = ["label", "prediction", "text", "summary"]
 
-            # Extract predictions - try 'label' first, then fall back to 'prediction'
+            if metric_name in ["clinical_correctness"]:
+                ref_field = "answer"
+                pred_field_candidates = ["label", "prediction", "answer", "text"]
+            elif metric_name in ["diagnostic_accuracy"]:
+                # by default use 'label', fallback to 'diagnosis'
+                ref_field = "label"
+            elif metric_name in ["rouge_l", "factual_consistency"]:
+                # compare against reference summary
+                ref_field = "summary"
+                pred_field_candidates = ["summary", "prediction", "text", "label"]
+            elif metric_name in ["clinical_relevance"]:
+                # compare predicted summary to source note/context
+                ref_field = "note"
+                pred_field_candidates = ["summary", "prediction", "text", "label"]
+            elif metric_name in ["reasoning_quality"]:
+                ref_field = "rationale"
+                pred_field_candidates = [
+                    "rationale",
+                    "explanation",
+                    "prediction",
+                    "label",
+                    "text",
+                ]
+
+            # Extract true values from references with fallback chain
+            y_true: List[Any] = []
+            for ref in references:
+                if isinstance(ref, dict):
+                    val = ref.get(ref_field)
+                    if val is None and ref_field == "label":
+                        val = ref.get("diagnosis")
+                    if val is None and ref_field == "rationale":
+                        val = ref.get("explanation")
+                    if val is None and ref_field == "summary":
+                        val = ref.get("reference_summary")
+                    y_true.append(val)
+                else:
+                    y_true.append(None)
+
+            # Extract predictions using candidate fields in order
             y_pred: List[Any] = []
             for pred in predictions:
                 if isinstance(pred, dict):
-                    if "label" in pred:
-                        y_pred.append(pred["label"])
-                    elif "prediction" in pred:
-                        y_pred.append(pred["prediction"])
-                    else:
-                        y_pred.append(None)
+                    chosen = None
+                    for f in pred_field_candidates:
+                        if f in pred and pred.get(f) not in (None, ""):
+                            chosen = pred.get(f)
+                            break
+                    y_pred.append(chosen)
                 else:
                     y_pred.append(pred)
 
@@ -264,18 +460,30 @@ class MetricCalculator:
                     unique_labels = sorted(unique_labels)
                     y_true = [1 if label == unique_labels[1] else 0 for label in y_true]
 
-            # Ensure all labels are numeric for classification metrics
+            # Ensure all labels are numeric for classification metrics only
             if (
-                metric_name not in ["roc_auc", "average_precision"]
+                metric_name
+                in ["accuracy", "precision", "recall", "f1", "diagnostic_accuracy"]
                 and y_true
                 and y_pred
             ):
                 # Convert string labels to integers if needed
                 if isinstance(y_true[0], str) or isinstance(y_pred[0], str):
-                    all_labels = sorted(set(y_true + y_pred))
+                    all_labels = sorted(
+                        set(
+                            [x for x in y_true if x is not None]
+                            + [x for x in y_pred if x is not None]
+                        )
+                    )
                     label_to_int = {label: i for i, label in enumerate(all_labels)}
-                    y_true = [label_to_int.get(label, -1) for label in y_true]
-                    y_pred = [label_to_int.get(label, -1) for label in y_pred]
+                    y_true = [
+                        label_to_int.get(label, -1) if label is not None else -1
+                        for label in y_true
+                    ]
+                    y_pred = [
+                        label_to_int.get(label, -1) if label is not None else -1
+                        for label in y_pred
+                    ]
 
             return y_true, y_pred
 

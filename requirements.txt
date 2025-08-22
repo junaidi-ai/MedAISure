@@ -5,6 +5,9 @@ protobuf>=3.20.0
 pydantic>=1.10.0
 pyyaml>=6.0
 requests>=2.31.0
+
+# Text metrics
+rouge-score>=0.1.2
 scikit-learn>=1.0.0
 sentencepiece>=0.1.99
 torch>=2.0.0

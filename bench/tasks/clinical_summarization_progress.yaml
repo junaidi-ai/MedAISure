@@ -1,0 +1,43 @@
+task_type: "summarization"
+name: "Clinical Summarization - Progress Notes"
+description: "Summarize daily progress notes concisely while preserving key clinical facts."
+inputs:
+  - text: "Hospital day 2: Patient with COPD exacerbation on nebulized bronchodilators and steroids; oxygen sats improved from 88% to 94% on 2L NC; afebrile; WBC trending down."
+  - text: "Hospital day 3: Sepsis secondary to pyelonephritis; receiving IV ceftriaxone; fever resolved; BP stable; urine output improved; plan to transition to oral antibiotics tomorrow."
+expected_outputs:
+  - summary: "COPD exacerbation improving on bronchodilators/steroids; O2 94% on 2L; WBC down; afebrile."
+  - summary: "Sepsis due to pyelonephritis improving on ceftriaxone; fever resolved; stable; plan oral antibiotics tomorrow."
+input_schema:
+  type: "object"
+  properties:
+    text:
+      type: "string"
+      description: "Clinical note text used as model input (duplicate of note)."
+    note:
+      type: "string"
+      description: "Original clinical note for relevance comparison."
+  required: ["text"]
+output_schema:
+  type: "object"
+  properties:
+    summary:
+      type: "string"
+      description: "Concise clinical summary."
+    rationale:
+      type: "string"
+      description: "Optional explanation of summary choices."
+  required: ["summary"]
+metrics:
+  - name: "rouge_l"
+  - name: "clinical_relevance"
+  - name: "factual_consistency"
+
+dataset:
+  - id: 1
+    note: "Hospital day 2: Patient with COPD exacerbation on nebulized bronchodilators and steroids; oxygen saturations improved from 88% to 94% on 2L nasal cannula; remains afebrile; white blood cell count trending down."
+    text: "Hospital day 2: Patient with COPD exacerbation on nebulized bronchodilators and steroids; oxygen saturations improved from 88% to 94% on 2L nasal cannula; remains afebrile; white blood cell count trending down."
+    summary: "COPD exacerbation improving with bronchodilators/steroids; O2 sats up to 94% on 2L; afebrile; WBC decreasing."
+  - id: 2
+    note: "Hospital day 3: Patient with sepsis due to pyelonephritis. Receiving intravenous ceftriaxone. Fever has resolved, blood pressure stable, urine output improved. Plan to transition to oral antibiotics tomorrow if stable."
+    text: "Hospital day 3: Patient with sepsis due to pyelonephritis. Receiving intravenous ceftriaxone. Fever has resolved, blood pressure stable, urine output improved. Plan to transition to oral antibiotics tomorrow if stable."
+    summary: "Sepsis from pyelonephritis improving on ceftriaxone; fever resolved; vitals stable; urine output improved; plan for oral antibiotics tomorrow."
