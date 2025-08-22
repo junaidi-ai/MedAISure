@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-08-22T23:35:20.172Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Implement Core Evaluation Framework Structure",
+			"complexityScore": 9,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the implementation of the core evaluation framework into subtasks for each major component (Task Loader, Model Runner, Metric Calculator, Result Aggregator), including interface design, schema validation, error handling, integration points, and unit/integration test scaffolding.",
+			"reasoning": "This task involves designing and integrating multiple foundational components, each with its own interface, data flow, and validation logic. The need for extensibility, robust error handling, and comprehensive testing increases both cyclomatic and cognitive complexity. Industry best practices recommend modularization and clear separation of concerns, which justifies a high number of subtasks for maintainability and testability.[1][2][3][5]"
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Implement Data Models and Schemas",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand this task into subtasks for each data model (MedicalTask, EvaluationResult, BenchmarkReport), including schema definition, validation logic, serialization/deserialization, edge case handling, and unit/property-based testing.",
+			"reasoning": "Defining robust data models with validation and serialization is moderately complex, especially when ensuring schema compliance and supporting extensibility. The use of Pydantic and type annotations helps manage complexity, but thorough testing and handling of edge cases are essential for reliability.[2][3][5]"
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Develop Basic Task Implementations",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Decompose this task into subtasks for each task type (Medical QA, Diagnostic Reasoning, Clinical Summarization), including data loading, schema compliance, sample instance creation, documentation, and integration with the evaluation harness.",
+			"reasoning": "Implementing multiple domain-specific tasks requires careful adherence to schemas, data loading, and metric integration. Each task type introduces unique logic and data handling, increasing both cyclomatic and cognitive complexity. Proper documentation and integration testing are also necessary.[1][2][3]"
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Implement Basic Metrics",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Expand this task into subtasks for designing the base metric interface, implementing each metric (clinical accuracy, reasoning quality, domain-specific), building the metric registry, and developing comprehensive unit and integration tests.",
+			"reasoning": "Metric implementation involves abstract interfaces, multiple concrete metrics, and a registry system, each with nontrivial logic and validation. Ensuring correctness, extensibility, and test coverage adds to the complexity, especially given the domain-specific nature of some metrics.[1][2][3][4]"
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Create Docker Environment",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down this task into subtasks for creating the base Dockerfile, GPU-enabled Dockerfile, Docker Compose configuration, requirements management, and documentation of usage instructions.",
+			"reasoning": "While Dockerization is a standard practice, supporting both CPU and GPU environments, managing dependencies, and ensuring reproducibility across platforms introduces moderate complexity. Documentation and testing for different host systems are also required.[2][3]"
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Develop Command Line Interface",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand this task into subtasks for CLI structure setup, command implementation (evaluate, list-tasks, register-model, generate-report), configuration handling, rich terminal output, error handling, and usability testing.",
+			"reasoning": "A comprehensive CLI with multiple commands, configuration management, and user-friendly output requires careful design and testing. Ensuring usability and robust error handling increases the cognitive complexity, especially for extensible interfaces.[1][2][3]"
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Model Interface",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Decompose this task into subtasks for designing the base model interface, implementing local, HuggingFace, and API-based models, developing the model registry, and creating unit/integration tests for each variant.",
+			"reasoning": "Supporting multiple model types with a unified interface, handling prediction logic, and ensuring extensibility and testability introduces significant complexity. The need for robust error handling and compatibility across model types further increases the task's intricacy.[1][2][3]"
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Create Dataset Connectors",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand this task into subtasks for implementing the base dataset interface, local file connectors (JSON, CSV), medical database connectors (MIMIC, PubMed), data preprocessing pipeline, secure data handling, and comprehensive testing.",
+			"reasoning": "Dataset connectors must handle diverse data sources, preprocessing, and security requirements, each with its own logic and validation. Secure handling of sensitive data and extensibility for new sources add to the complexity.[2][3][5]"
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Develop Reporting Interface",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down this task into subtasks for implementing report generators (JSON, Markdown, HTML), visualization integration, report factory, and format validation/testing.",
+			"reasoning": "Generating reports in multiple formats and integrating visualizations requires modular design and careful handling of data structures. While not as complex as core framework tasks, ensuring extensibility and correctness across formats is nontrivial.[2][3]"
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Create Documentation and Examples",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Expand this task into subtasks for project documentation structure, getting started guide, example notebooks, API documentation, and contribution guidelines.",
+			"reasoning": "Comprehensive documentation is essential but follows established patterns. The main complexity lies in ensuring completeness, clarity, and synchronization with code changes, which is manageable with standard tooling and review processes.[2][3]"
+		}
+	]
+}
