@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import logging
+import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
@@ -231,7 +232,12 @@ class ModelRunner(Generic[M, T, R]):
 
         Args:
             model_name: Name to register the model under.
-            **kwargs: Must include 'api_key' and 'endpoint'.
+            **kwargs: Must include 'api_key' and 'endpoint'. Optional:
+                - timeout (float): request timeout in seconds (default: 30.0)
+                - max_retries (int): number of retries on request failure (default: 0)
+                - backoff_factor (float): base backoff seconds
+                between retries (default: 0.5)
+                - headers (dict): additional headers
 
         Returns:
             The model configuration dictionary.
@@ -250,6 +256,9 @@ class ModelRunner(Generic[M, T, R]):
             "endpoint": kwargs["endpoint"],
             "api_key": kwargs["api_key"],
             "headers": kwargs.get("headers", {}),
+            "timeout": float(kwargs.get("timeout", 30.0)),
+            "max_retries": int(kwargs.get("max_retries", 0)),
+            "backoff_factor": float(kwargs.get("backoff_factor", 0.5)),
         }
 
         # Store the model config
@@ -349,6 +358,7 @@ class ModelRunner(Generic[M, T, R]):
             batch = inputs[i : i + batch_size]
 
             try:
+                batch_start = time.time()
                 if model_type == "huggingface":
                     # For HuggingFace pipeline
                     batch_results = model([item.get("text", "") for item in batch])
@@ -418,6 +428,21 @@ class ModelRunner(Generic[M, T, R]):
                 )
                 # Add empty dicts for failed predictions to maintain order and type
                 results.extend([{} for _ in batch])
+            finally:
+                try:
+                    latency = time.time() - batch_start
+                    logger.debug(
+                        "Model batch completed",
+                        extra={
+                            "model_id": model_id,
+                            "model_type": model_type,
+                            "batch_size": len(batch),
+                            "latency_sec": round(latency, 6),
+                        },
+                    )
+                except Exception:
+                    # Best-effort logging only
+                    pass
 
         return results
 
@@ -444,14 +469,49 @@ class ModelRunner(Generic[M, T, R]):
             **model_config.get("headers", {}),
         }
 
-        # Make the API request
-        response = requests.post(url=endpoint, headers=headers, json=batch, **kwargs)
+        timeout = float(model_config.get("timeout", 30.0))
+        max_retries = int(model_config.get("max_retries", 0))
+        backoff = float(model_config.get("backoff_factor", 0.5))
 
-        # Check for errors
-        response.raise_for_status()
-
-        # Parse and return the response
-        result = response.json()
+        attempt = 0
+        while True:
+            attempt += 1
+            start = time.time()
+            try:
+                # Make the API request
+                response = requests.post(
+                    url=endpoint, headers=headers, json=batch, timeout=timeout, **kwargs
+                )
+                # Check for errors
+                response.raise_for_status()
+                latency = time.time() - start
+                logger.debug(
+                    "API call succeeded",
+                    extra={
+                        "endpoint": endpoint,
+                        "batch_size": len(batch),
+                        "status_code": response.status_code,
+                        "latency_sec": round(latency, 6),
+                        "attempt": attempt,
+                    },
+                )
+                # Parse and return the response
+                result = response.json()
+                break
+            except requests.exceptions.RequestException as e:
+                logger.warning(
+                    "API request failed for model %s: %s. Attempt %s/%s",
+                    model_config,
+                    e,
+                    attempt,
+                    max_retries + 1,
+                )
+                if attempt > max_retries:
+                    # Return empty list on error to maintain consistent return type
+                    return []
+                # Exponential backoff
+                sleep_s = backoff * (2 ** (attempt - 1))
+                time.sleep(sleep_s)
 
         # Ensure we return a list of results with the expected structure
         if not isinstance(result, list):
@@ -473,3 +533,22 @@ class ModelRunner(Generic[M, T, R]):
                 formatted_results.append({"label": str(item), "score": 1.0})
 
         return formatted_results
+
+    async def run_model_async(
+        self,
+        model_id: str,
+        inputs: List[Dict[str, Any]],
+        batch_size: int = 8,
+        **kwargs: Any,
+    ) -> List[Dict[str, Any]]:
+        """Asynchronous wrapper around run_model using a thread executor.
+
+        This avoids adding async HTTP dependencies while providing an async API.
+        """
+        import asyncio
+
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None,
+            lambda: self.run_model(model_id, inputs, batch_size=batch_size, **kwargs),
+        )

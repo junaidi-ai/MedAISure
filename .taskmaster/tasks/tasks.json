@@ -26,7 +26,7 @@
             "description": "Develop the ModelRunner class that provides a unified interface for executing predictions on different types of models.",
             "dependencies": [],
             "details": "Implement the ModelRunner with the following features:\n- Create a base interface for model execution\n- Implement adapters for different model types (local, API-based, HuggingFace)\n- Add batching and execution optimization\n- Implement timeout and retry logic for API calls\n- Add error handling for model execution failures\n- Create logging for model execution metrics (latency, token usage)\n- Support for asynchronous execution where applicable",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
