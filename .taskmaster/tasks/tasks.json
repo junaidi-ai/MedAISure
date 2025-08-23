@@ -35,7 +35,7 @@
             "description": "Build the MetricCalculator class that handles metric registration, calculation, and aggregation for evaluation results.",
             "dependencies": [],
             "details": "Implement the MetricCalculator with the following features:\n- Create a base metric interface with calculate method\n- Implement a metric registration system\n- Build a metric computation pipeline\n- Add support for task-specific metric configurations\n- Implement caching for expensive metric calculations\n- Create validation for metric inputs and outputs\n- Support for custom metric implementations\n- Add logging for metric calculation results",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -825,7 +825,7 @@
     ],
     "metadata": {
       "created": "2025-07-28T05:24:41.681Z",
-      "updated": "2025-07-28T05:24:41.681Z",
+      "updated": "2025-08-23T00:13:55.348Z",
       "description": "Tasks for master context"
     }
   }
