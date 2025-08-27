@@ -64,17 +64,7 @@ print(f"Evaluation results: {results}")
 
 For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://junaidi-ai.github.io/MedAISure/).
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information.
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📧 Contact
-
-For questions or feedback, please open an issue or contact the maintainers.
+ 
 
 ## 👋 Overview
 
@@ -101,15 +91,7 @@ MedAISure uses Docker for reproducible evaluations, ensuring consistency across 
 - **System Requirements**: Recommended x86_64 machine with 120GB free storage, 16GB RAM, and 8 CPU cores. ARM64 support (e.g., MacOS M-series) is experimental.
 - **Python**: Version 3.8+ with pip.
 
-### Installation
-
-Clone and install MedAISure:
-
-```bash
-git clone git@github.com:MedAISure/MedAISure.git
-cd MedAISure
-pip install -e .
-```
+ 
 
 Test your installation with a sample task:
 
