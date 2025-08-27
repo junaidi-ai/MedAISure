@@ -123,28 +123,20 @@ def test_generate_run_id():
     timestamp = "2023-01-01T00:00:00"
 
     # Test with timestamp
-    run_id1 = ResultAggregator.generate_run_id(
-        model_name, task_ids, timestamp=timestamp
-    )
+    run_id1 = ResultAggregator.generate_run_id(model_name, task_ids, timestamp=timestamp)
     assert isinstance(run_id1, str)
     assert len(run_id1) <= 32  # Default max length
 
     # Test with different timestamp
-    run_id2 = ResultAggregator.generate_run_id(
-        model_name, task_ids, timestamp="2023-01-02T00:00:00"
-    )
+    run_id2 = ResultAggregator.generate_run_id(model_name, task_ids, timestamp="2023-01-02T00:00:00")
     assert run_id1 != run_id2
 
     # Test with different model name
-    run_id3 = ResultAggregator.generate_run_id(
-        "another_model", task_ids, timestamp=timestamp
-    )
+    run_id3 = ResultAggregator.generate_run_id("another_model", task_ids, timestamp=timestamp)
     assert run_id1 != run_id3
 
     # Test with different task IDs
-    run_id4 = ResultAggregator.generate_run_id(
-        model_name, ["task3"], timestamp=timestamp
-    )
+    run_id4 = ResultAggregator.generate_run_id(model_name, ["task3"], timestamp=timestamp)
     assert run_id1 != run_id4
 
     # Test custom max length

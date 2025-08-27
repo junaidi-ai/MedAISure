@@ -34,9 +34,7 @@ def test_load_task(temp_tasks_dir, example_task_definition):
     assert task.task_type == TaskType.QA
     assert task.description == example_task_definition["description"]
     assert len(task.inputs) == len(example_task_definition["inputs"])
-    assert len(task.expected_outputs) == len(
-        example_task_definition["expected_outputs"]
-    )
+    assert len(task.expected_outputs) == len(example_task_definition["expected_outputs"])
     assert task.metrics == example_task_definition["metrics"]
 
 

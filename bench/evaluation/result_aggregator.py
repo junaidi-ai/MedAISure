@@ -88,9 +88,7 @@ class ResultAggregator:
             raise ValueError(f"No report found for run {run_id}")
         return self.reports[run_id]
 
-    def save_report(
-        self, report: BenchmarkReport, output_path: Optional[Union[str, Path]] = None
-    ) -> Path:
+    def save_report(self, report: BenchmarkReport, output_path: Optional[Union[str, Path]] = None) -> Path:
         """Save a benchmark report to disk.
 
         Args:
@@ -102,9 +100,7 @@ class ResultAggregator:
         """
         if output_path is None:
             # Generate a filename based on model name and timestamp
-            safe_model_name = "".join(
-                c if c.isalnum() else "_" for c in report.model_name
-            )
+            safe_model_name = "".join(c if c.isalnum() else "_" for c in report.model_name)
             timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             output_path = self.output_dir / f"{safe_model_name}_{timestamp}.json"
         else:
@@ -221,17 +217,13 @@ class ResultAggregator:
             if sort_by == "task_id":
                 rows.sort(key=lambda r: r.get("task_id", ""))
             else:
-                rows.sort(
-                    key=lambda r: r.get(sort_by, float("nan")), reverse=descending
-                )
+                rows.sort(key=lambda r: r.get(sort_by, float("nan")), reverse=descending)
         return rows
 
     # -----------
     # Exporters
     # -----------
-    def export_report_json(
-        self, run_id: str, output_path: Optional[Union[str, Path]] = None
-    ) -> Path:
+    def export_report_json(self, run_id: str, output_path: Optional[Union[str, Path]] = None) -> Path:
         """Export a report to JSON (wrapper around save_report)."""
         report = self.get_report(run_id)
         return self.save_report(report, output_path)
@@ -258,16 +250,12 @@ class ResultAggregator:
 
             # Overall row
             overall_row: Dict[str, Any] = {"row_type": "overall", "task_id": "OVERALL"}
-            overall_row.update(
-                {m: report.overall_scores.get(m, "") for m in metric_names}
-            )
+            overall_row.update({m: report.overall_scores.get(m, "") for m in metric_names})
             writer.writerow(overall_row)
 
         return output_path
 
-    def export_report_markdown(
-        self, run_id: str, output_path: Union[str, Path]
-    ) -> Path:
+    def export_report_markdown(self, run_id: str, output_path: Union[str, Path]) -> Path:
         """Export a report to a Markdown table."""
         report = self.get_report(run_id)
         output_path = Path(output_path)
@@ -287,9 +275,7 @@ class ResultAggregator:
             lines.append("| " + " | ".join(row_vals) + " |")
 
         # Overall row
-        overall_vals = ["OVERALL"] + [
-            f"{report.overall_scores.get(m, '')}" for m in metric_names
-        ]
+        overall_vals = ["OVERALL"] + [f"{report.overall_scores.get(m, '')}" for m in metric_names]
         lines.append("| " + " | ".join(overall_vals) + " |")
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
@@ -307,18 +293,12 @@ class ResultAggregator:
         def tr(cells: Iterable[str]) -> str:
             return "<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>"
 
-        header = (
-            "<tr>"
-            + "".join(f"<th>{h}</th>" for h in (["Task ID"] + metric_names))
-            + "</tr>"
-        )
+        header = "<tr>" + "".join(f"<th>{h}</th>" for h in (["Task ID"] + metric_names)) + "</tr>"
         task_rows = [
             tr([task_id] + [str(scores.get(m, "")) for m in metric_names])
             for task_id, scores in report.task_scores.items()
         ]
-        overall_row = tr(
-            ["OVERALL"] + [str(report.overall_scores.get(m, "")) for m in metric_names]
-        )
+        overall_row = tr(["OVERALL"] + [str(report.overall_scores.get(m, "")) for m in metric_names])
 
         html = (
             "<!DOCTYPE html>\n"
@@ -363,9 +343,7 @@ class ResultAggregator:
         rep_b = self.get_report(run_b)
 
         # Determine metrics
-        all_metrics = sorted(
-            set(rep_a.overall_scores.keys()) & set(rep_b.overall_scores.keys())
-        )
+        all_metrics = sorted(set(rep_a.overall_scores.keys()) & set(rep_b.overall_scores.keys()))
         target_metrics = list(metrics) if metrics is not None else all_metrics
 
         def diff(a: float, b: float) -> float:
@@ -379,17 +357,13 @@ class ResultAggregator:
                 overall[m] = diff(rep_a.overall_scores[m], rep_b.overall_scores[m])
 
         # Per-task: only tasks present in both
-        tasks_common = sorted(
-            set(rep_a.task_scores.keys()) & set(rep_b.task_scores.keys())
-        )
+        tasks_common = sorted(set(rep_a.task_scores.keys()) & set(rep_b.task_scores.keys()))
         per_task: Dict[str, Dict[str, float]] = {}
         for t in tasks_common:
             per_task[t] = {}
             for m in target_metrics:
                 if m in rep_a.task_scores[t] and m in rep_b.task_scores[t]:
-                    per_task[t][m] = diff(
-                        rep_a.task_scores[t][m], rep_b.task_scores[t][m]
-                    )
+                    per_task[t][m] = diff(rep_a.task_scores[t][m], rep_b.task_scores[t][m])
 
         return {
             "overall": overall,

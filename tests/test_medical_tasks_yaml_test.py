@@ -102,9 +102,7 @@ def test_medical_metrics_simple_cases():
     )
     # rouge may require rouge-score; but requirement exists. Assert finite and in [0,1]
     assert "rouge_l" in res_sum
-    assert 0.0 <= res_sum["rouge_l"].value <= 1.0 or math.isnan(
-        res_sum["rouge_l"].value
-    )
+    assert 0.0 <= res_sum["rouge_l"].value <= 1.0 or math.isnan(res_sum["rouge_l"].value)
     assert "factual_consistency" in res_sum
     assert abs(res_sum["factual_consistency"].value - 1.0) < 1e-6
 

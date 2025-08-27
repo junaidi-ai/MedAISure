@@ -64,10 +64,7 @@ class EvaluationHarness:
         if self.cache_dir:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info(
-            "Initialized EvaluationHarness with "
-            f"tasks_dir={tasks_dir}, results_dir={results_dir}"
-        )
+        logger.info("Initialized EvaluationHarness with " f"tasks_dir={tasks_dir}, results_dir={results_dir}")
 
     def evaluate(
         self,
@@ -131,9 +128,7 @@ class EvaluationHarness:
                     task_result = cached_result
                 else:
                     # Run evaluation
-                    task_result = self._evaluate_task(
-                        model=model, model_id=model_id, task=task, batch_size=batch_size
-                    )
+                    task_result = self._evaluate_task(model=model, model_id=model_id, task=task, batch_size=batch_size)
 
                     # Cache results
                     if self.cache_dir:
@@ -143,22 +138,14 @@ class EvaluationHarness:
                 task_results[task_id] = task_result
 
                 # Log progress - access metrics_results from the EvaluationResult object
-                if (
-                    hasattr(task_result, "detailed_results")
-                    and task_result.detailed_results
-                ):
+                if hasattr(task_result, "detailed_results") and task_result.detailed_results:
                     metrics = task_result.detailed_results[0].metrics_results
-                    logger.info(
-                        f"Completed task {task_id} - "
-                        f"Metrics: {json.dumps(metrics, indent=2)}"
-                    )
+                    logger.info(f"Completed task {task_id} - " f"Metrics: {json.dumps(metrics, indent=2)}")
                 else:
                     logger.warning(f"No detailed results available for task {task_id}")
 
             except Exception as e:
-                logger.error(
-                    f"Error evaluating task {task_id}: {str(e)}", exc_info=True
-                )
+                logger.error(f"Error evaluating task {task_id}: {str(e)}", exc_info=True)
                 # Continue with other tasks on error
                 continue
 
@@ -186,10 +173,7 @@ class EvaluationHarness:
                     task_scores[task_id] = {"average_score": float(first_metric_value)}
                 else:
                     task_scores[task_id] = {"average_score": 0.0}
-                    logger.warning(
-                        f"Non-numeric metric value for task {task_id}: "
-                        f"{first_metric_value}"
-                    )
+                    logger.warning(f"Non-numeric metric value for task {task_id}: " f"{first_metric_value}")
             else:
                 task_scores[task_id] = {"average_score": 0.0}
                 if not metrics:
@@ -202,9 +186,9 @@ class EvaluationHarness:
         # Calculate overall scores (average of all task scores)
         overall_scores = {"average_score": 0.0}
         if task_scores:
-            overall_scores["average_score"] = sum(
-                score["average_score"] for score in task_scores.values()
-            ) / len(task_scores)
+            overall_scores["average_score"] = sum(score["average_score"] for score in task_scores.values()) / len(
+                task_scores
+            )
 
         # Create benchmark report with all required fields
         report = BenchmarkReport(
@@ -220,9 +204,7 @@ class EvaluationHarness:
                     model_outputs=[],
                     metrics_results={"score": 0.0},
                     timestamp=datetime.now(timezone.utc).isoformat(),
-                    metadata={
-                        "note": "Placeholder result - no tasks completed successfully"
-                    },
+                    metadata={"note": "Placeholder result - no tasks completed successfully"},
                 )
             ],
             metadata={
@@ -270,9 +252,7 @@ class EvaluationHarness:
 
         # Run model inference
         logger.info(f"Running inference on {len(inputs)} examples...")
-        predictions = self.model_runner.run_model(
-            model_id=model_id, inputs=inputs, batch_size=batch_size
-        )
+        predictions = self.model_runner.run_model(model_id=model_id, inputs=inputs, batch_size=batch_size)
 
         # Calculate metrics
         logger.info("Calculating metrics...")
@@ -305,9 +285,7 @@ class EvaluationHarness:
             metadata={
                 "timestamp": time.time(),
                 "batch_size": batch_size,
-                "metrics_metadata": {
-                    name: asdict(result) for name, result in metric_results.items()
-                },
+                "metrics_metadata": {name: asdict(result) for name, result in metric_results.items()},
                 "predictions": predictions[:10],  # First few predictions
             },
         )
@@ -411,9 +389,7 @@ class EvaluationHarness:
                             "task_id": task_file.stem,
                             "name": task_data.get("name", ""),
                             "description": task_data.get("description", ""),
-                            "metrics": [
-                                m["name"] for m in task_data.get("metrics", [])
-                            ],
+                            "metrics": [m["name"] for m in task_data.get("metrics", [])],
                             "num_examples": len(task_data.get("dataset", [])),
                             "file": str(task_file),
                         }
@@ -434,9 +410,7 @@ class EvaluationHarness:
                             "task_id": task_file.stem,
                             "name": task_data.get("name", ""),
                             "description": task_data.get("description", ""),
-                            "metrics": [
-                                m["name"] for m in task_data.get("metrics", [])
-                            ],
+                            "metrics": [m["name"] for m in task_data.get("metrics", [])],
                             "num_examples": len(task_data.get("dataset", [])),
                             "file": str(task_file),
                         }

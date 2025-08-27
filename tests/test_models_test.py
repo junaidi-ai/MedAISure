@@ -214,9 +214,7 @@ class TestBenchmarkReport:
         assert "accuracy" in report.overall_scores
 
         # Use pytest.approx for float comparison to handle floating point precision
-        assert report.overall_scores["accuracy"] == pytest.approx(
-            0.85
-        )  # Average of 0.9 and 0.8
+        assert report.overall_scores["accuracy"] == pytest.approx(0.85)  # Average of 0.9 and 0.8
 
     def test_serialization(self, sample_report_data):
         """Test JSON serialization/deserialization."""
@@ -224,6 +222,4 @@ class TestBenchmarkReport:
         json_str = report.model_dump_json()
         loaded_report = BenchmarkReport.model_validate_json(json_str)
         # Compare dict representations to avoid float precision issues
-        assert loaded_report.model_dump(exclude={"timestamp"}) == report.model_dump(
-            exclude={"timestamp"}
-        )
+        assert loaded_report.model_dump(exclude={"timestamp"}) == report.model_dump(exclude={"timestamp"})

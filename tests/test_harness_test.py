@@ -17,9 +17,7 @@ def mock_components():
     """Create mock components for testing the harness."""
     with patch("bench.evaluation.task_loader.TaskLoader") as mock_loader, patch(
         "bench.evaluation.model_runner.ModelRunner"
-    ) as mock_runner, patch(
-        "bench.evaluation.metric_calculator.MetricCalculator"
-    ) as mock_calculator, patch(
+    ) as mock_runner, patch("bench.evaluation.metric_calculator.MetricCalculator") as mock_calculator, patch(
         "bench.evaluation.result_aggregator.ResultAggregator"
     ) as mock_aggregator:
 

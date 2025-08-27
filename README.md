@@ -63,7 +63,7 @@ print(f"Evaluation results: {results}")
 
 For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://junaidi-ai.github.io/MedAISure/).
 
- 
+
 
 ## 👋 Overview
 
@@ -90,7 +90,7 @@ MedAISure uses Docker for reproducible evaluations, ensuring consistency across 
 - **System Requirements**: Recommended x86_64 machine with 120GB free storage, 16GB RAM, and 8 CPU cores. ARM64 support (e.g., MacOS M-series) is experimental.
 - **Python**: Version 3.8+ with pip.
 
- 
+
 
 Test your installation with a sample task:
 
