@@ -80,7 +80,7 @@ bench/training/__pycache__/
 bench/examples/__pycache__/
 
 # Package
-meddsai_benchmark.egg-info/
+medaisure_benchmark.egg-info/
 
 # Local development scripts
 verify_imports.py

@@ -1,13 +1,13 @@
-# MEDDSAI Benchmark - Development Guide
+# MedAISure Benchmark - Development Guide
 
-This document provides information for developers working on the MEDDSAI Benchmark framework.
+This document provides information for developers working on the MedAISure Benchmark framework.
 
 ## 🛠️ Development Setup
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/meddsai/meddsai-benchmark.git
-   cd meddsai-benchmark
+   git clone https://github.com/junaidi-ai/MedAISure.git
+   cd MedAISure
    ```
 
 2. **Create and activate a virtual environment**

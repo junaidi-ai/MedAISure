@@ -1,6 +1,6 @@
 <context>
 # Overview
-The MEDDSAI benchmark is an evaluation framework designed to assess AI models' performance on medical domain-specific tasks. It addresses the critical need for standardized evaluation of AI capabilities in healthcare contexts, where accuracy, reliability, and domain-specific understanding are paramount. This benchmark serves researchers, healthcare AI developers, and medical institutions by providing a comprehensive testing framework to evaluate and improve AI models for medical applications.
+The MedAISure benchmark is an evaluation framework designed to assess AI models' performance on medical domain-specific tasks. It addresses the critical need for standardized evaluation of AI capabilities in healthcare contexts, where accuracy, reliability, and domain-specific understanding are paramount. This benchmark serves researchers, healthcare AI developers, and medical institutions by providing a comprehensive testing framework to evaluate and improve AI models for medical applications.
 
 The benchmark solves several key problems:
 - Lack of standardized evaluation metrics for medical AI

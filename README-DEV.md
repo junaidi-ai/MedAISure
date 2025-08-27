@@ -1,6 +1,6 @@
-# MEDDSAI Benchmark - Developer Documentation
+# MedAISure Benchmark - Developer Documentation
 
-This document provides technical information for developers working on the MEDDSAI benchmark project. It complements the [main README](README.md) by focusing on development workflows, architecture, and technical implementation details.
+This document provides technical information for developers working on the MedAISure Benchmark project. It complements the [main README](README.md) by focusing on development workflows, architecture, and technical implementation details.
 
 ## Table of Contents
 - [Development Environment Setup](#development-environment-setup)
@@ -24,8 +24,8 @@ This document provides technical information for developers working on the MEDDS
 
 1. **Clone the repository**:
    ```bash
-   git clone git@github.com:meddsai/meddsai-benchmark.git
-   cd meddsai-benchmark
+   git clone git@github.com:medaisure/medaisure-benchmark.git
+   cd medaisure-benchmark
    ```
 
 2. **Create a virtual environment**:
@@ -46,11 +46,11 @@ This document provides technical information for developers working on the MEDDS
 
 ## Project Architecture
 
-The MEDDSAI benchmark is structured as follows:
+The MedAISure benchmark is structured as follows:
 
 ```
-meddsai-benchmark/
-├── meddsai/                 # Main package
+medaisure-benchmark/
+├── medaisure/                 # Main package
 │   ├── __init__.py
 │   ├── harness/             # Evaluation harness
 │   │   ├── __init__.py
@@ -125,7 +125,7 @@ pytest
 pytest tests/test_module.py
 
 # Run with coverage report
-pytest --cov=meddsai
+pytest --cov=medaisure
 ```
 
 ### Test Organization
@@ -148,7 +148,7 @@ The evaluation framework is designed to be extensible and modular:
 
 ### Adding a New Evaluation Metric
 
-1. Create a new metric module in `meddsai/metrics/`
+1. Create a new metric module in `medaisure/metrics/`
 2. Implement the metric interface
 3. Register the metric in the metrics registry
 4. Add tests for the new metric
@@ -213,7 +213,7 @@ Follow conventional commits format:
 
 ### Versioning
 
-MEDDSAI follows [Semantic Versioning](https://semver.org/):
+MedAISure follows [Semantic Versioning](https://semver.org/):
 - **Major**: Breaking changes
 - **Minor**: New features without breaking changes
 - **Patch**: Bug fixes without breaking changes
@@ -280,6 +280,6 @@ Common development issues and their solutions:
 
 ## Community Resources
 
-- **Technical Discussions**: Join our [Discord server](https://discord.gg/meddsai)
+- **Technical Discussions**: Join our [Discord server](https://discord.gg/medaisure)
 - **Development Meetings**: Bi-weekly on Thursdays, see calendar for details
 - **Architecture Decisions**: Recorded in ADRs in the `docs/adr/` directory

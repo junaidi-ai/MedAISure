@@ -1,5 +1,5 @@
 """
-Example script demonstrating how to use the MEDDSAI evaluation framework
+Example script demonstrating how to use the MedAISure evaluation framework
 with a Hugging Face model.
 """
 

@@ -1,6 +1,6 @@
-# MEDDSAI Benchmark Data Models
+# MedAISure Benchmark Data Models
 
-This document provides detailed documentation for the core data models used in the MEDDSAI Benchmark system.
+This document provides detailed documentation for the core data models used in the MedAISure Benchmark system.
 
 ## Table of Contents
 

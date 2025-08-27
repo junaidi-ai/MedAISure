@@ -1,4 +1,4 @@
-"""Pytest configuration and fixtures for MEDDSAI benchmark tests."""
+"""Pytest configuration and fixtures for MedAISure benchmark tests."""
 
 from pathlib import Path
 

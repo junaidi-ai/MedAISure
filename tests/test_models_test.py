@@ -1,4 +1,4 @@
-"""Unit tests for MEDDSAI benchmark data models."""
+"""Unit tests for MedAISure benchmark data models."""
 
 from datetime import datetime, timezone
 

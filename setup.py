@@ -13,14 +13,14 @@ with open("requirements.txt") as f:
     ]
 
 setup(
-    name="meddsai-benchmark",
+    name="medaisure-benchmark",
     version="0.1.0",
-    author="Kresna Sucandra and MEDDSAI Team",
-    author_email="kresnasucandra@unud.ac.id",
+    author="Kresna Sucandra and Junaidi AI Team",
+    author_email="kresnasucandra@gmail.com",
     description="A benchmark framework for evaluating medical AI models",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/meddsai/meddsai-benchmark",
+    url="https://github.com/junaidi-ai/MedAISure",
     # Package discovery
     packages=find_packages(include=["bench", "bench.*"]),
     package_data={
@@ -60,13 +60,13 @@ setup(
     # Entry points
     entry_points={
         "console_scripts": [
-            "meddsai-benchmark=bench.cli:main",
+            "medaisure-benchmark=bench.cli:main",
         ],
     },
     # Other
     keywords=["medical", "ai", "benchmark", "evaluation", "nlp", "healthcare"],
     project_urls={
-        "Bug Reports": "https://github.com/meddsai/meddsai-benchmark/issues",
-        "Source": "https://github.com/meddsai/meddsai-benchmark",
+        "Bug Reports": "https://github.com/junaidi-ai/MedAISure/issues",
+        "Source": "https://github.com/junaidi-ai/MedAISure",
     },
 )

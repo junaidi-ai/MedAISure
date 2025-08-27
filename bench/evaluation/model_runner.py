@@ -1,4 +1,4 @@
-"""Model runner for MEDDSAI benchmark."""
+"""Model runner for MedAISure benchmark."""
 
 from __future__ import annotations
 

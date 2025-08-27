@@ -1,4 +1,4 @@
-"""Result aggregation for MEDDSAI benchmark."""
+"""Result aggregation for MedAISure benchmark."""
 
 import csv
 import logging

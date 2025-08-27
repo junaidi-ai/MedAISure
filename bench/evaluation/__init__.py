@@ -1,4 +1,4 @@
-"""Core evaluation framework for MEDDSAI benchmark.
+"""Core evaluation framework for MedAISure benchmark.
 
 This package uses lazy imports to avoid importing heavy dependencies
 at initialization time. Submodules are only imported when their

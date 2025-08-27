@@ -1,7 +1,7 @@
-# MEDDSAI 基准测试：评估医疗领域的大语言模型
+# MedAISure 基准测试：评估医疗领域的大语言模型
 
-[![文档](https://img.shields.io/badge/文档-阅读文档-blue)](https://meddsai.readthedocs.io/)
-[![排行榜](https://img.shields.io/badge/排行榜-查看排名-brightgreen)](https://www.meddsai.org/leaderboard)
+[![文档](https://img.shields.io/badge/文档-阅读文档-blue)](https://medaisure.readthedocs.io/)
+[![排行榜](https://img.shields.io/badge/排行榜-查看排名-brightgreen)](https://medaisure.junaidi.ai)
 
 [English](../README.md) | [日本語](README_ja.md) | [Bahasa Indonesia](README_id.md)
 
@@ -9,7 +9,7 @@
 
 ## 概述
 
-MEDDSAI基准测试是一个用于评估医疗领域大语言模型（LLM）的综合框架。它挑战模型解决现实世界中的医疗任务，如临床问答、诊断推理、总结和患者沟通等，这些任务都经过医学专家的验证。
+MedAISure 基准测试是一个用于评估医疗领域大语言模型（LLM）的综合框架。它挑战模型解决现实世界中的医疗任务，如临床问答、诊断推理、总结和患者沟通等，这些任务都经过医学专家的验证。
 
 ## 使用方法
 

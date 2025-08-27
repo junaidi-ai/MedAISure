@@ -1,4 +1,4 @@
-"""Metric calculator implementation for MEDDSAI benchmark.
+"""Metric calculator implementation for MedAISure benchmark.
 
 Adds simple built-in medical metrics:
 - clinical_correctness: normalized string match between predicted answer and

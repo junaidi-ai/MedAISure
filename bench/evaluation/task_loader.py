@@ -1,4 +1,4 @@
-"""Task loader implementation for MEDDSAI benchmark.
+"""Task loader implementation for MedAISure benchmark.
 
 Enhancements:
 - Robust validation and error handling (wrap Pydantic errors)

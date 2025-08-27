@@ -1,4 +1,4 @@
-# Contributing to MEDDSAI Benchmark
+# Contributing to MedAISure Benchmark
 
 We welcome contributions from the community! Whether you're fixing bugs, adding new features, or improving documentation, your help is appreciated.
 
@@ -79,4 +79,4 @@ Please open an issue with:
 
 ## 🙏 Thank You!
 
-Your contributions help make MEDDSAI Benchmark better for everyone!
+Your contributions help make MedAISure Benchmark better for everyone!

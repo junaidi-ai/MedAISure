@@ -1,12 +1,12 @@
-# MEDDSAI Benchmark: Evaluating Large Language Models in Healthcare
+# MedAISure Benchmark: Evaluating Large Language Models in Healthcare
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Tests](https://github.com/meddsai/meddsai-benchmark/actions/workflows/tests.yml/badge.svg)](https://github.com/meddsai/meddsai-benchmark/actions/workflows/tests.yml)
-[![codecov](https://codecov.io/gh/meddsai/meddsai-benchmark/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/meddsai/meddsai-benchmark)
+[![Tests](https://github.com/medaisure/medaisure-benchmark/actions/workflows/tests.yml/badge.svg)](https://github.com/medaisure/medaisure-benchmark/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/medaisure/medaisure-benchmark/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/medaisure/medaisure-benchmark)
 
-A comprehensive framework for evaluating Large Language Models (LLMs) in healthcare applications. The MEDDSAI Benchmark provides a standardized way to assess model performance on various medical NLP tasks.
+A comprehensive framework for evaluating Large Language Models (LLMs) in healthcare applications. The MedAISure Benchmark provides a standardized way to assess model performance on various medical NLP tasks.
 
 ## ✨ Features
 
@@ -22,8 +22,8 @@ A comprehensive framework for evaluating Large Language Models (LLMs) in healthc
 
 ```bash
 # Clone the repository
-git clone https://github.com/meddsai/meddsai-benchmark.git
-cd meddsai-benchmark
+git clone https://github.com/junaidi-ai/MedAISure.git
+cd MedAISure
 
 # Create and activate a virtual environment
 python -m venv venv
@@ -62,7 +62,7 @@ print(f"Evaluation results: {results}")
 
 ## 📚 Documentation
 
-For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://meddsai.github.io/meddsai-benchmark/).
+For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://junaidi-ai.github.io/MedAISure/).
 
 ## 🤝 Contributing
 
@@ -78,22 +78,22 @@ For questions or feedback, please open an issue or contact the maintainers.
 
 ## 👋 Overview
 
-The MEDDSAI Benchmark (Medical Domain-Specific AI Benchmark) is a comprehensive framework for evaluating Large Language Models (LLMs) in healthcare. Inspired by SWE-bench, it challenges models to solve real-world medical tasks, such as clinical question-answering, diagnostic reasoning, summarization, and patient communication, validated by physician expertise.
+The MedAISure Benchmark (Medical Domain-Specific AI Benchmark) is a comprehensive framework for evaluating Large Language Models (LLMs) in healthcare. Inspired by SWE-bench, it challenges models to solve real-world medical tasks, such as clinical question-answering, diagnostic reasoning, summarization, and patient communication, validated by physician expertise.
 
-With a public leaderboard, reproducible evaluation harness, and support for federated testing, MEDDSAI aims to drive innovation in medical AI while ensuring clinical relevance and data privacy.
+With a public leaderboard, reproducible evaluation harness, and support for federated testing, MedAISure aims to drive innovation in medical AI while ensuring clinical relevance and data privacy.
 
-MEDDSAI draws from leading healthcare benchmarks like HealthBench, Open Medical-LLM, SD Bench, MedPerf, and Stanford's MedArena. It combines real-world tasks, a transparent leaderboard, and privacy-conscious evaluation to meet the needs of researchers, clinicians, and developers.
+MedAISure draws from leading healthcare benchmarks like HealthBench, Open Medical-LLM, SD Bench, MedPerf, and Stanford's MedArena. It combines real-world tasks, a transparent leaderboard, and privacy-conscious evaluation to meet the needs of researchers, clinicians, and developers.
 
-To access the initial MEDDSAI dataset, run:
+To access the initial MedAISure dataset, run:
 
 ```python
 from datasets import load_dataset
-meddsai = load_dataset('MEDDSAI/MEDDSAI-Core', split='test')
+medaisure = load_dataset('MedAISure/MedAISure-Core', split='test')
 ```
 
 ## 🚀 Set Up
 
-MEDDSAI uses Docker for reproducible evaluations, ensuring consistency across environments. For sensitive medical data, a federated evaluation option is planned, inspired by MedPerf.
+MedAISure uses Docker for reproducible evaluations, ensuring consistency across environments. For sensitive medical data, a federated evaluation option is planned, inspired by MedPerf.
 
 ### Prerequisites
 
@@ -103,18 +103,18 @@ MEDDSAI uses Docker for reproducible evaluations, ensuring consistency across en
 
 ### Installation
 
-Clone and install MEDDSAI:
+Clone and install MedAISure:
 
 ```bash
-git clone git@github.com:MEDDSAI/MEDDSAI-bench.git
-cd MEDDSAI-bench
+git clone git@github.com:MedAISure/MedAISure.git
+cd MedAISure
 pip install -e .
 ```
 
 Test your installation with a sample task:
 
 ```bash
-python -m meddsai.harness.run_evaluation \
+python -m medaisure.harness.run_evaluation \
     --predictions_path gold \
     --max_workers 1 \
     --instance_ids medqa_001 \
@@ -125,11 +125,11 @@ python -m meddsai.harness.run_evaluation \
 
 ## 💽 Usage
 
-Evaluate model predictions on the MEDDSAI-Core dataset (200 tasks) with:
+Evaluate model predictions on the MedAISure-Core dataset (200 tasks) with:
 
 ```bash
-python -m meddsai.harness.run_evaluation \
-    --dataset_name MEDDSAI/MEDDSAI-Core \
+python -m medaisure.harness.run_evaluation \
+    --dataset_name MedAISure/MedAISure-Core \
     --predictions_path <path_to_predictions> \
     --max_workers <num_workers> \
     --run_id <run_id>
@@ -141,19 +141,19 @@ python -m meddsai.harness.run_evaluation \
 
 Evaluation generates logs (`logs/evaluation`) and results (`evaluation_results`) in the current directory.
 
-> **Warning**: MEDDSAI evaluation is resource-intensive. Use fewer than `min(0.75 * os.cpu_count(), 24)` for `--max_workers`. Ensure 120GB free disk space for Docker.
+> **Warning**: MedAISure evaluation is resource-intensive. Use fewer than `min(0.75 * os.cpu_count(), 24)` for `--max_workers`. Ensure 120GB free disk space for Docker.
 
 For all arguments, run:
 
 ```bash
-python -m meddsai.harness.run_evaluation --help
+python -m medaisure.harness.run_evaluation --help
 ```
 
 See the [evaluation tutorial](docs/evaluation.md) for details on datasets and cloud-based evaluation (coming soon).
 
 ## 📊 Task Overview
 
-MEDDSAI includes tasks reflecting real-world healthcare scenarios, validated by medical experts:
+MedAISure includes tasks reflecting real-world healthcare scenarios, validated by medical experts:
 
 - **Medical Question-Answering**: Answer USMLE-style questions (e.g., MedQA, PubMedQA).
 - **Diagnostic Reasoning**: Generate differential diagnoses from symptoms or EHR data.
@@ -164,10 +164,10 @@ MEDDSAI includes tasks reflecting real-world healthcare scenarios, validated by 
 
 ### Datasets
 
-- **MEDDSAI-Core**: 200 tasks across diagnostics, summarization, and communication.
-- **MEDDSAI-Hard (Planned)**: 100 challenging tasks for advanced models.
-- **MEDDSAI-Specialty (Planned)**: Domain-specific tasks (e.g., oncology, cardiology).
-- **MEDDSAI-Multimodal (Planned)**: Tasks combining text and imaging.
+- **MedAISure-Core**: 200 tasks across diagnostics, summarization, and communication.
+- **MedAISure-Hard (Planned)**: 100 challenging tasks for advanced models.
+- **MedAISure-Specialty (Planned)**: Domain-specific tasks (e.g., oncology, cardiology).
+- **MedAISure-Multimodal (Planned)**: Tasks combining text and imaging.
 
 **Sources**: Public datasets (MIMIC-IV, MedQA), synthetic personas (inspired by HealthBench), and de-identified clinical cases, validated by physicians.
 
@@ -181,42 +181,42 @@ MEDDSAI includes tasks reflecting real-world healthcare scenarios, validated by 
 
 ## 🏆 Leaderboard
 
-The [MEDDSAI Leaderboard](https://www.meddsai.org/leaderboard) ranks models based on combined scores and task-specific metrics, inspired by SWE-bench and HealthBench. Submit predictions and reasoning traces for transparency.
+The [MedAISure Leaderboard](https://www.medaisure.org/leaderboard) ranks models based on combined scores and task-specific metrics, inspired by SWE-bench and HealthBench. Submit predictions and reasoning traces for transparency.
 
-- **Subsets**: MEDDSAI-Core, Hard, Specialty, Multimodal (planned).
-- **Submission**: Via [Hugging Face](https://huggingface.co/MEDDSAI) or [GitHub](https://github.com/MEDDSAI/MEDDSAI-bench), with automated and expert validation.
+- **Subsets**: MedAISure-Core, Hard, Specialty, Multimodal (planned).
+- **Submission**: Via [Hugging Face](https://huggingface.co/MedAISure) or [GitHub](https://github.com/MedAISure/MedAISure), with automated and expert validation.
 - **Transparency**: Evaluation logs and results are publicly available.
 
 ## ⬇️ Downloads
 
 | Datasets | Baseline Models | Tools |
 |----------|----------------|-------|
-| 💿 [MEDDSAI-Core](https://huggingface.co/datasets/MEDDSAI/MEDDSAI-Core) | 🩺 [BioBERT](https://huggingface.co/bert-base-uncased) (Baseline) | 🛠️ [MEDDSAI-Toolkit](https://github.com/MEDDSAI/meddsai-tools) (Planned) |
-| 💿 [MEDDSAI-Hard](https://huggingface.co/datasets/MEDDSAI/MEDDSAI-Hard) (Planned) | 🩺 [Med-PaLM](https://ai.google/healthcare/research/med-palm/) (Baseline, Planned) | 🛠️ [Federated Evaluation API](https://medperf.ai) (Planned) |
+| 💿 [MedAISure-Core](https://huggingface.co/datasets/MedAISure/MedAISure-Core) | 🩺 [BioBERT](https://huggingface.co/bert-base-uncased) (Baseline) | 🛠️ [MedAISure-Toolkit](https://github.com/MEDAISURE/medaisure-tools) (Planned) |
+| 💿 [MedAISure-Hard](https://huggingface.co/datasets/MedAISure/MedAISure-Hard) (Planned) | 🩺 [Med-PaLM](https://ai.google/healthcare/research/med-palm/) (Baseline, Planned) | 🛠️ [Federated Evaluation API](https://medperf.ai) (Planned) |
 
 ## 💫 Contributions
 
 We welcome contributions from the medical, AI, and open-source communities! To contribute:
 
-1. Submit new tasks, datasets, or metrics via [pull requests](https://github.com/MEDDSAI/MEDDSAI-bench/pulls).
-2. Report issues or suggest improvements on [GitHub Issues](https://github.com/MEDDSAI/MEDDSAI-bench/issues).
-3. Join our community on [X](https://twitter.com/meddsaibench) or [Hugging Face](https://huggingface.co/MEDDSAI).
+1. Submit new tasks, datasets, or metrics via [pull requests](https://github.com/MedAISure/MedAISure/pulls).
+2. Report issues or suggest improvements on [GitHub Issues](https://github.com/MedAISure/MedAISure/issues).
+3. Join our community on [X](https://twitter.com/medaisurebench) or [Hugging Face](https://huggingface.co/MedAISure).
 
-**Contact**: Dr. Junaidi Ahmad (junaidi@meddsai.org), AI Research Lead.
+**Contact**: Dr. Kresna Sucandra (kresnasucandra@gmail.com), AI Research Lead.
 
 ## ✍️ Citation & License
 
 - **License**: MIT. See [LICENSE.md](LICENSE.md).
-- **Cite MEDDSAI as**:
+- **Cite MedAISure as**:
 
 ```bibtex
 @inproceedings{
-    meddsai2025,
-    title={{MEDDSAI}: A Benchmark for Evaluating Large Language Models in Healthcare},
-    author={Kresna Sucandra and Team MEDDSAI},
+    medaisure2025,
+    title={{MedAISure}: A Benchmark for Evaluating Large Language Models in Healthcare},
+    author={Kresna Sucandra and Team MedAISure},
     booktitle={TBD},
     year={2025},
-    url={https://www.meddsai.org}
+    url={https://medaisure.junaidi.ai}
 }
 ```
 
@@ -232,6 +232,6 @@ We welcome contributions from the medical, AI, and open-source communities! To c
 
 **About**
 
-MEDDSAI Benchmark: Advancing healthcare AI through transparent, clinically relevant evaluation of LLMs.
+MedAISure Benchmark: Advancing healthcare AI through transparent, clinically relevant evaluation of LLMs.
 
-© 2025 [MEDDSAI Team](https://www.meddsai.org/team)
+© 2025 [MedAISure Team](https://medaisure.junaidi.ai/team)
