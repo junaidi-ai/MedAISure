@@ -34,10 +34,8 @@ setup(
     # Development dependencies
     extras_require={
         "dev": [
-            "black>=22.0.0",
-            "flake8>=4.0.0",
-            "isort>=5.10.0",
-            "mypy>=0.910",
+            "ruff>=0.6.8",
+            "mypy>=1.8.0",
             "pytest>=7.0.0",
             "pytest-cov>=3.0.0",
         ],
