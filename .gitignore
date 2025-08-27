@@ -43,6 +43,8 @@ wheels/
 # Model files
 models/
 !models/README.md
+!bench/models/
+!bench/models/**
 
 # Test and coverage
 htmlcov/
@@ -85,5 +87,4 @@ medaisure_benchmark.egg-info/
 # Local development scripts
 verify_imports.py
 
-# Pre-commit
-.pre-commit-config.yaml
+# Pre-commit (do not ignore config so it is versioned)
