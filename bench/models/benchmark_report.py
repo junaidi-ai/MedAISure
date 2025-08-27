@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, PrivateAttr, field_validator
 
 from .evaluation_result import EvaluationResult
 
@@ -22,6 +22,9 @@ class BenchmarkReport(BaseModel):
 
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
+    # Internal counters to support incremental averaging; excluded from serialization
+    _task_metric_counts: Dict[str, Dict[str, int]] = PrivateAttr(default_factory=dict)
+
     @field_validator("overall_scores")
     @classmethod
     def _validate_overall_scores(cls, v: Dict[str, Any]) -> Dict[str, float]:
@@ -36,38 +39,49 @@ class BenchmarkReport(BaseModel):
         return out
 
     def add_evaluation_result(self, result: EvaluationResult) -> None:
-        """Add an evaluation result and update aggregates."""
+        """Add an evaluation result and update aggregates.
+
+        Aggregation strategy:
+        - For each metric in result.metrics_results, keep an incremental average per task.
+        - overall_scores is the average per metric across all tasks where that metric exists.
+        """
         self.detailed_results.append(result)
 
-        # Default simple score: if metrics_results present, use first numeric value
-        score_value: Optional[float] = None
-        for v in result.metrics_results.values():
-            if isinstance(v, (int, float)):
-                score_value = float(v)
-                break
-
-        if score_value is None:
-            return
-
-        # Update per-task score as simple average over results for that task
         task_id = result.task_id
-        existing = self.task_scores.get(task_id, {})
-        if existing:
-            # Average of existing metrics if same keys, otherwise store/overwrite 'average_score'
-            if "average_score" in existing:
-                prev = existing["average_score"]
-                # naive two-point average; in practice, we'd track counts
-                existing["average_score"] = (prev + score_value) / 2.0
-            else:
-                existing["average_score"] = score_value
-        else:
-            existing = {"average_score": score_value}
-        self.task_scores[task_id] = existing
+        if task_id not in self.task_scores:
+            self.task_scores[task_id] = {}
+        if task_id not in self._task_metric_counts:
+            self._task_metric_counts[task_id] = {}
 
-        # Update overall average over all tasks' average_score
-        task_avgs = [m.get("average_score", 0.0) for m in self.task_scores.values()]
-        if task_avgs:
-            self.overall_scores["accuracy"] = sum(task_avgs) / len(task_avgs)
+        # Update per-task metrics using incremental average
+        for metric, value in (result.metrics_results or {}).items():
+            try:
+                val = float(value)
+            except Exception:
+                # Skip non-numeric
+                continue
+            prev_avg = self.task_scores[task_id].get(metric)
+            count = self._task_metric_counts[task_id].get(metric, 0)
+            if prev_avg is None or count == 0:
+                new_avg = val
+                new_count = 1
+            else:
+                new_count = count + 1
+                new_avg = (prev_avg * count + val) / new_count
+            self.task_scores[task_id][metric] = new_avg
+            self._task_metric_counts[task_id][metric] = new_count
+
+        # Recompute overall scores as average per metric across tasks
+        overall: Dict[str, float] = {}
+        metric_totals: Dict[str, float] = {}
+        metric_counts: Dict[str, int] = {}
+        for _task, metrics in self.task_scores.items():
+            for metric, avg in metrics.items():
+                metric_totals[metric] = metric_totals.get(metric, 0.0) + float(avg)
+                metric_counts[metric] = metric_counts.get(metric, 0) + 1
+        for metric, total in metric_totals.items():
+            overall[metric] = total / metric_counts[metric]
+        self.overall_scores = overall
 
     # Persistence helpers used by the harness and docs
     def save(self, file_path: Union[str, Path]) -> None:

@@ -12,6 +12,7 @@ node_modules/
 # Virtual Environment
 venv/
 ENV/
+.venv/
 
 # Environment variables
 .env

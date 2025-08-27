@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 
 class EvaluationResult(BaseModel):
@@ -30,10 +30,11 @@ class EvaluationResult(BaseModel):
 
     @field_validator("model_outputs")
     @classmethod
-    def _validate_model_outputs(cls, v: List[Dict[str, Any]], values: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _validate_model_outputs(cls, v: List[Dict[str, Any]], info: ValidationInfo) -> List[Dict[str, Any]]:
         if v is None:
             return []
-        inputs = values.get("inputs", [])
+        data = info.data or {}
+        inputs = data.get("inputs", [])
         if inputs and len(v) != len(inputs):
             raise ValueError("model_outputs length must match inputs length")
         return v
