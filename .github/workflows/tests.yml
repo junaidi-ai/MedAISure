@@ -34,11 +34,11 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -q --maxfail=1 --disable-warnings
+          pytest -q --maxfail=1 --disable-warnings --cov=bench --cov-report=xml
 
-      - name: Upload coverage to Codecov (if configured)
-        if: env.CODECOV_TOKEN != ''
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
           fail_ci_if_error: false
