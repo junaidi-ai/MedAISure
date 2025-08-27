@@ -52,9 +52,13 @@ def test_aggregate_statistics_basic(agg: ResultAggregator, run_with_results: str
     assert stats["f1"]["median"] == pytest.approx(0.65)
 
 
-def test_aggregate_statistics_percentiles_and_task_filter(agg: ResultAggregator, run_with_results: str):
+def test_aggregate_statistics_percentiles_and_task_filter(
+    agg: ResultAggregator, run_with_results: str
+):
     # Filter to t1 only => values are just that task
-    stats = agg.aggregate_statistics(run_with_results, percentiles=[0, 50, 100], tasks=["t1"])
+    stats = agg.aggregate_statistics(
+        run_with_results, percentiles=[0, 50, 100], tasks=["t1"]
+    )
     assert stats["accuracy"]["mean"] == pytest.approx(0.8)
     assert stats["accuracy"]["p0"] == pytest.approx(0.8)
     assert stats["accuracy"]["p50"] == pytest.approx(0.8)
@@ -62,13 +66,17 @@ def test_aggregate_statistics_percentiles_and_task_filter(agg: ResultAggregator,
 
 
 def test_filter_and_sort_tasks(agg: ResultAggregator, run_with_results: str):
-    rows = agg.filter_and_sort_tasks(run_with_results, metrics=["accuracy"], sort_by="accuracy", descending=False)
+    rows = agg.filter_and_sort_tasks(
+        run_with_results, metrics=["accuracy"], sort_by="accuracy", descending=False
+    )
     # Should have t1 then t2 when ascending by accuracy (0.8, 0.9)
     assert [r["task_id"] for r in rows] == ["t1", "t2"]
     assert list(rows[0].keys()) == ["task_id", "accuracy"]
 
 
-def test_exporters_csv_md_html(tmp_path: Path, agg: ResultAggregator, run_with_results: str):
+def test_exporters_csv_md_html(
+    tmp_path: Path, agg: ResultAggregator, run_with_results: str
+):
     # CSV
     csv_path = tmp_path / "report.csv"
     agg.export_report_csv(run_with_results, csv_path)
@@ -128,7 +136,9 @@ def test_compare_runs_overall_and_per_task(tmp_path: Path, agg: ResultAggregator
     assert diff["per_task"]["t2"]["accuracy"] == pytest.approx(-0.02)
 
 
-def test_plot_metric_distribution_data_only(agg: ResultAggregator, run_with_results: str):
+def test_plot_metric_distribution_data_only(
+    agg: ResultAggregator, run_with_results: str
+):
     data = agg.plot_metric_distribution(run_with_results, "accuracy", output_path=None)
     assert data["metric"] == "accuracy"
     assert set(data["tasks"]) == {"t1", "t2"}

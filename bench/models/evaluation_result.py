@@ -30,7 +30,9 @@ class EvaluationResult(BaseModel):
 
     @field_validator("model_outputs")
     @classmethod
-    def _validate_model_outputs(cls, v: List[Dict[str, Any]], info: ValidationInfo) -> List[Dict[str, Any]]:
+    def _validate_model_outputs(
+        cls, v: List[Dict[str, Any]], info: ValidationInfo
+    ) -> List[Dict[str, Any]]:
         if v is None:
             return []
         data = info.data or {}

@@ -42,11 +42,15 @@ def example_task_definition():
         "dataset": [
             {
                 "input": {"text": "What are the symptoms of COVID-19?"},
-                "output": {"answer": "Common symptoms include fever, cough, and fatigue."},
+                "output": {
+                    "answer": "Common symptoms include fever, cough, and fatigue."
+                },
             },
             {
                 "input": {"text": "How is diabetes diagnosed?"},
-                "output": {"answer": "Through blood tests like fasting blood sugar or A1C."},
+                "output": {
+                    "answer": "Through blood tests like fasting blood sugar or A1C."
+                },
             },
         ],
     }

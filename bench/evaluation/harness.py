@@ -6,7 +6,7 @@ import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import yaml
 from tqdm import tqdm
@@ -33,6 +33,12 @@ class EvaluationHarness:
         results_dir: str = "results",
         cache_dir: Optional[str] = None,
         log_level: str = "INFO",
+        # Optional event callbacks
+        on_task_start: Optional[Callable[[str], None]] = None,
+        on_task_end: Optional[Callable[[str, Any], None]] = None,
+        on_progress: Optional[Callable[[int, int, Optional[str]], None]] = None,
+        on_error: Optional[Callable[[str, Exception], None]] = None,
+        on_metrics: Optional[Callable[[str, Dict[str, Any]], None]] = None,
     ) -> None:
         """Initialize the evaluation harness.
 
@@ -64,7 +70,41 @@ class EvaluationHarness:
         if self.cache_dir:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info("Initialized EvaluationHarness with " f"tasks_dir={tasks_dir}, results_dir={results_dir}")
+        # Event callbacks
+        self._on_task_start = on_task_start
+        self._on_task_end = on_task_end
+        self._on_progress = on_progress
+        self._on_error = on_error
+        self._on_metrics = on_metrics
+
+        # Internal: track the active model id for cleanup
+        self._active_model_id: Optional[str] = None
+
+        logger.info(
+            "Initialized EvaluationHarness with "
+            f"tasks_dir={tasks_dir}, results_dir={results_dir}"
+        )
+
+    # ---------------
+    # Context manager
+    # ---------------
+    def __enter__(self) -> "EvaluationHarness":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        try:
+            self.close()
+        except Exception:
+            # Best-effort cleanup
+            pass
+
+    def close(self) -> None:
+        """Cleanup resources, e.g., unload the active model if loaded."""
+        if self._active_model_id is not None:
+            try:
+                self.model_runner.unload_model(self._active_model_id)
+            finally:
+                self._active_model_id = None
 
     def evaluate(
         self,
@@ -104,6 +144,7 @@ class EvaluationHarness:
             model_type=model_type,
             **model_kwargs,
         )
+        self._active_model_id = model_id
         # Get the loaded model from the runner's _models dictionary
         model = self.model_runner._models[model_id]
 
@@ -112,8 +153,13 @@ class EvaluationHarness:
         start_time = time.time()
 
         # Evaluate on each task
-        for task_id in tqdm(task_ids, desc="Evaluating tasks"):
+        for idx, task_id in enumerate(tqdm(task_ids, desc="Evaluating tasks"), start=1):
             try:
+                if self._on_progress:
+                    self._on_progress(idx, len(task_ids), task_id)
+                if self._on_task_start:
+                    self._on_task_start(task_id)
+
                 logger.info(f"Evaluating on task: {task_id}")
 
                 # Load task
@@ -128,7 +174,9 @@ class EvaluationHarness:
                     task_result = cached_result
                 else:
                     # Run evaluation
-                    task_result = self._evaluate_task(model=model, model_id=model_id, task=task, batch_size=batch_size)
+                    task_result = self._evaluate_task(
+                        model=model, model_id=model_id, task=task, batch_size=batch_size
+                    )
 
                     # Cache results
                     if self.cache_dir:
@@ -137,77 +185,120 @@ class EvaluationHarness:
                 # Store results
                 task_results[task_id] = task_result
 
-                # Log progress - access metrics_results from the EvaluationResult object
-                if hasattr(task_result, "detailed_results") and task_result.detailed_results:
-                    metrics = task_result.detailed_results[0].metrics_results
-                    logger.info(f"Completed task {task_id} - " f"Metrics: {json.dumps(metrics, indent=2)}")
+                # Call metrics hook
+                metrics_payload: Dict[str, Any] = {}
+                if hasattr(task_result, "metrics_results") and isinstance(
+                    task_result.metrics_results, dict
+                ):
+                    metrics_payload = task_result.metrics_results
+                elif (
+                    hasattr(task_result, "detailed_results")
+                    and task_result.detailed_results
+                ):
+                    metrics_payload = task_result.detailed_results[0].metrics_results
+                if self._on_metrics and metrics_payload:
+                    self._on_metrics(task_id, metrics_payload)
+
+                # Log progress
+                if metrics_payload:
+                    logger.info(
+                        f"Completed task {task_id} - "
+                        f"Metrics: {json.dumps(metrics_payload, indent=2)}"
+                    )
                 else:
                     logger.warning(f"No detailed results available for task {task_id}")
 
+                if self._on_task_end:
+                    self._on_task_end(task_id, task_result)
+
             except Exception as e:
-                logger.error(f"Error evaluating task {task_id}: {str(e)}", exc_info=True)
+                if self._on_error:
+                    try:
+                        self._on_error(task_id, e)
+                    except Exception:
+                        # Avoid callback exceptions breaking flow
+                        pass
+                logger.error(
+                    f"Error evaluating task {task_id}: {str(e)}", exc_info=True
+                )
                 # Continue with other tasks on error
                 continue
 
         # Calculate total time
         total_time = time.time() - start_time
 
-        # Prepare task scores and detailed results
-        task_scores = {}
-        detailed_results = []
+        # Build report via ResultAggregator/BenchmarkReport to get consistent aggregation
+        # Use the run_id for grouping
+        for task_id, res in task_results.items():
+            self.result_aggregator.add_evaluation_result(res, run_id=run_id)
 
-        for task_id, result in task_results.items():
-            # Extract metrics from the result
-            if hasattr(result, "metrics_results"):
-                metrics = result.metrics_results
-            elif hasattr(result, "detailed_results") and result.detailed_results:
-                metrics = result.detailed_results[0].metrics_results
-            else:
-                metrics = {}
+        # Try to get report from aggregator; if mocked or unavailable, fall back to manual construction
+        try:
+            report = self.result_aggregator.get_report(run_id)
+        except Exception:
+            report = None
 
-            # Add to task scores (using the first metric as the score for now)
-            if metrics and isinstance(metrics, dict) and metrics:
-                # Get the first metric value and ensure it's a float
-                first_metric_value = next(iter(metrics.values()))
-                if isinstance(first_metric_value, (int, float)):
-                    task_scores[task_id] = {"average_score": float(first_metric_value)}
+        if not isinstance(report, BenchmarkReport):
+            # Fallback: construct a minimal BenchmarkReport from task_results
+            task_scores: Dict[str, Dict[str, float]] = {}
+            detailed_results: List[EvaluationResult] = []
+
+            for t_id, res in task_results.items():
+                # Metrics may be in metrics_results or detailed_results[0].metrics_results
+                if hasattr(res, "metrics_results") and isinstance(
+                    res.metrics_results, dict
+                ):
+                    metrics = res.metrics_results
+                elif hasattr(res, "detailed_results") and res.detailed_results:
+                    metrics = res.detailed_results[0].metrics_results
                 else:
-                    task_scores[task_id] = {"average_score": 0.0}
-                    logger.warning(f"Non-numeric metric value for task {task_id}: " f"{first_metric_value}")
-            else:
-                task_scores[task_id] = {"average_score": 0.0}
-                if not metrics:
-                    logger.warning(f"No metrics available for task {task_id}")
+                    metrics = {}
 
-            # Add to detailed results
-            if hasattr(result, "detailed_results"):
-                detailed_results.extend(result.detailed_results)
+                # Compute a simple average if numeric metrics exist; else 0.0
+                avg = 0.0
+                numeric_vals = [
+                    float(v) for v in metrics.values() if isinstance(v, (int, float))
+                ]
+                if numeric_vals:
+                    avg = sum(numeric_vals) / len(numeric_vals)
+                task_scores[t_id] = {"average_score": avg}
 
-        # Calculate overall scores (average of all task scores)
-        overall_scores = {"average_score": 0.0}
-        if task_scores:
-            overall_scores["average_score"] = sum(score["average_score"] for score in task_scores.values()) / len(
-                task_scores
+                # Collect detailed results only if present (to preserve legacy placeholder behavior)
+                if hasattr(res, "detailed_results") and res.detailed_results:
+                    detailed_results.extend(res.detailed_results)
+
+            overall_avg = 0.0
+            if task_scores:
+                overall_avg = sum(
+                    s["average_score"] for s in task_scores.values()
+                ) / len(task_scores)
+
+            # If no detailed results collected, add legacy placeholder result
+            if not detailed_results:
+                detailed_results = [
+                    EvaluationResult(
+                        model_id=model_id,
+                        task_id="unknown",
+                        inputs=[],
+                        model_outputs=[],
+                        metrics_results={"score": 0.0},
+                        timestamp=datetime.now(timezone.utc).isoformat(),
+                        metadata={
+                            "note": "Placeholder result - no tasks completed successfully"
+                        },
+                    )
+                ]
+
+            report = BenchmarkReport(
+                model_id=model_id,
+                overall_scores={"average_score": overall_avg},
+                task_scores=task_scores,
+                detailed_results=detailed_results,
+                metadata={},
             )
-
-        # Create benchmark report with all required fields
-        report = BenchmarkReport(
-            model_id=model_id,
-            overall_scores=overall_scores,
-            task_scores=task_scores,
-            detailed_results=detailed_results
-            or [
-                EvaluationResult(
-                    model_id=model_id,
-                    task_id="unknown",
-                    inputs=[],
-                    model_outputs=[],
-                    metrics_results={"score": 0.0},
-                    timestamp=datetime.now(timezone.utc).isoformat(),
-                    metadata={"note": "Placeholder result - no tasks completed successfully"},
-                )
-            ],
-            metadata={
+        # Enrich metadata
+        report.metadata.update(
+            {
                 "run_id": run_id,
                 "model_name": model_id,
                 "total_time_seconds": total_time,
@@ -215,16 +306,19 @@ class EvaluationHarness:
                 "batch_size": batch_size,
                 "model_type": model_type,
                 **model_kwargs,
-            },
+            }
         )
 
         # Save results
-        if save_results:
-            output_file = self.results_dir / f"{run_id}.json"
-            report.save(output_file)
-            logger.info(f"Saved evaluation results to {output_file}")
-
-        return report
+        try:
+            if save_results:
+                output_file = self.results_dir / f"{run_id}.json"
+                report.save(output_file)
+                logger.info(f"Saved evaluation results to {output_file}")
+            return report
+        finally:
+            # Always attempt cleanup
+            self.close()
 
     def _evaluate_task(  # noqa: C901
         self,
@@ -252,7 +346,9 @@ class EvaluationHarness:
 
         # Run model inference
         logger.info(f"Running inference on {len(inputs)} examples...")
-        predictions = self.model_runner.run_model(model_id=model_id, inputs=inputs, batch_size=batch_size)
+        predictions = self.model_runner.run_model(
+            model_id=model_id, inputs=inputs, batch_size=batch_size
+        )
 
         # Calculate metrics
         logger.info("Calculating metrics...")
@@ -285,7 +381,9 @@ class EvaluationHarness:
             metadata={
                 "timestamp": time.time(),
                 "batch_size": batch_size,
-                "metrics_metadata": {name: asdict(result) for name, result in metric_results.items()},
+                "metrics_metadata": {
+                    name: asdict(result) for name, result in metric_results.items()
+                },
                 "predictions": predictions[:10],  # First few predictions
             },
         )
@@ -389,7 +487,9 @@ class EvaluationHarness:
                             "task_id": task_file.stem,
                             "name": task_data.get("name", ""),
                             "description": task_data.get("description", ""),
-                            "metrics": [m["name"] for m in task_data.get("metrics", [])],
+                            "metrics": [
+                                m["name"] for m in task_data.get("metrics", [])
+                            ],
                             "num_examples": len(task_data.get("dataset", [])),
                             "file": str(task_file),
                         }
@@ -410,7 +510,9 @@ class EvaluationHarness:
                             "task_id": task_file.stem,
                             "name": task_data.get("name", ""),
                             "description": task_data.get("description", ""),
-                            "metrics": [m["name"] for m in task_data.get("metrics", [])],
+                            "metrics": [
+                                m["name"] for m in task_data.get("metrics", [])
+                            ],
                             "num_examples": len(task_data.get("dataset", [])),
                             "file": str(task_file),
                         }

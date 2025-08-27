@@ -11,7 +11,9 @@ from bench.evaluation.task_loader import TaskLoader
 
 
 def _minimal_task(name: str = "Alpha", metric_as_dict: bool = False) -> Dict[str, Any]:
-    metrics = [{"name": "clinical_correctness"} if metric_as_dict else "clinical_correctness"]
+    metrics = [
+        {"name": "clinical_correctness"} if metric_as_dict else "clinical_correctness"
+    ]
     return {
         "task_id": name.lower(),
         "task_type": "qa",
@@ -30,7 +32,9 @@ def _minimal_task(name: str = "Alpha", metric_as_dict: bool = False) -> Dict[str
             "properties": {"answer": {"type": "string"}},
             "required": ["answer"],
         },
-        "dataset": [{"input": {"text": "Q: example?"}, "output": {"answer": "example"}}],
+        "dataset": [
+            {"input": {"text": "Q: example?"}, "output": {"answer": "example"}}
+        ],
     }
 
 
@@ -104,7 +108,9 @@ def test_load_task_from_url_yaml(monkeypatch, tmp_path):
     mock_resp.headers = {"Content-Type": "application/x-yaml"}
     mock_resp.text = yaml_text
 
-    with patch("bench.evaluation.task_loader.requests.get", return_value=mock_resp) as _:
+    with patch(
+        "bench.evaluation.task_loader.requests.get", return_value=mock_resp
+    ) as _:
         loader = TaskLoader(tasks_dir=str(tmp_path))
         # Act
         task = loader.load_task("https://example.com/remote.yaml")
@@ -126,7 +132,9 @@ def test_load_task_from_url_json(monkeypatch, tmp_path):
     mock_resp.headers = {"Content-Type": "application/json"}
     mock_resp.text = json_text
 
-    with patch("bench.evaluation.task_loader.requests.get", return_value=mock_resp) as _:
+    with patch(
+        "bench.evaluation.task_loader.requests.get", return_value=mock_resp
+    ) as _:
         loader = TaskLoader(tasks_dir=str(tmp_path))
         # Act
         task = loader.load_task("https://example.com/remote.json")

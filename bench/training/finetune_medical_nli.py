@@ -69,7 +69,9 @@ def load_medical_nli_dataset(task_file: str) -> Dataset:
     return Dataset.from_dict(data)
 
 
-def tokenize_function(examples: Dict[str, List[str]], tokenizer: AutoTokenizer) -> Dict[str, List[List[int]]]:
+def tokenize_function(
+    examples: Dict[str, List[str]], tokenizer: AutoTokenizer
+) -> Dict[str, List[List[int]]]:
     """Tokenize the examples for the NLI task."""
     result = tokenizer(
         examples["premise"],
@@ -98,10 +100,24 @@ def compute_metrics(eval_pred: Tuple[np.ndarray, np.ndarray]) -> Dict[str, float
     metrics.update(accuracy_metric.compute(predictions=predictions, references=labels))
 
     # Handle potential all-zero predictions for precision/recall
-    if len(np.unique(predictions)) > 1:  # Only calculate if we have predictions in multiple classes
-        metrics.update(precision_metric.compute(predictions=predictions, references=labels, average="macro"))
-        metrics.update(recall_metric.compute(predictions=predictions, references=labels, average="macro"))
-        metrics.update(f1_metric.compute(predictions=predictions, references=labels, average="macro"))
+    if (
+        len(np.unique(predictions)) > 1
+    ):  # Only calculate if we have predictions in multiple classes
+        metrics.update(
+            precision_metric.compute(
+                predictions=predictions, references=labels, average="macro"
+            )
+        )
+        metrics.update(
+            recall_metric.compute(
+                predictions=predictions, references=labels, average="macro"
+            )
+        )
+        metrics.update(
+            f1_metric.compute(
+                predictions=predictions, references=labels, average="macro"
+            )
+        )
     else:
         # If all predictions are the same class, set metrics to 0
         metrics.update({"precision": 0.0, "recall": 0.0, "f1": 0.0})

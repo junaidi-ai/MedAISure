@@ -2,9 +2,8 @@
 -r requirements.txt
 
 # Code formatting and linting
-black>=24.3.0
-isort>=5.13.2
 mypy>=1.8.0
+ruff>=0.6.8
 
 # Pre-commit (ensure compatibility across Python versions)
 pre-commit<3.0.0; python_version < '3.9'
@@ -14,5 +13,4 @@ pre-commit>=3.6.0; python_version >= '3.9'
 pytest>=7.0.0
 pytest-cov>=3.0.0
 pytest-mock>=3.0.0
-ruff>=0.0.292
 types-pyyaml>=6.0.0

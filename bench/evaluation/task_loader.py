@@ -74,7 +74,9 @@ class TaskLoader:
                     if task_id.startswith("http://") or task_id.startswith("https://"):
                         task_data = self._load_task_data_from_url(task_id)
                     else:
-                        raise FileNotFoundError(f"Task definition not found for {task_id}")
+                        raise FileNotFoundError(
+                            f"Task definition not found for {task_id}"
+                        )
 
             if task_file is not None:
                 task_data = self._load_task_data_from_file(task_file)
@@ -109,7 +111,9 @@ class TaskLoader:
             return task
 
         except (yaml.YAMLError, json.JSONDecodeError) as e:
-            raise ValueError(f"Invalid task definition format for {task_id}: {e}") from e
+            raise ValueError(
+                f"Invalid task definition format for {task_id}: {e}"
+            ) from e
         except Exception as e:  # Wrap Pydantic and other errors as ValueError
             from pydantic import ValidationError
 
@@ -117,7 +121,9 @@ class TaskLoader:
                 raise ValueError(f"Task validation failed for {task_id}: {e}") from e
             raise
 
-    def load_tasks(self, task_ids: List[str], task_type: Optional[Type[T]] = None) -> Dict[str, T]:
+    def load_tasks(
+        self, task_ids: List[str], task_type: Optional[Type[T]] = None
+    ) -> Dict[str, T]:
         """Load multiple tasks by their IDs, optionally with a specific task type.
 
         Args:
@@ -206,7 +212,9 @@ class TaskLoader:
         resp.raise_for_status()
         content_type = resp.headers.get("Content-Type", "").lower()
         text = resp.text
-        if any(x in content_type for x in ["yaml", "x-yaml"]) or url.endswith((".yaml", ".yml")):
+        if any(x in content_type for x in ["yaml", "x-yaml"]) or url.endswith(
+            (".yaml", ".yml")
+        ):
             data = yaml.safe_load(text)
             return cast(Dict[str, Any], data)
         # Default to JSON

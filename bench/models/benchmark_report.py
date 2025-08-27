@@ -32,7 +32,9 @@ class BenchmarkReport(BaseModel):
 
     @field_validator("task_scores")
     @classmethod
-    def _validate_task_scores(cls, v: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
+    def _validate_task_scores(
+        cls, v: Dict[str, Dict[str, Any]]
+    ) -> Dict[str, Dict[str, float]]:
         out: Dict[str, Dict[str, float]] = {}
         for task_id, metrics in (v or {}).items():
             out[task_id] = {k: float(val) for k, val in (metrics or {}).items()}

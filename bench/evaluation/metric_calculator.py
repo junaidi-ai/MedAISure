@@ -134,7 +134,9 @@ class MetricCalculator:
     # ----------------------------
     # Metric implementations
     # ----------------------------
-    def _metric_clinical_correctness(self, y_true: List[Any], y_pred: List[Any], **kwargs: Any) -> float:
+    def _metric_clinical_correctness(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
         """Binary correctness via normalized exact or substring match of answers."""
         scores: List[float] = []
         for t, p in zip(y_true, y_pred):
@@ -150,7 +152,9 @@ class MetricCalculator:
                 scores.append(0.0)
         return float(sum(scores) / len(scores)) if scores else float("nan")
 
-    def _metric_text_f1(self, y_true: List[Any], y_pred: List[Any], **kwargs: Any) -> float:
+    def _metric_text_f1(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
         """Simple token-overlap F1 score averaged across examples."""
 
         def f1_score_text(a: Any, b: Any) -> float:
@@ -177,7 +181,9 @@ class MetricCalculator:
         scores = [f1_score_text(t, p) for t, p in zip(y_true, y_pred)]
         return float(sum(scores) / len(scores)) if scores else float("nan")
 
-    def _metric_jaccard(self, y_true: List[Any], y_pred: List[Any], **kwargs: Any) -> float:
+    def _metric_jaccard(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
         """Token Jaccard similarity averaged across examples."""
         scores: List[float] = []
         for t, p in zip(y_true, y_pred):
@@ -193,7 +199,9 @@ class MetricCalculator:
                 scores.append(inter / union if union else 0.0)
         return float(sum(scores) / len(scores)) if scores else float("nan")
 
-    def _metric_rouge_l(self, y_true: List[Any], y_pred: List[Any], **kwargs: Any) -> float:
+    def _metric_rouge_l(
+        self, y_true: List[Any], y_pred: List[Any], **kwargs: Any
+    ) -> float:
         """Compute average ROUGE-L F1 using rouge-score. Returns NaN if unavailable."""
         try:
             from rouge_score import rouge_scorer
@@ -243,7 +251,11 @@ class MetricCalculator:
         # Filter metrics if specific ones are requested
         metrics_to_use: Dict[str, Dict[str, Any]] = self.metrics
         if metric_names is not None:
-            metrics_to_use = {name: self.metrics[name] for name in metric_names if name in self.metrics}
+            metrics_to_use = {
+                name: self.metrics[name]
+                for name in metric_names
+                if name in self.metrics
+            }
 
         results: Dict[str, MetricResult] = {}
 
@@ -260,10 +272,14 @@ class MetricCalculator:
                 }
 
                 # Extract relevant data for this metric
-                y_true, y_pred = self._prepare_data_for_metric(metric_name, predictions, references, **kwargs)
+                y_true, y_pred = self._prepare_data_for_metric(
+                    metric_name, predictions, references, **kwargs
+                )
 
                 # Calculate the metric
-                result = self._calculate_single_metric(metric_name, metric_info, y_true, y_pred, **kwargs)
+                result = self._calculate_single_metric(
+                    metric_name, metric_info, y_true, y_pred, **kwargs
+                )
 
                 results[metric_name] = result
 
@@ -314,7 +330,10 @@ class MetricCalculator:
                     num_classes = len(set(y_true + y_pred))
                     kwargs["average"] = "binary" if num_classes <= 2 else "macro"
                     avg = kwargs["average"]
-                    logger.debug(f"Using average='{avg}' for {metric_name} " f"with {num_classes} classes")
+                    logger.debug(
+                        f"Using average='{avg}' for {metric_name} "
+                        f"with {num_classes} classes"
+                    )
 
             # Calculate the metric
             logger.debug(f"Calculating {metric_name} with kwargs: {kwargs}")
@@ -326,7 +345,11 @@ class MetricCalculator:
                 return MetricResult(
                     metric_name=metric_name,
                     value=float(value),
-                    metadata=(additional_info if isinstance(additional_info, dict) else {"info": additional_info}),
+                    metadata=(
+                        additional_info
+                        if isinstance(additional_info, dict)
+                        else {"info": additional_info}
+                    ),
                 )
 
             # Handle single return value
@@ -336,7 +359,9 @@ class MetricCalculator:
             )
 
         except Exception as e:
-            logger.error(f"Error calculating metric {metric_name}: {str(e)}", exc_info=True)
+            logger.error(
+                f"Error calculating metric {metric_name}: {str(e)}", exc_info=True
+            )
             return MetricResult(
                 metric_name=metric_name,
                 value=float("nan"),
@@ -434,15 +459,29 @@ class MetricCalculator:
                     y_true = [1 if label == unique_labels[1] else 0 for label in y_true]
 
             # Ensure all labels are numeric for classification metrics only
-            if metric_name in ["accuracy", "precision", "recall", "f1", "diagnostic_accuracy"] and y_true and y_pred:
+            if (
+                metric_name
+                in ["accuracy", "precision", "recall", "f1", "diagnostic_accuracy"]
+                and y_true
+                and y_pred
+            ):
                 # Convert string labels to integers if needed
                 if isinstance(y_true[0], str) or isinstance(y_pred[0], str):
                     all_labels = sorted(
-                        set([x for x in y_true if x is not None] + [x for x in y_pred if x is not None])
+                        set(
+                            [x for x in y_true if x is not None]
+                            + [x for x in y_pred if x is not None]
+                        )
                     )
                     label_to_int = {label: i for i, label in enumerate(all_labels)}
-                    y_true = [label_to_int.get(label, -1) if label is not None else -1 for label in y_true]
-                    y_pred = [label_to_int.get(label, -1) if label is not None else -1 for label in y_pred]
+                    y_true = [
+                        label_to_int.get(label, -1) if label is not None else -1
+                        for label in y_true
+                    ]
+                    y_pred = [
+                        label_to_int.get(label, -1) if label is not None else -1
+                        for label in y_pred
+                    ]
 
             return y_true, y_pred
 
@@ -482,7 +521,11 @@ class MetricCalculator:
                 if metric_name in result:
                     metric_result = result[metric_name]
                     values.append(metric_result.value)
-                    weights.append(metric_result.metadata.get("num_samples", 1) if metric_result.metadata else 1)
+                    weights.append(
+                        metric_result.metadata.get("num_samples", 1)
+                        if metric_result.metadata
+                        else 1
+                    )
                     if metric_result.metadata:
                         metadata_list.append(metric_result.metadata)
 
@@ -499,7 +542,9 @@ class MetricCalculator:
                     # Weighted average
                     total_weight = sum(weights)
                     if total_weight > 0:
-                        agg_value = sum(v * w for v, w in zip(values, weights)) / total_weight
+                        agg_value = (
+                            sum(v * w for v, w in zip(values, weights)) / total_weight
+                        )
                     else:
                         agg_value = float("nan")
             elif aggregation == "sum":
@@ -512,7 +557,9 @@ class MetricCalculator:
                 raise ValueError(f"Unsupported aggregation method: {aggregation}")
 
             # Calculate total samples across all runs
-            total_samples = sum(meta.get("num_samples", 1) for meta in metadata_list if meta is not None)
+            total_samples = sum(
+                meta.get("num_samples", 1) for meta in metadata_list if meta is not None
+            )
 
             # Create aggregated metadata
             agg_metadata: Dict[str, Any] = {
@@ -531,7 +578,8 @@ class MetricCalculator:
                         "max_value": max(values),
                         "mean_value": mean_value,
                         "std_dev": (
-                            (sum((x - mean_value) ** 2 for x in values) / len(values)) ** 0.5
+                            (sum((x - mean_value) ** 2 for x in values) / len(values))
+                            ** 0.5
                             if len(values) > 1
                             else 0.0
                         ),

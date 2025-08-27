@@ -73,7 +73,9 @@ class ModelRunner(Generic[M, T, R]):
 
         return model
 
-    def _load_huggingface_model(self, model_name: str, model_path: Optional[str] = None, **kwargs: Any) -> Any:
+    def _load_huggingface_model(
+        self, model_name: str, model_path: Optional[str] = None, **kwargs: Any
+    ) -> Any:
         """Load a HuggingFace model.
 
         Args:
@@ -109,7 +111,9 @@ class ModelRunner(Generic[M, T, R]):
             model = AutoModelForSequenceClassification.from_pretrained(
                 model_identifier, num_labels=num_labels, **model_kwargs
             )
-            tokenizer = AutoTokenizer.from_pretrained(model_identifier, **tokenizer_kwargs)
+            tokenizer = AutoTokenizer.from_pretrained(
+                model_identifier, **tokenizer_kwargs
+            )
 
             # Create a pipeline for text classification
             pipe = pipeline(
@@ -129,7 +133,10 @@ class ModelRunner(Generic[M, T, R]):
                 **kwargs,
             }
 
-            logger.info(f"Successfully loaded {model_type} model: {model_name} " f"from {model_identifier}")
+            logger.info(
+                f"Successfully loaded {model_type} model: {model_name} "
+                f"from {model_identifier}"
+            )
             return pipe
 
         except ImportError as e:
@@ -139,10 +146,12 @@ class ModelRunner(Generic[M, T, R]):
             ) from e
         except Exception as e:
             logger.error(
-                f"Error loading model {model_identifier} with error: " f"{str(e)}",
+                f"Error loading model {model_identifier} with error: {str(e)}",
                 exc_info=True,
             )
-            raise ValueError(f"Failed to load HuggingFace model '{model_identifier}': {str(e)}") from e
+            raise ValueError(
+                f"Failed to load HuggingFace model '{model_identifier}': {str(e)}"
+            ) from e
 
     def unload_model(self, model_name: str) -> None:
         """Unload a model and clean up resources.
@@ -158,7 +167,9 @@ class ModelRunner(Generic[M, T, R]):
             del self._tokenizers[model_name]
         logger.info(f"Unloaded model: {model_name}")
 
-    def _load_local_model(self, model_name: str, model_path: Optional[str] = None, **kwargs: Any) -> Any:
+    def _load_local_model(
+        self, model_name: str, model_path: Optional[str] = None, **kwargs: Any
+    ) -> Any:
         """Load a local model from a Python module.
 
         Args:
@@ -191,7 +202,9 @@ class ModelRunner(Generic[M, T, R]):
             # Get the load function
             load_func = getattr(module, load_func_name, None)
             if load_func is None or not callable(load_func):
-                raise ValueError(f"Module {module_path} has no callable '{load_func_name}' function")
+                raise ValueError(
+                    f"Module {module_path} has no callable '{load_func_name}' function"
+                )
 
             # Load the model
             model = load_func(model_path, **kwargs)
@@ -210,7 +223,9 @@ class ModelRunner(Generic[M, T, R]):
             return model
 
         except ImportError as e:
-            raise ImportError(f"Failed to import model module {module_path}: {e}") from e
+            raise ImportError(
+                f"Failed to import model module {module_path}: {e}"
+            ) from e
 
     def _load_api_model(self, model_name: str, **kwargs: Any) -> Dict[str, Any]:
         """Register an API-based model.
@@ -276,7 +291,9 @@ class ModelRunner(Generic[M, T, R]):
         endpoint: str = kwargs["endpoint"]
         headers: Dict[str, str] = kwargs.get("headers", {})
         request_format: Callable[[List[Dict[str, Any]]], Any] = kwargs["request_format"]
-        response_parser: Callable[[Any], List[Dict[str, Any]]] = kwargs["response_parser"]
+        response_parser: Callable[[Any], List[Dict[str, Any]]] = kwargs[
+            "response_parser"
+        ]
 
         def api_call(inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             """Make an API call with the given inputs."""
@@ -323,7 +340,9 @@ class ModelRunner(Generic[M, T, R]):
         if model_id not in self._models:
             raise ValueError(f"Model {model_id} not loaded. Call load_model() first.")
 
-        if not isinstance(inputs, list) or not all(isinstance(item, dict) for item in inputs):
+        if not isinstance(inputs, list) or not all(
+            isinstance(item, dict) for item in inputs
+        ):
             raise ValueError("Inputs must be a list of dictionaries.")
 
         # Get model type to handle different model types appropriately
@@ -360,7 +379,10 @@ class ModelRunner(Generic[M, T, R]):
 
                         # If no mapping found and label starts with 'LABEL_',
                         # try to extract the index
-                        if predicted_label.startswith("LABEL_") and "_" in predicted_label:
+                        if (
+                            predicted_label.startswith("LABEL_")
+                            and "_" in predicted_label
+                        ):
                             try:
                                 idx = int(predicted_label.split("_")[1])
                                 # If label_map is not provided but we have a
@@ -368,7 +390,9 @@ class ModelRunner(Generic[M, T, R]):
                                 if not label_map and hasattr(model, "model"):
                                     if hasattr(model.model.config, "id2label"):
                                         label_map = model.model.config.id2label
-                                        predicted_label = label_map.get(idx, predicted_label)
+                                        predicted_label = label_map.get(
+                                            idx, predicted_label
+                                        )
                             except (ValueError, IndexError):
                                 pass
 
@@ -399,7 +423,9 @@ class ModelRunner(Generic[M, T, R]):
                     raise ValueError(f"Unsupported model type: {model_type}")
 
             except Exception as e:
-                logger.error(f"Error running model {model_id} on batch: {e}", exc_info=True)
+                logger.error(
+                    f"Error running model {model_id} on batch: {e}", exc_info=True
+                )
                 # Add empty dicts for failed predictions to maintain order and type
                 results.extend([{} for _ in batch])
             finally:
@@ -453,7 +479,9 @@ class ModelRunner(Generic[M, T, R]):
             start = time.time()
             try:
                 # Make the API request
-                response = requests.post(url=endpoint, headers=headers, json=batch, timeout=timeout, **kwargs)
+                response = requests.post(
+                    url=endpoint, headers=headers, json=batch, timeout=timeout, **kwargs
+                )
                 # Check for errors
                 response.raise_for_status()
                 latency = time.time() - start
@@ -495,7 +523,9 @@ class ModelRunner(Generic[M, T, R]):
             if isinstance(item, dict):
                 # Ensure the dict has the expected keys
                 if "label" not in item or "score" not in item:
-                    formatted_results.append({"label": str(item), "score": float(item.get("score", 1.0))})
+                    formatted_results.append(
+                        {"label": str(item), "score": float(item.get("score", 1.0))}
+                    )
                 else:
                     formatted_results.append(item)
             else:
