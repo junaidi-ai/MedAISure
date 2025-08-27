@@ -821,6 +821,108 @@
             "testStrategy": ""
           }
         ]
+      },
+      {
+        "id": 11,
+        "title": "Implement Weighted Combined Score Aggregation",
+        "description": "Add a Combined Score metric aggregated with PRD-defined weights: 40% diagnostics, 30% safety, 20% communication, 10% summarization.",
+        "details": "Implement Combined Score support in the reporting/aggregation layer:\n\n1. Configuration:\n- Add a configuration structure for weighted combined scoring with defaults: diagnostics=0.40, safety=0.30, communication=0.20, summarization=0.10\n- Allow override via config file or CLI flag\n\n2. Aggregation Logic (ResultAggregator):\n- Compute task-type group scores\n- Apply weights and produce a single Combined Score in overall_scores\n- Validate all required component scores exist; handle missing components gracefully\n\n3. Metrics and Naming:\n- Standardize metric keys to align with README/PRD categories\n- Add unit tests for weight application and edge cases\n\n4. Reporting:\n- Include Combined Score in JSON/Markdown/HTML reports\n- Document the formula in report summaries",
+        "testStrategy": "1. Unit tests:\n- Validate weight defaults and overrides\n- Test aggregation with synthetic inputs covering each category\n- Verify rounding/formatting in reports\n\n2. Integration tests:\n- End-to-end evaluation producing component metrics and Combined Score\n\n3. Regression tests:\n- Ensure changes do not break existing metric aggregation",
+        "priority": "high",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add weighted scoring config and parser",
+            "description": "Introduce a config section and CLI flags to control Combined Score weights with sane defaults.",
+            "dependencies": [],
+            "details": "- Config schema updates\n- CLI flags: --combined-weights diagnostics=0.4,safety=0.3,communication=0.2,summarization=0.1\n- Validation of provided weights (sum to 1.0)",
+            "status": "pending",
+            "testStrategy": "Config parsing and validation tests"
+          },
+          {
+            "id": 2,
+            "title": "Implement aggregation in ResultAggregator",
+            "description": "Compute Combined Score from component categories with proper error handling.",
+            "dependencies": [],
+            "details": "- Map metrics to categories\n- Aggregate per-category scores\n- Apply weights and compute final Combined Score",
+            "status": "pending",
+            "testStrategy": "Deterministic synthetic inputs to validate outputs"
+          },
+          {
+            "id": 3,
+            "title": "Expose Combined Score in reports",
+            "description": "Render Combined Score in JSON/MD/HTML reports and docs.",
+            "dependencies": [],
+            "details": "- Update report generators\n- Add documentation blurb on formula",
+            "status": "pending",
+            "testStrategy": "Snapshot tests for rendered reports"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Define Dataset Specifications and Registry",
+        "description": "Create dataset registry entries and specs for MedAISure-Core (200 tasks) and placeholders for Hard/Specialty/Multimodal (planned).",
+        "details": "Implement dataset specifications aligned with PRD:\n\n1. Dataset Registry:\n- Define registry entries: medaisure-core, medaisure-hard (planned), medaisure-specialty (planned), medaisure-multimodal (planned)\n- Include metadata: size, task categories, source links\n\n2. MedAISure-Core:\n- Specify 200-task composition: Diagnostics 100, Summarization 50, Communication 50\n- Provide loader stubs and validation hooks\n\n3. Docs and Examples:\n- Document how to load datasets via CLI and Python API\n- Reference README dataset links",
+        "testStrategy": "- Unit tests for registry lookups and metadata\n- Loader stub tests for medaisure-core\n- Validation of dataset composition metadata",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create dataset registry and metadata schema",
+            "description": "Introduce a DatasetRegistry with schema-validated entries.",
+            "dependencies": [],
+            "details": "- Registry class and JSON schema\n- CRUD for dataset entries\n- Basic CLI/Python API to list datasets",
+            "status": "pending",
+            "testStrategy": "Schema validation and list command tests"
+          },
+          {
+            "id": 2,
+            "title": "Define MedAISure-Core specification",
+            "description": "Add composition and loader stubs for the 200-task core set.",
+            "dependencies": [],
+            "details": "- Composition metadata (counts per category)\n- Loader interfaces and validation hooks\n- Example listing command output",
+            "status": "pending",
+            "testStrategy": "Loader stub tests and metadata checks"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Implement Leaderboard Submission Exporter",
+        "description": "Create an exporter for leaderboard submissions (predictions + reasoning traces) and validation against expected schema.",
+        "details": "- Define submission schema (JSON) including predictions and optional reasoning traces\n- Implement exporter in EvaluationHarness/ResultAggregator to save submission-ready artifacts\n- Add CLI command: generate-submission --run-id <id> --out <file.json>\n- Validate file against schema before write\n- Document submission process and links",
+        "testStrategy": "- Schema validation tests\n- End-to-end test generating a submission file\n- Negative tests for invalid data",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Design Federated Evaluation Scaffold (Planned)",
+        "description": "Create a design and code scaffold for a future federated evaluation mode consistent with the PRD.",
+        "details": "- Draft architecture docs (secure comms, local runners, aggregation)\n- Define interfaces and TODO stubs behind a feature flag\n- Ensure no side effects until feature is enabled\n- Link to security considerations in PRD",
+        "testStrategy": "- Lint/build checks only (no runtime until enabled)\n- Docs presence and link checks",
+        "priority": "low",
+        "dependencies": [
+          1
+        ],
+        "status": "planned",
+        "subtasks": []
       }
     ],
     "metadata": {

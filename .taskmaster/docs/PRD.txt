@@ -148,7 +148,7 @@ The benchmark solves several key problems:
    - CPU: 8+ cores recommended for parallel evaluation
    - RAM: 16GB+ (32GB+ for larger models)
    - GPU: Optional but recommended, 8GB+ VRAM
-   - Storage: 20GB+ for framework and datasets
+   - Storage: 120GB+ to accommodate Docker images, caches, and datasets (per README guidance)
 
 2. **Software Dependencies**
    - Python 3.8+ (3.10 recommended)
@@ -159,6 +159,62 @@ The benchmark solves several key problems:
 3. **External Services**
    - Optional API keys for model services
    - Optional cloud resources for distributed evaluation
+
+# Benchmark Specification
+
+## Datasets
+- **MedAISure-Core**: 200 tasks across diagnostics, summarization, and communication.
+  - Proposed split (balanced, industry-aligned): Diagnostics 100, Summarization 50, Communication 50
+  - Safety is evaluated as a cross-cutting metric on applicable tasks (embedded rubrics), not a separate dataset
+- **MedAISure-Hard (Planned)**: 100 challenging tasks for advanced models.
+- **MedAISure-Specialty (Planned)**: Domain-specific tasks (e.g., oncology, cardiology).
+- **MedAISure-Multimodal (Planned)**: Tasks combining text and imaging.
+
+Sources include public datasets (e.g., MIMIC-IV, MedQA), synthetic personas (inspired by HealthBench), and de-identified clinical cases validated by physicians.
+
+## Metrics
+- **Accuracy**: For question-answering and diagnostics.
+- **F1-Score**: For entity recognition.
+- **BLEU/ROUGE**: For summarization and patient communication.
+- **Clinical Relevance**: Expert-scored metric for guideline alignment.
+- **Combined Score (Weighted)**: 40% diagnostics, 30% safety, 20% communication, 10% summarization.
+  - Rationale: Industry practice favors macro-averaging across task families (e.g., GLUE/SuperGLUE, MMLU), while Helm-like multi-metric evaluations motivate explicit weights. Given clinical risk, safety is elevated to 30%; diagnostics receives highest weight (40%) reflecting primary clinical utility.
+
+### CLI and Config Conventions (for reference)
+- Command names: kebab-case (e.g., `generate-submission`, `evaluate`)
+- Flags: double-dash with kebab-case; key-value lists are comma-separated
+- Config: YAML/JSON with snake_case keys
+
+Examples:
+```bash
+# Evaluate on MedAISure-Core
+medaisure evaluate --tasks medaisure-core
+
+# Override Combined Score weights (must sum to 1.0)
+medaisure evaluate --combined-weights diagnostics=0.4,safety=0.3,communication=0.2,summarization=0.1
+
+# Generate leaderboard submission from a prior run
+medaisure generate-submission --run-id 2025-08-23-xyz --out submission.json
+```
+Config snippet:
+```yaml
+scoring:
+  combined_weights:
+    diagnostics: 0.40
+    safety: 0.30
+    communication: 0.20
+    summarization: 0.10
+datasets:
+  default: medaisure-core
+```
+
+## Leaderboard and Documentation
+- **Leaderboard**: https://www.medaisure.org/leaderboard — ranks models by combined and task-specific metrics; submissions include predictions and reasoning traces.
+- **Documentation**: https://junaidi-ai.github.io/MedAISure/ — API reference, advanced usage, and evaluation tutorials.
+
+## Evaluation Environment Notes
+- **Containerization**: Docker-based execution for reproducibility, consistent with README Set Up guidance.
+- **Federated Evaluation (Planned)**: Privacy-preserving evaluation mode for sensitive data, aligned with the README and captured in the roadmap below.
 
 # Development Roadmap
 ## Phase 1: Foundation (MVP)
