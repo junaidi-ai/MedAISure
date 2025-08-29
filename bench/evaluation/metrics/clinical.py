@@ -30,6 +30,93 @@ def _tokenize(s: Any) -> List[str]:
 
 
 class ClinicalAccuracyMetric(Metric):
+    """Clinical correctness on answers using simple entity overlap.
+
+    This implementation:
+    - Extracts naive clinical entities from text into categories
+      (diagnoses, treatments, medications, symptoms, labs) using
+      lightweight lexicons and normalization.
+    - Computes a weighted Jaccard similarity across categories.
+    - Normalizes the final score to [0, 1].
+    - Stores a per-pair breakdown retrievable via
+      ``get_last_breakdown()`` without altering the base Metric API.
+
+    Notes:
+    - If no entities are found in both reference and prediction, we
+      fall back to a conservative normalized string match (exact/substring)
+      to avoid returning NaN and to keep intuitive behavior for free-form
+      short answers.
+    - This is intentionally simple and dependency-light. It can be
+      upgraded later to use proper clinical NLP.
+    """
+
+    # Lightweight category weights; adjust as needed
+    _CATEGORY_WEIGHTS = {
+        "diagnoses": 3.0,
+        "treatments": 2.0,
+        "medications": 2.0,
+        "symptoms": 1.0,
+        "labs": 1.0,
+    }
+
+    # Minimal lexicon per category (lowercased, normalized)
+    _LEXICON = {
+        "diagnoses": {
+            "pneumonia",
+            "sepsis",
+            "myocardial infarction",
+            "mi",
+            "stroke",
+            "copd",
+            "asthma",
+            "heart failure",
+            "diabetes",
+        },
+        "treatments": {
+            "antibiotics",
+            "oxygen",
+            "ventilation",
+            "iv fluids",
+            "insulin",
+            "surgery",
+        },
+        "medications": {
+            "amoxicillin",
+            "ceftriaxone",
+            "azithromycin",
+            "heparin",
+            "aspirin",
+            "insulin",
+        },
+        "symptoms": {
+            "fever",
+            "cough",
+            "shortness of breath",
+            "dyspnea",
+            "tachycardia",
+            "hypotension",
+            "chest pain",
+        },
+        "labs": {
+            "wbc",
+            "white blood cell",
+            "lactate",
+            "troponin",
+            "glucose",
+        },
+    }
+
+    # Simple synonym/normalization map
+    _NORMALIZE_MAP = {
+        "mi": "myocardial infarction",
+        "sob": "shortness of breath",
+        "white blood cells": "white blood cell",
+        "leukocytosis": "white blood cell",
+    }
+
+    def __init__(self) -> None:
+        self._last_breakdown: List[Dict[str, Any]] = []
+
     @property
     def name(self) -> str:
         return "clinical_accuracy"
@@ -38,8 +125,11 @@ class ClinicalAccuracyMetric(Metric):
         self, expected_outputs: List[Dict], model_outputs: List[Dict]
     ) -> float:
         Metric.validate_inputs(expected_outputs, model_outputs)
+        self._last_breakdown = []
         scores: List[float] = []
+
         for ref, pred in zip(expected_outputs, model_outputs):
+            # Extract free-text answers
             t = (ref or {}).get("answer")
             p = (
                 (pred or {}).get("answer")
@@ -48,15 +138,96 @@ class ClinicalAccuracyMetric(Metric):
             )
             t_norm = _normalize_text(t)
             p_norm = _normalize_text(p)
-            if not t_norm and not p_norm:
-                scores.append(1.0)
-            elif not t_norm or not p_norm:
-                scores.append(0.0)
-            elif t_norm == p_norm or (t_norm in p_norm) or (p_norm in t_norm):
-                scores.append(1.0)
+
+            # Entity extraction by category
+            t_entities = self._extract_entities(t_norm)
+            p_entities = self._extract_entities(p_norm)
+
+            # Compute weighted Jaccard across categories
+            cat_scores: Dict[str, float] = {}
+            weighted_inter = 0.0
+            weighted_union = 0.0
+            for cat, weight in self._CATEGORY_WEIGHTS.items():
+                t_set = t_entities.get(cat, set())
+                p_set = p_entities.get(cat, set())
+                inter = len(t_set & p_set)
+                union = len(t_set | p_set)
+                if union:
+                    cat_scores[cat] = inter / union
+                    weighted_inter += weight * inter
+                    weighted_union += weight * union
+                else:
+                    cat_scores[cat] = 1.0 if not t_set and not p_set else 0.0
+
+            if weighted_union > 0:
+                score = weighted_inter / weighted_union
             else:
-                scores.append(0.0)
+                # Fallback to simple normalized string comparison when
+                # there are no recognized entities
+                if not t_norm and not p_norm:
+                    score = 1.0
+                elif not t_norm or not p_norm:
+                    score = 0.0
+                elif t_norm == p_norm or (t_norm in p_norm) or (p_norm in t_norm):
+                    score = 1.0
+                else:
+                    score = 0.0
+
+            scores.append(score)
+            self._last_breakdown.append(
+                {
+                    "reference": t_norm,
+                    "prediction": p_norm,
+                    "entities_ref": {k: sorted(v) for k, v in t_entities.items()},
+                    "entities_pred": {k: sorted(v) for k, v in p_entities.items()},
+                    "category_scores": cat_scores,
+                    "pair_score": score,
+                }
+            )
+
         return float(sum(scores) / len(scores)) if scores else float("nan")
+
+    def get_last_breakdown(self) -> List[Dict[str, Any]]:
+        """Return per-sample breakdown from the most recent calculate() call."""
+        return self._last_breakdown
+
+    # ------------------------- helpers -------------------------
+    def _normalize_term(self, term: str) -> str:
+        t = term.strip()
+        if not t:
+            return t
+        t = self._NORMALIZE_MAP.get(t, t)
+        return t
+
+    def _extract_entities(self, text: str) -> Dict[str, set]:
+        entities: Dict[str, set] = {k: set() for k in self._CATEGORY_WEIGHTS.keys()}
+        if not text:
+            return entities
+
+        # Detect multi-word terms first to avoid splitting
+        remaining = text
+        # Build a list of multi-word lexicon terms by category
+        multi_terms: List[tuple[str, str]] = []  # (term, category)
+        for cat, terms in self._LEXICON.items():
+            for t in terms:
+                if " " in t:
+                    multi_terms.append((t, cat))
+
+        for term, cat in multi_terms:
+            if term in remaining:
+                entities[cat].add(self._normalize_term(term))
+                # naive removal to reduce double counting
+                remaining = remaining.replace(term, " ")
+
+        # Single-word detection from remaining tokens
+        for tok in _tokenize(remaining):
+            tok = self._normalize_term(tok)
+            for cat, terms in self._LEXICON.items():
+                if tok in terms:
+                    entities[cat].add(tok)
+
+        # Drop empty categories to keep breakdown concise
+        return {k: v for k, v in entities.items() if v}
 
 
 class ReasoningQualityMetric(Metric):

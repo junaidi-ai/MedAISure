@@ -295,7 +295,7 @@
               "4.1"
             ],
             "details": "1. Define the algorithm for comparing medical entities between expected and model outputs\n2. Implement entity extraction and normalization\n3. Add weighting for different types of clinical information (diagnoses, treatments, etc.)\n4. Normalize scores between 0-1\n5. Add detailed scoring breakdown in results\n6. Create comprehensive unit tests with medical examples",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
