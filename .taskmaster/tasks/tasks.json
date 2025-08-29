@@ -180,7 +180,7 @@
           1,
           2
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -260,7 +260,7 @@
               "3.4"
             ],
             "details": "1. Create a TaskRegistry class to manage available tasks\n2. Implement methods for registering new tasks\n3. Add functionality to discover and list available tasks\n4. Develop filtering capabilities (by task type, difficulty, etc.)\n5. Ensure proper integration with the CLI and evaluation system",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           }
         ]
