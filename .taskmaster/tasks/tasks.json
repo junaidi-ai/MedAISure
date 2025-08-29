@@ -331,7 +331,7 @@
               "4.4"
             ],
             "details": "1. Finalize the MetricRegistry implementation\n2. Add validation for registered metrics\n3. Implement parallel execution of metrics for performance\n4. Add caching mechanism for repeated calculations\n5. Create methods for metric result aggregation\n6. Implement serialization/deserialization of metric results\n7. Develop unit tests for the registry",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
