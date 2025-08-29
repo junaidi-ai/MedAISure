@@ -104,3 +104,22 @@ class BenchmarkReport(BaseModel):
         with path.open("r") as f:
             data = json.load(f)
         return cls.model_validate(data)
+
+    # --- Convenience serialization helpers ---
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a plain-Python dict representation of the report."""
+        return self.model_dump()
+
+    def to_json(self, indent: int | None = None) -> str:
+        """Return a JSON string representation of the report."""
+        return self.model_dump_json(indent=indent)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "BenchmarkReport":
+        """Create a BenchmarkReport from a plain dict with validation."""
+        return cls.model_validate(data)
+
+    @classmethod
+    def from_json(cls, data: str) -> "BenchmarkReport":
+        """Create a BenchmarkReport from a JSON string with validation."""
+        return cls.model_validate_json(data)

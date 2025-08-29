@@ -50,3 +50,22 @@ class EvaluationResult(BaseModel):
                 raise ValueError("metrics_results values must be numeric")
             out[k] = float(val)
         return out
+
+    # --- Convenience serialization helpers ---
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a plain-Python dict representation of the model."""
+        return self.model_dump()
+
+    def to_json(self, indent: int | None = None) -> str:
+        """Return a JSON string representation of the model."""
+        return self.model_dump_json(indent=indent)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "EvaluationResult":
+        """Create an EvaluationResult from a plain dict with validation."""
+        return cls.model_validate(data)
+
+    @classmethod
+    def from_json(cls, data: str) -> "EvaluationResult":
+        """Create an EvaluationResult from a JSON string with validation."""
+        return cls.model_validate_json(data)
