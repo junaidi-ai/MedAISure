@@ -14,13 +14,28 @@ class BenchmarkReport(BaseModel):
     """Aggregated benchmark report for a model across tasks."""
 
     model_id: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="UTC timestamp when the report was created.",
+    )
 
-    overall_scores: Dict[str, float] = Field(default_factory=dict)
-    task_scores: Dict[str, Dict[str, float]] = Field(default_factory=dict)
-    detailed_results: List[EvaluationResult] = Field(default_factory=list)
+    overall_scores: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Average metric scores across all tasks (metric -> mean score).",
+    )
+    task_scores: Dict[str, Dict[str, float]] = Field(
+        default_factory=dict,
+        description="Per-task average scores (task_id -> {metric -> mean score}).",
+    )
+    detailed_results: List[EvaluationResult] = Field(
+        default_factory=list,
+        description="Raw evaluation results used to compute aggregates.",
+    )
 
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional metadata for this report (e.g., run_id, notes).",
+    )
 
     # Internal counters to support incremental averaging; excluded from serialization
     _task_metric_counts: Dict[str, Dict[str, int]] = PrivateAttr(default_factory=dict)
@@ -123,3 +138,89 @@ class BenchmarkReport(BaseModel):
     def from_json(cls, data: str) -> "BenchmarkReport":
         """Create a BenchmarkReport from a JSON string with validation."""
         return cls.model_validate_json(data)
+
+    # --- Summary/statistics helpers ---
+    def summary_statistics(self) -> Dict[str, Dict[str, float]]:
+        """Compute simple summary stats (count, mean, min, max) per metric.
+
+        The computation is based on `task_scores` (per-task averages). This provides
+        a quick overview without re-walking raw `detailed_results`.
+        """
+        stats: Dict[str, Dict[str, float]] = {}
+        # Collect all metric values across tasks
+        metric_values: Dict[str, List[float]] = {}
+        for _task, metrics in (self.task_scores or {}).items():
+            for name, val in (metrics or {}).items():
+                metric_values.setdefault(name, []).append(float(val))
+
+        for name, values in metric_values.items():
+            if not values:
+                continue
+            vmin = min(values)
+            vmax = max(values)
+            mean = sum(values) / len(values)
+            stats[name] = {
+                "count": float(len(values)),
+                "mean": mean,
+                "min": vmin,
+                "max": vmax,
+            }
+        return stats
+
+    def metric_history(self, metric: str) -> List[float]:
+        """Return the sequence of per-task average values for a given metric."""
+        vals: List[float] = []
+        for _task, metrics in (self.task_scores or {}).items():
+            if metric in metrics:
+                vals.append(float(metrics[metric]))
+        return vals
+
+    # --- Visualization helpers (optional) ---
+    def plot_overall_scores(self) -> None:
+        """Plot a simple bar chart of overall metric scores.
+
+        Requires matplotlib; if not available, raises an informative ImportError.
+        """
+        try:
+            import matplotlib.pyplot as plt  # type: ignore
+        except Exception as e:
+            raise ImportError(
+                "matplotlib is required for plotting. Install it or use to_json()/to_dict() to export data."
+            ) from e
+
+        metrics = list((self.overall_scores or {}).keys())
+        values = [self.overall_scores[m] for m in metrics]
+        plt.figure(figsize=(6, 3))
+        plt.bar(metrics, values)
+        plt.title("Overall Scores")
+        plt.ylabel("Score")
+        plt.xticks(rotation=30, ha="right")
+        plt.tight_layout()
+        plt.show()
+
+    def plot_task_scores(self, metric: str) -> None:
+        """Plot a simple bar chart of per-task scores for a selected metric.
+
+        Requires matplotlib; if not available, raises an informative ImportError.
+        """
+        try:
+            import matplotlib.pyplot as plt  # type: ignore
+        except Exception as e:
+            raise ImportError(
+                "matplotlib is required for plotting. Install it or use to_json()/to_dict() to export data."
+            ) from e
+
+        tasks = []
+        values = []
+        for task_id, metrics in (self.task_scores or {}).items():
+            if metric in metrics:
+                tasks.append(task_id)
+                values.append(metrics[metric])
+
+        plt.figure(figsize=(6, 3))
+        plt.bar(tasks, values)
+        plt.title(f"Per-task scores: {metric}")
+        plt.ylabel("Score")
+        plt.xticks(rotation=30, ha="right")
+        plt.tight_layout()
+        plt.show()
