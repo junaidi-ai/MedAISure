@@ -248,7 +248,6 @@ class MetricCalculator:
         if len(predictions) != len(references):
             raise ValueError("Predictions and references must have the same length")
 
-        # Filter metrics if specific ones are requested
         metrics_to_use: Dict[str, Dict[str, Any]] = self.metrics
         if metric_names is not None:
             metrics_to_use = {
@@ -261,17 +260,14 @@ class MetricCalculator:
 
         for metric_name, metric_info in metrics_to_use.items():
             try:
-                # Get metric function and default kwargs
-                metric_info["function"]
+                # Resolve kwargs for this metric
                 default_kwargs: Dict[str, Any] = metric_info.get("default_kwargs", {})
-
-                # Merge default kwargs with any provided kwargs
                 kwargs: Dict[str, Any] = {
                     **default_kwargs,
                     **metric_kwargs.get(metric_name, {}),
                 }
 
-                # Extract relevant data for this metric
+                # Prepare data per metric
                 y_true, y_pred = self._prepare_data_for_metric(
                     metric_name, predictions, references, **kwargs
                 )
@@ -293,81 +289,6 @@ class MetricCalculator:
 
         return results
 
-    def _calculate_single_metric(
-        self,
-        metric_name: str,
-        metric_info: Dict[str, Any],
-        y_true: List[Any],
-        y_pred: List[Any],
-        **kwargs: Any,
-    ) -> MetricResult:
-        """Calculate a single metric.
-
-        Args:
-            metric_name: Name of the metric
-            metric_info: Dictionary containing the metric function and default kwargs
-            y_true: List of true labels/values
-            y_pred: List of predicted labels/values
-            **kwargs: Additional keyword arguments for the metric function
-
-        Returns:
-            MetricResult object containing the metric value and any metadata
-        """
-        try:
-            metric_func = metric_info["function"]
-            default_kwargs = metric_info.get("default_kwargs", {}).copy()
-
-            # Update default kwargs with any provided kwargs
-            kwargs = {**default_kwargs, **kwargs}
-
-            # Special handling for classification metrics
-            if metric_name in ["precision", "recall", "f1"]:
-                # For classification metrics, ensure we have the
-                # correct average parameter
-                if "average" not in kwargs:
-                    # Default to 'binary' for binary classification,
-                    # 'macro' for multi-class
-                    num_classes = len(set(y_true + y_pred))
-                    kwargs["average"] = "binary" if num_classes <= 2 else "macro"
-                    avg = kwargs["average"]
-                    logger.debug(
-                        f"Using average='{avg}' for {metric_name} "
-                        f"with {num_classes} classes"
-                    )
-
-            # Calculate the metric
-            logger.debug(f"Calculating {metric_name} with kwargs: {kwargs}")
-            result = metric_func(y_true, y_pred, **kwargs)
-
-            # Handle metrics that return a tuple (value, additional_info)
-            if isinstance(result, tuple) and len(result) == 2:
-                value, additional_info = result
-                return MetricResult(
-                    metric_name=metric_name,
-                    value=float(value),
-                    metadata=(
-                        additional_info
-                        if isinstance(additional_info, dict)
-                        else {"info": additional_info}
-                    ),
-                )
-
-            # Handle single return value
-            return MetricResult(
-                metric_name=metric_name,
-                value=float(result),
-            )
-
-        except Exception as e:
-            logger.error(
-                f"Error calculating metric {metric_name}: {str(e)}", exc_info=True
-            )
-            return MetricResult(
-                metric_name=metric_name,
-                value=float("nan"),
-                metadata={"error": str(e)},
-            )
-
     def _prepare_data_for_metric(
         self,
         metric_name: str,
@@ -377,18 +298,8 @@ class MetricCalculator:
     ) -> Tuple[List[Any], List[Any]]:
         """Prepare data for metric calculation.
 
-        Args:
-            metric_name: Name of the metric being calculated
-            predictions: List of prediction dictionaries
-            references: List of reference dictionaries
-            **kwargs: Additional arguments that might be needed for data preparation
-
-        Returns:
-            Tuple of (y_true, y_pred) for the metric function
+        Returns: Tuple of (y_true, y_pred)
         """
-        # Default behavior: extract 'label' from references and handle both
-        # 'label' and 'prediction' from predictions. Some metrics override
-        # fields to better fit task types (QA, diagnostic, summarization).
         try:
             # Choose reference and prediction fields based on metric
             ref_field = "label"
@@ -398,14 +309,11 @@ class MetricCalculator:
                 ref_field = "answer"
                 pred_field_candidates = ["label", "prediction", "answer", "text"]
             elif metric_name in ["diagnostic_accuracy"]:
-                # by default use 'label', fallback to 'diagnosis'
                 ref_field = "label"
             elif metric_name in ["rouge_l", "factual_consistency"]:
-                # compare against reference summary
                 ref_field = "summary"
                 pred_field_candidates = ["summary", "prediction", "text", "label"]
             elif metric_name in ["clinical_relevance"]:
-                # compare predicted summary to source note/context
                 ref_field = "note"
                 pred_field_candidates = ["summary", "prediction", "text", "label"]
             elif metric_name in ["reasoning_quality"]:
@@ -418,7 +326,7 @@ class MetricCalculator:
                     "text",
                 ]
 
-            # Extract true values from references with fallback chain
+            # Extract y_true
             y_true: List[Any] = []
             for ref in references:
                 if isinstance(ref, dict):
@@ -433,7 +341,7 @@ class MetricCalculator:
                 else:
                     y_true.append(None)
 
-            # Extract predictions using candidate fields in order
+            # Extract y_pred
             y_pred: List[Any] = []
             for pred in predictions:
                 if isinstance(pred, dict):
@@ -446,26 +354,24 @@ class MetricCalculator:
                 else:
                     y_pred.append(pred)
 
-            # Handle binary classification metrics that require probabilities
+            # Handle score-based metrics for binary classification
             if metric_name in ["roc_auc", "average_precision"]:
-                # For binary classification, we expect probabilities in the prediction
                 if all(isinstance(p, dict) and "score" in p for p in predictions):
                     y_pred = [p.get("score") for p in predictions]
 
-                # Ensure binary labels are 0/1 for scikit-learn metrics
+                # Map labels to 0/1 if not already
                 unique_labels = list(set(y_true))
                 if len(unique_labels) == 2 and set(y_true) != {0, 1}:
                     unique_labels = sorted(unique_labels)
                     y_true = [1 if label == unique_labels[1] else 0 for label in y_true]
 
-            # Ensure all labels are numeric for classification metrics only
+            # Numeric label conversion for standard classification metrics
             if (
                 metric_name
                 in ["accuracy", "precision", "recall", "f1", "diagnostic_accuracy"]
                 and y_true
                 and y_pred
             ):
-                # Convert string labels to integers if needed
                 if isinstance(y_true[0], str) or isinstance(y_pred[0], str):
                     all_labels = sorted(
                         set(
@@ -488,6 +394,88 @@ class MetricCalculator:
         except Exception as e:
             logger.warning(f"Error preparing data for metric {metric_name}: {str(e)}")
             return [], []
+
+    def _calculate_single_metric(
+        self,
+        metric_name: str,
+        metric_info: Dict[str, Any],
+        y_true: List[Any],
+        y_pred: List[Any],
+        **kwargs: Any,
+    ) -> MetricResult:
+        """Calculate a single metric with input sanitation and guards."""
+        try:
+            # Sanitize pairs where either side is None/NaN
+            from math import isnan as _isnan
+
+            def _is_nan(x: Any) -> bool:
+                try:
+                    return _isnan(float(x))
+                except Exception:
+                    return False
+
+            ty: List[Any] = []
+            py: List[Any] = []
+            for t, p in zip(y_true, y_pred):
+                if t is None or p is None:
+                    continue
+                if _is_nan(t) or _is_nan(p):
+                    continue
+                ty.append(t)
+                py.append(p)
+
+            y_true = ty
+            y_pred = py
+
+            if not y_true or not y_pred:
+                return MetricResult(
+                    metric_name=metric_name,
+                    value=float("nan"),
+                    metadata={"warning": "empty data after filtering"},
+                )
+
+            # Special guards for curve-based metrics
+            if metric_name in {"roc_auc", "average_precision"}:
+                try:
+                    if len(set(y_true)) < 2:
+                        return MetricResult(
+                            metric_name=metric_name,
+                            value=float("nan"),
+                            metadata={
+                                "warning": "single-class y_true; metric undefined",
+                                "num_classes": len(set(y_true)),
+                            },
+                        )
+                except Exception:
+                    pass
+
+            func: Callable[..., Any] = metric_info["function"]
+            result = func(y_true, y_pred, **kwargs)
+
+            # Metric functions may return (value, metadata)
+            if isinstance(result, tuple):
+                value, additional_info = result
+                return MetricResult(
+                    metric_name=metric_name,
+                    value=float(value),
+                    metadata=(
+                        additional_info
+                        if isinstance(additional_info, dict)
+                        else {"info": additional_info}
+                    ),
+                )
+
+            return MetricResult(metric_name=metric_name, value=float(result))
+
+        except Exception as e:
+            logger.error(
+                f"Error calculating metric {metric_name}: {str(e)}", exc_info=True
+            )
+            return MetricResult(
+                metric_name=metric_name,
+                value=float("nan"),
+                metadata={"error": str(e)},
+            )
 
     def aggregate_metrics(
         self, metric_results: List[Dict[str, MetricResult]], aggregation: str = "mean"

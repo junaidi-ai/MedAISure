@@ -110,9 +110,14 @@ class ResultAggregator:
         else:
             output_path = Path(output_path)
 
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        report.save(output_path)
-        return output_path
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            report.save(output_path)
+            return output_path
+        except Exception as e:
+            msg = f"Failed to save report to {output_path}: {e}"
+            logger.error(msg)
+            raise ValueError(msg) from e
 
     def _aggregate_metrics(self, run_id: str) -> Dict[str, float]:
         """Compute aggregate metrics across all tasks in a run.
@@ -246,24 +251,32 @@ class ResultAggregator:
         metric_names = list(sorted(report.overall_scores.keys()))
         fieldnames = ["row_type", "task_id"] + metric_names
 
-        with open(output_path, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
+        try:
+            with open(output_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
 
-            # Per-task rows
-            for task_id, scores in report.task_scores.items():
-                row: Dict[str, Any] = {"row_type": "task", "task_id": task_id}
-                row.update({m: scores.get(m, "") for m in metric_names})
-                writer.writerow(row)
+                # Per-task rows
+                for task_id, scores in report.task_scores.items():
+                    row: Dict[str, Any] = {"row_type": "task", "task_id": task_id}
+                    row.update({m: scores.get(m, "") for m in metric_names})
+                    writer.writerow(row)
 
-            # Overall row
-            overall_row: Dict[str, Any] = {"row_type": "overall", "task_id": "OVERALL"}
-            overall_row.update(
-                {m: report.overall_scores.get(m, "") for m in metric_names}
-            )
-            writer.writerow(overall_row)
+                # Overall row
+                overall_row: Dict[str, Any] = {
+                    "row_type": "overall",
+                    "task_id": "OVERALL",
+                }
+                overall_row.update(
+                    {m: report.overall_scores.get(m, "") for m in metric_names}
+                )
+                writer.writerow(overall_row)
 
-        return output_path
+            return output_path
+        except Exception as e:
+            msg = f"Failed to export CSV to {output_path}: {e}"
+            logger.error(msg)
+            raise ValueError(msg) from e
 
     def export_report_markdown(
         self, run_id: str, output_path: Union[str, Path]
@@ -292,8 +305,13 @@ class ResultAggregator:
         ]
         lines.append("| " + " | ".join(overall_vals) + " |")
 
-        output_path.write_text("\n".join(lines), encoding="utf-8")
-        return output_path
+        try:
+            output_path.write_text("\n".join(lines), encoding="utf-8")
+            return output_path
+        except Exception as e:
+            msg = f"Failed to export Markdown to {output_path}: {e}"
+            logger.error(msg)
+            raise ValueError(msg) from e
 
     def export_report_html(self, run_id: str, output_path: Union[str, Path]) -> Path:
         """Export a simple HTML table for the report (no external deps)."""
@@ -333,8 +351,13 @@ class ResultAggregator:
             "<table>" + header + "".join(task_rows) + overall_row + "</table>"
             "</body></html>"
         )
-        output_path.write_text(html, encoding="utf-8")
-        return output_path
+        try:
+            output_path.write_text(html, encoding="utf-8")
+            return output_path
+        except Exception as e:
+            msg = f"Failed to export HTML to {output_path}: {e}"
+            logger.error(msg)
+            raise ValueError(msg) from e
 
     # -----------------
     # Run Comparisons

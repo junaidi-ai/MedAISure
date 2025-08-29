@@ -212,11 +212,22 @@ class TaskLoader:
         resp.raise_for_status()
         content_type = resp.headers.get("Content-Type", "").lower()
         text = resp.text
-        if any(x in content_type for x in ["yaml", "x-yaml"]) or url.endswith(
-            (".yaml", ".yml")
-        ):
+
+        # Prefer extension hints
+        if url.endswith((".yaml", ".yml")):
             data = yaml.safe_load(text)
             return cast(Dict[str, Any], data)
-        # Default to JSON
-        data = json.loads(text)
-        return cast(Dict[str, Any], data)
+        if url.endswith(".json"):
+            data = json.loads(text)
+            return cast(Dict[str, Any], data)
+
+        # Fallback to Content-Type validation
+        if any(x in content_type for x in ["yaml", "x-yaml"]):
+            data = yaml.safe_load(text)
+            return cast(Dict[str, Any], data)
+        if any(x in content_type for x in ["application/json", "+json", "text/json"]):
+            data = json.loads(text)
+            return cast(Dict[str, Any], data)
+
+        # Unsupported type
+        raise ValueError(f"Unsupported Content-Type for task URL {url}: {content_type}")
