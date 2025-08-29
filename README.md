@@ -62,12 +62,18 @@ For detailed documentation, including API reference and advanced usage, please v
 
 Also see local docs in this repo:
 
+- Quick Start: [docs/quick_start.md](docs/quick_start.md)
 - Usage Guide: [docs/usage.md](docs/usage.md)
+- Docker Guide (CPU/GPU, smoke tests): [docs/docker.md](docs/docker.md)
 - API Reference: [docs/api_reference.md](docs/api_reference.md)
 - Extension Guide: [docs/extensions.md](docs/extensions.md)
 - Configuration: [docs/configuration.md](docs/configuration.md)
 - Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
 - Performance Tips: [docs/performance.md](docs/performance.md)
+
+Environment variables:
+
+- Example file: [`.env.example`](.env.example). Copy to `.env` and edit as needed. Use `--env-file .env` when running Docker images.
 
 Examples you can run:
 
