@@ -59,6 +59,7 @@ setup(
     entry_points={
         "console_scripts": [
             "medaisure-benchmark=bench.cli:main",
+            "medaisure=bench.cli_typer:main",
         ],
     },
     # Other

@@ -431,7 +431,7 @@
           3,
           4
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -439,7 +439,7 @@
             "description": "Implement the basic CLI structure using Typer, including the main app setup, callback function, and command skeletons.",
             "dependencies": [],
             "details": "1. Create the CLI module structure\n2. Set up the Typer app instance\n3. Implement the callback function with appropriate documentation\n4. Define command function signatures for evaluate, list_tasks, register_model, and generate_report\n5. Add proper type hints and argument definitions\n6. Ensure help text is comprehensive and clear",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
