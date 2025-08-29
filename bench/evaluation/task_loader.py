@@ -207,7 +207,7 @@ class TaskLoader:
 
         Returns:
             List of dicts with keys: ``task_id``, ``name``, ``description``,
-            ``metrics``, ``num_examples``, ``file``.
+            ``metrics``, ``num_examples``, ``file``, optional ``difficulty``.
 
         Example:
             >>> tl = TaskLoader(tasks_dir="bench/tasks")
@@ -240,6 +240,7 @@ class TaskLoader:
                         "metrics": metrics,
                         "num_examples": len(data.get("dataset", [])),
                         "file": file_path,
+                        "difficulty": data.get("difficulty"),
                     }
                 )
             except Exception as e:

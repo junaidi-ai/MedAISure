@@ -105,6 +105,7 @@ class TaskRegistry:
         task_type: Optional[TaskType] = None,
         min_examples: Optional[int] = None,
         has_metrics: Optional[bool] = None,
+        difficulty: Optional[str] = None,
     ) -> List[TaskSummary]:
         """List available tasks with simple filtering.
 
@@ -141,6 +142,12 @@ class TaskRegistry:
             # Apply min_examples filter
             if min_examples is not None and summary.num_examples < min_examples:
                 continue
+
+            # Apply difficulty filter (matches surfaced metadata if present)
+            if difficulty is not None:
+                meta_difficulty = (r.get("difficulty") or "").lower()
+                if meta_difficulty != str(difficulty).lower():
+                    continue
 
             # Apply task_type filter (requires loading the task lazily to check type)
             if task_type is not None:
