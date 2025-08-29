@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import math
 from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, List, TYPE_CHECKING, Optional
@@ -89,14 +90,18 @@ class EvaluationResult(BaseModel):
             raise ValueError("model_outputs length must match inputs length")
         return v
 
-    @field_validator("metrics_results")
+    @field_validator("metrics_results", mode="before")
     @classmethod
     def _validate_metrics_results(cls, v: Dict[str, Any]) -> Dict[str, float]:
         out: Dict[str, float] = {}
         for k, val in (v or {}).items():
+            # Strictly require numeric types pre-coercion to avoid accepting strings like "nan"
             if not isinstance(val, (int, float)):
                 raise ValueError("metrics_results values must be numeric")
-            out[k] = float(val)
+            f = float(val)
+            if math.isnan(f) or math.isinf(f):
+                raise ValueError("metrics_results values must be finite numbers")
+            out[k] = f
         return out
 
     @field_validator("timestamp")
