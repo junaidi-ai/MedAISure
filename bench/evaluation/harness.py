@@ -354,6 +354,31 @@ class EvaluationHarness:
             }
         )
 
+        # If any EvaluationResult captured validation issues, surface them at report level
+        try:
+            all_val_errors: list[str] = []
+            for res in report.detailed_results or []:
+                errs = []
+                meta = getattr(res, "metadata", {}) or {}
+                if isinstance(meta, dict):
+                    errs = meta.get("validation_errors", []) or []
+                if errs:
+                    # Flatten to strings
+                    for e in errs:
+                        all_val_errors.append(str(e))
+            if all_val_errors:
+                # De-duplicate while preserving order
+                seen = set()
+                deduped: list[str] = []
+                for e in all_val_errors:
+                    if e not in seen:
+                        deduped.append(e)
+                        seen.add(e)
+                report.metadata["validation_errors"] = deduped
+        except Exception:
+            # Best-effort enrichment; never block evaluation on metadata issues
+            pass
+
         # Save results
         try:
             if save_results:
@@ -409,8 +434,31 @@ class EvaluationHarness:
 
         # Run model inference
         logger.info(f"Running inference on {len(inputs)} examples...")
+        # Extract input payloads for the model (support nested dataset rows)
+        model_inputs: List[Dict[str, Any]] = []
+        reference_outputs: List[Dict[str, Any]] = []
+        for rec in inputs:
+            if isinstance(rec, dict):
+                in_payload = (
+                    rec.get("input") if isinstance(rec.get("input"), dict) else rec
+                )
+                out_payload = (
+                    rec.get("output") if isinstance(rec.get("output"), dict) else {}
+                )
+                if isinstance(in_payload, dict):
+                    model_inputs.append(in_payload)
+                else:
+                    model_inputs.append(rec)  # fallback
+                if isinstance(out_payload, dict):
+                    reference_outputs.append(out_payload)
+                else:
+                    reference_outputs.append({})
+            else:
+                model_inputs.append({"text": str(rec)})
+                reference_outputs.append({})
+
         predictions = self.model_runner.run_model(
-            model_id=model_id, inputs=inputs, batch_size=batch_size
+            model_id=model_id, inputs=model_inputs, batch_size=batch_size
         )
 
         # Validate outputs against schema (non-strict by default)
@@ -441,7 +489,7 @@ class EvaluationHarness:
         metric_results = self.metric_calculator.calculate_metrics(
             task_id=task.task_id,
             predictions=predictions,
-            references=inputs,
+            references=reference_outputs if any(reference_outputs) else inputs,
             metric_names=metric_names,
         )
 

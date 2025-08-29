@@ -101,12 +101,10 @@ class ResultAggregator:
             Path to the saved report.
         """
         if output_path is None:
-            # Generate a filename based on model name and timestamp
-            safe_model_name = "".join(
-                c if c.isalnum() else "_" for c in report.model_name
-            )
+            # Generate a filename based on model id and timestamp
+            safe_model_id = "".join(c if c.isalnum() else "_" for c in report.model_id)
             timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-            output_path = self.output_dir / f"{safe_model_name}_{timestamp}.json"
+            output_path = self.output_dir / f"{safe_model_id}_{timestamp}.json"
         else:
             output_path = Path(output_path)
 
@@ -279,7 +277,13 @@ class ResultAggregator:
             raise ValueError(msg) from e
 
     def export_report_markdown(
-        self, run_id: str, output_path: Union[str, Path]
+        self,
+        run_id: str,
+        output_path: Union[str, Path],
+        *,
+        include_examples: bool = False,
+        max_examples: int = 5,
+        include_validation_errors: bool = False,
     ) -> Path:
         """Export a report to a Markdown table."""
         report = self.get_report(run_id)
@@ -305,6 +309,39 @@ class ResultAggregator:
         ]
         lines.append("| " + " | ".join(overall_vals) + " |")
 
+        # Optionally include example-level section
+        if include_examples:
+            lines.append("")
+            lines.append("## Examples (truncated)")
+            # Group results by task for clarity
+            by_task: Dict[str, List[EvaluationResult]] = {}
+            for res in report.detailed_results or []:
+                by_task.setdefault(res.task_id, []).append(res)
+            for t_id, results in by_task.items():
+                lines.append("")
+                lines.append(f"### Task: {t_id}")
+                # Flatten pairs from inputs/model_outputs
+                pairs: List[tuple[Dict[str, Any], Dict[str, Any]]] = []
+                for res in results:
+                    n = min(len(res.inputs or []), len(res.model_outputs or []))
+                    for i in range(n):
+                        pairs.append((res.inputs[i], res.model_outputs[i]))
+                # Render up to max_examples
+                for idx, (inp, out) in enumerate(pairs[: max(0, int(max_examples))]):
+                    lines.append("")
+                    lines.append(f"- Example {idx + 1}:")
+                    lines.append(f"  - input: `{str(inp)}`")
+                    lines.append(f"  - prediction: `{str(out)}`")
+
+        # Optionally include validation errors aggregated at report metadata
+        if include_validation_errors:
+            errs = (report.metadata or {}).get("validation_errors", []) or []
+            if errs:
+                lines.append("")
+                lines.append("## Validation Errors")
+                for e in errs:
+                    lines.append(f"- {e}")
+
         try:
             output_path.write_text("\n".join(lines), encoding="utf-8")
             return output_path
@@ -313,7 +350,15 @@ class ResultAggregator:
             logger.error(msg)
             raise ValueError(msg) from e
 
-    def export_report_html(self, run_id: str, output_path: Union[str, Path]) -> Path:
+    def export_report_html(
+        self,
+        run_id: str,
+        output_path: Union[str, Path],
+        *,
+        include_examples: bool = False,
+        max_examples: int = 5,
+        include_validation_errors: bool = False,
+    ) -> Path:
         """Export a simple HTML table for the report (no external deps)."""
         report = self.get_report(run_id)
         output_path = Path(output_path)
@@ -338,6 +383,48 @@ class ResultAggregator:
             ["OVERALL"] + [str(report.overall_scores.get(m, "")) for m in metric_names]
         )
 
+        extra_sections: List[str] = []
+
+        if include_examples:
+            sections: List[str] = ["<h2>Examples (truncated)</h2>"]
+            # Group by task
+            by_task: Dict[str, List[EvaluationResult]] = {}
+            for res in report.detailed_results or []:
+                by_task.setdefault(res.task_id, []).append(res)
+            for t_id, results in by_task.items():
+                sections.append(f"<h3>Task: {t_id}</h3>")
+                rows: List[str] = []
+                count = 0
+                for res in results:
+                    n = min(len(res.inputs or []), len(res.model_outputs or []))
+                    for i in range(n):
+                        if count >= max(0, int(max_examples)):
+                            break
+                        inp = res.inputs[i]
+                        out = res.model_outputs[i]
+                        rows.append(
+                            "<tr>"
+                            f"<td><pre>{str(inp)}</pre></td>"
+                            f"<td><pre>{str(out)}</pre></td>"
+                            "</tr>"
+                        )
+                        count += 1
+                    if count >= max(0, int(max_examples)):
+                        break
+                if rows:
+                    sections.append(
+                        "<table><tr><th>input</th><th>prediction</th></tr>"
+                        + "".join(rows)
+                        + "</table>"
+                    )
+            extra_sections.append("".join(sections))
+
+        if include_validation_errors:
+            errs = (report.metadata or {}).get("validation_errors", []) or []
+            if errs:
+                lis = "".join(f"<li>{str(e)}</li>" for e in errs)
+                extra_sections.append(f"<h2>Validation Errors</h2><ul>{lis}</ul>")
+
         html = (
             "<!DOCTYPE html>\n"
             "<html><head><meta charset='utf-8'>"
@@ -346,10 +433,16 @@ class ResultAggregator:
             "table{border-collapse:collapse;}"
             "td,th{border:1px solid #ddd;padding:6px;}"
             "th{background:#f6f8fa;text-align:left}"
+            "pre{white-space:pre-wrap;margin:0;}"
             "</style></head><body>"
             "<h1>Benchmark Report</h1>"
-            "<table>" + header + "".join(task_rows) + overall_row + "</table>"
-            "</body></html>"
+            "<table>"
+            + header
+            + "".join(task_rows)
+            + overall_row
+            + "</table>"
+            + "".join(extra_sections)
+            + "</body></html>"
         )
         try:
             output_path.write_text(html, encoding="utf-8")

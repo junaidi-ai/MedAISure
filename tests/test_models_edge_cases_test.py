@@ -5,7 +5,7 @@ Covers invalid inputs, boundary conditions, and timezone normalization.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -82,7 +82,7 @@ class TestEvaluationResultEdgeCases:
 
     def test_timezone_normalization(self):
         # naive datetime should become timezone-aware UTC
-        naive = datetime.utcnow()
+        naive = datetime.now(UTC).replace(tzinfo=None)
         obj = EvaluationResult(model_id="m", task_id="t", timestamp=naive)
         assert obj.timestamp.tzinfo is not None
         assert obj.timestamp.utcoffset() is not None

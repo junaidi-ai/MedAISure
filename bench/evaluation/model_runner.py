@@ -400,7 +400,21 @@ class ModelRunner(Generic[M, T, R]):
                     hf_task = self._model_configs.get(model_id, {}).get(
                         "hf_task", "text-classification"
                     )
-                    texts = [item.get("text", "") for item in batch]
+                    # Select input text field based on task type
+                    if hf_task == "summarization":
+                        # Prefer common clinical note fields
+                        def _extract_text(d: Dict[str, Any]) -> str:
+                            for key in ("document", "text", "note"):
+                                v = d.get(key)
+                                if isinstance(v, str) and v.strip():
+                                    return v
+                            # Fallback to stringified input
+                            return str(d)
+
+                        texts = [_extract_text(item) for item in batch]
+                    else:
+                        texts = [item.get("text", "") for item in batch]
+
                     batch_results = model(texts)
                     if not isinstance(batch_results, list):
                         batch_results = [batch_results]
