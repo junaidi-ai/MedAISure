@@ -438,26 +438,69 @@ class DiagnosticAccuracyMetric(Metric):
         self, expected_outputs: List[Dict], model_outputs: List[Dict]
     ) -> float:
         Metric.validate_inputs(expected_outputs, model_outputs)
-        # Map labels to ints if needed
-        y_true: List[Any] = []
-        y_pred: List[Any] = []
+
+        # Domain knowledge and specialty config
+        self._last_breakdown: List[Dict[str, Any]] = []
+        KNOWN_LABELS: Dict[str, set] = {
+            "cardiology": {"myocardial infarction", "mi", "heart failure"},
+            "infectious_disease": {"sepsis", "pneumonia", "flu"},
+        }
+        CRITICAL_LABELS: Dict[str, set] = {
+            "cardiology": {"myocardial infarction", "mi"},
+            "infectious_disease": {"sepsis"},
+        }
+
+        # Weighted average to emphasize critical errors
+        total_weight = 0.0
+        weighted_sum = 0.0
         for ref, pred in zip(expected_outputs, model_outputs):
-            y_true.append((ref or {}).get("label") or (ref or {}).get("diagnosis"))
-            y_pred.append((pred or {}).get("label") or (pred or {}).get("prediction"))
-        if not y_true or not y_pred:
-            return float("nan")
-        if isinstance(y_true[0], str) or isinstance(y_pred[0], str):
-            labels = sorted(
-                set(
-                    [x for x in y_true if x is not None]
-                    + [x for x in y_pred if x is not None]
-                )
+            exp_label = (ref or {}).get("label") or (ref or {}).get("diagnosis")
+            pred_label = (pred or {}).get("label") or (pred or {}).get("prediction")
+            specialty = (ref or {}).get("specialty") or (pred or {}).get("specialty")
+
+            # Normalize text labels for comparison
+            t_norm = _normalize_text(exp_label)
+            p_norm = _normalize_text(pred_label)
+
+            # Base correctness
+            base = 1.0 if (t_norm and p_norm and t_norm == p_norm) else 0.0
+
+            # Specialty-based weight and knowledge checks
+            weight = 1.0
+            known = True
+            critical = False
+            if specialty:
+                s = _normalize_text(specialty)
+                if s in KNOWN_LABELS:
+                    known = (p_norm in KNOWN_LABELS[s]) if p_norm else False
+                if s in CRITICAL_LABELS:
+                    critical = t_norm in CRITICAL_LABELS[s]
+                    if critical:
+                        weight = 1.5  # emphasize critical diagnoses
+
+            # Penalize unknown label predictions slightly
+            if base == 0.0 and not known:
+                weight *= 1.0  # keep simple; weight influences average
+
+            total_weight += weight
+            weighted_sum += weight * base
+
+            self._last_breakdown.append(
+                {
+                    "expected": t_norm,
+                    "predicted": p_norm,
+                    "specialty": _normalize_text(specialty) if specialty else None,
+                    "known_pred_label": known,
+                    "critical_expected": critical,
+                    "weight": weight,
+                    "correct": base,
+                }
             )
-            mapping = {lab: i for i, lab in enumerate(labels)}
-            y_true = [mapping.get(v, -1) if v is not None else -1 for v in y_true]
-            y_pred = [mapping.get(v, -1) if v is not None else -1 for v in y_pred]
-        correct = sum(1 for t, p in zip(y_true, y_pred) if t == p)
-        return float(correct / len(y_true)) if y_true else float("nan")
+
+        return float(weighted_sum / total_weight) if total_weight > 0 else float("nan")
+
+    def get_last_breakdown(self) -> List[Dict[str, Any]]:
+        return getattr(self, "_last_breakdown", [])
 
 
 class ClinicalRelevanceMetric(Metric):
@@ -469,6 +512,14 @@ class ClinicalRelevanceMetric(Metric):
         self, expected_outputs: List[Dict], model_outputs: List[Dict]
     ) -> float:
         Metric.validate_inputs(expected_outputs, model_outputs)
+        self._last_breakdown: List[Dict[str, Any]] = []
+
+        # Domain thresholds by specialty (soft adjustment)
+        DOMAIN_THRESHOLDS: Dict[str, float] = {
+            "cardiology": 0.35,
+            "infectious_disease": 0.30,
+        }
+
         scores: List[float] = []
         for ref, pred in zip(expected_outputs, model_outputs):
             t = (ref or {}).get("note")
@@ -477,14 +528,60 @@ class ClinicalRelevanceMetric(Metric):
                 or (pred or {}).get("prediction")
                 or (pred or {}).get("text")
             )
+            specialty = (ref or {}).get("specialty") or (pred or {}).get("specialty")
+
             set_t = set(_tokenize(t))
             set_p = set(_tokenize(p))
+
+            # Base Jaccard
             if not set_t and not set_p:
-                scores.append(1.0)
+                base = 1.0
             elif not set_t or not set_p:
-                scores.append(0.0)
+                base = 0.0
             else:
                 inter = len(set_t & set_p)
                 union = len(set_t | set_p)
-                scores.append(inter / union if union else 0.0)
+                base = inter / union if union else 0.0
+
+            # Specialty knowledge boost: reward presence of key medical entities
+            # using the ClinicalAccuracyMetric lexicon where relevant
+            boost = 0.0
+            acc_lex = ClinicalAccuracyMetric._LEXICON  # reuse
+            # count shared clinically relevant tokens
+            shared_keywords = 0
+            for terms in acc_lex.values():
+                for term in terms:
+                    if " " in term:
+                        continue
+                    if term in set_t and term in set_p:
+                        shared_keywords += 1
+            if shared_keywords:
+                boost = min(0.1, shared_keywords * 0.02)
+
+            raw = min(1.0, base + boost)
+
+            # Apply soft domain threshold adjustment
+            thr = 0.25
+            if specialty:
+                s = _normalize_text(specialty)
+                thr = DOMAIN_THRESHOLDS.get(s, thr)
+            meets = raw >= thr
+            adjusted = raw if meets else max(0.0, raw * 0.8)
+
+            scores.append(adjusted)
+            self._last_breakdown.append(
+                {
+                    "specialty": _normalize_text(specialty) if specialty else None,
+                    "base_jaccard": base,
+                    "knowledge_boost": boost,
+                    "raw_score": raw,
+                    "threshold": thr,
+                    "meets_threshold": meets,
+                    "final_score": adjusted,
+                }
+            )
+
         return float(sum(scores) / len(scores)) if scores else float("nan")
+
+    def get_last_breakdown(self) -> List[Dict[str, Any]]:
+        return getattr(self, "_last_breakdown", [])
