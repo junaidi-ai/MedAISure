@@ -11,6 +11,7 @@ from bench.models.medical_task import MedicalTask, TaskType
 # Use the example_task_definition from conftest.py instead of defining it here
 
 
+@pytest.mark.compat
 def test_task_loader_init(temp_tasks_dir):
     """Test that TaskLoader initializes correctly with a tasks directory."""
     loader = TaskLoader(tasks_dir=str(temp_tasks_dir))
@@ -40,6 +41,7 @@ def test_load_task(temp_tasks_dir, example_task_definition):
     assert task.metrics == example_task_definition["metrics"]
 
 
+@pytest.mark.compat
 def test_load_nonexistent_task(temp_tasks_dir):
     """Test loading a non-existent task raises FileNotFoundError."""
     loader = TaskLoader(tasks_dir=str(temp_tasks_dir))

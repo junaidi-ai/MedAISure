@@ -137,8 +137,6 @@ class EvaluationHarness:
         # Initialize the model
         logger.info(f"Initializing model: {model_id} (type: {model_type})")
         # Load the model (modifies the model_runner's internal state)
-        # Remove model_path from model_kwargs if it exists to avoid duplicate argument
-        model_kwargs.pop("model_path", None)
         self.model_runner.load_model(
             model_name=model_id,  # Use model_name parameter
             model_type=model_type,

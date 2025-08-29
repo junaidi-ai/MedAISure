@@ -94,7 +94,6 @@ class ModelRunner(Generic[M, T, R]):
         model_type = "huggingface"
         try:
             from transformers import (
-                AutoModelForSequenceClassification,
                 AutoTokenizer,
                 pipeline,
             )
@@ -104,25 +103,61 @@ class ModelRunner(Generic[M, T, R]):
             model_kwargs = kwargs.get("model_kwargs", {})
             tokenizer_kwargs = kwargs.get("tokenizer_kwargs", {})
             num_labels = kwargs.get("num_labels")
+            hf_task = kwargs.get("hf_task", kwargs.get("task", "text-classification"))
+            # Normalize common aliases
+            if hf_task == "text2text-generation":
+                hf_task = "summarization"
 
             logger.info(f"Loading {model_type} model: {model_identifier}")
 
-            # Load model and tokenizer
-            model = AutoModelForSequenceClassification.from_pretrained(
-                model_identifier, num_labels=num_labels, **model_kwargs
-            )
-            tokenizer = AutoTokenizer.from_pretrained(
-                model_identifier, **tokenizer_kwargs
-            )
+            # Select appropriate AutoModel depending on task
+            AutoModel = None
+            tokenizer = None
+            if hf_task == "text-classification":
+                from transformers import (
+                    AutoModelForSequenceClassification as _AutoModel,
+                )  # type: ignore
 
-            # Create a pipeline for text classification
-            pipe = pipeline(
-                "text-classification",
-                model=model,
-                tokenizer=tokenizer,
-                device=kwargs.get("device", -1),  # -1 for CPU, 0+ for GPU
-                **kwargs.get("pipeline_kwargs", {}),
-            )
+                AutoModel = _AutoModel
+            elif hf_task in {"summarization"}:
+                try:
+                    from transformers import AutoModelForSeq2SeqLM as _AutoModel  # type: ignore
+
+                    AutoModel = _AutoModel
+                except Exception:
+                    AutoModel = None
+            elif hf_task in {"text-generation"}:
+                try:
+                    from transformers import AutoModelForCausalLM as _AutoModel  # type: ignore
+
+                    AutoModel = _AutoModel
+                except Exception:
+                    AutoModel = None
+
+            # Load model/tokenizer if available; otherwise rely on pipeline to resolve by id
+            if AutoModel is not None:
+                model = AutoModel.from_pretrained(
+                    model_identifier,
+                    **({"num_labels": num_labels} if num_labels is not None else {}),
+                    **model_kwargs,
+                )
+                tokenizer = AutoTokenizer.from_pretrained(
+                    model_identifier, **tokenizer_kwargs
+                )
+                pipe = pipeline(
+                    hf_task,
+                    model=model,
+                    tokenizer=tokenizer,
+                    device=kwargs.get("device", -1),
+                    **kwargs.get("pipeline_kwargs", {}),
+                )
+            else:
+                pipe = pipeline(
+                    hf_task,
+                    model=model_identifier,
+                    device=kwargs.get("device", -1),
+                    **kwargs.get("pipeline_kwargs", {}),
+                )
 
             # Store the pipeline and its components
             self._models[model_name] = pipe
@@ -130,6 +165,7 @@ class ModelRunner(Generic[M, T, R]):
             self._model_configs[model_name] = {
                 "type": model_type,
                 "path": model_identifier,
+                "hf_task": hf_task,
                 **kwargs,
             }
 
@@ -361,49 +397,90 @@ class ModelRunner(Generic[M, T, R]):
                 batch_start = time.time()
                 if model_type == "huggingface":
                     # For HuggingFace pipeline
-                    batch_results = model([item.get("text", "") for item in batch])
+                    hf_task = self._model_configs.get(model_id, {}).get(
+                        "hf_task", "text-classification"
+                    )
+                    texts = [item.get("text", "") for item in batch]
+                    batch_results = model(texts)
                     if not isinstance(batch_results, list):
                         batch_results = [batch_results]
 
                     for item, result in zip(batch, batch_results):
-                        if isinstance(result, list):
-                            # Handle case where model returns multiple predictions
+                        # HF may return list of candidates per input
+                        if isinstance(result, list) and result:
                             result = result[0]
 
-                        # Get the predicted label and score
-                        raw_label = str(result.get("label", ""))
-                        score = float(result.get("score", 0.0))
-
-                        # Map the label if needed (e.g., 'LABEL_0' -> 'entailment')
-                        predicted_label = label_map.get(raw_label, raw_label)
-
-                        # If no mapping found and label starts with 'LABEL_',
-                        # try to extract the index
-                        if (
-                            predicted_label.startswith("LABEL_")
-                            and "_" in predicted_label
-                        ):
-                            try:
-                                idx = int(predicted_label.split("_")[1])
-                                # If label_map is not provided but we have a
-                                # list of labels, use it
-                                if not label_map and hasattr(model, "model"):
-                                    if hasattr(model.model.config, "id2label"):
-                                        label_map = model.model.config.id2label
-                                        predicted_label = label_map.get(
-                                            idx, predicted_label
-                                        )
-                            except (ValueError, IndexError):
-                                pass
-
-                        results.append(
-                            {
-                                "input": item,
-                                "label": predicted_label,
-                                "score": score,
-                                "raw_label": raw_label,  # Keep original for debugging
-                            }
-                        )
+                        if hf_task == "text-classification":
+                            raw_label = str(result.get("label", ""))
+                            score = float(result.get("score", 0.0))
+                            predicted_label = label_map.get(raw_label, raw_label)
+                            if (
+                                predicted_label.startswith("LABEL_")
+                                and "_" in predicted_label
+                            ):
+                                try:
+                                    idx = int(predicted_label.split("_")[1])
+                                    if (
+                                        not label_map
+                                        and hasattr(model, "model")
+                                        and hasattr(model.model, "config")
+                                    ):
+                                        if hasattr(model.model.config, "id2label"):
+                                            label_map = model.model.config.id2label
+                                            predicted_label = label_map.get(
+                                                idx, predicted_label
+                                            )
+                                except (ValueError, IndexError):
+                                    pass
+                            results.append(
+                                {
+                                    "input": item,
+                                    "label": predicted_label,
+                                    "score": score,
+                                    "raw_label": raw_label,
+                                }
+                            )
+                        elif hf_task == "summarization":
+                            summary = (
+                                result.get("summary_text", "")
+                                if isinstance(result, dict)
+                                else str(result)
+                            )
+                            results.append(
+                                {
+                                    "input": item,
+                                    "summary": summary,
+                                    "prediction": summary,
+                                }
+                            )
+                        elif hf_task == "text-generation":
+                            gen = ""
+                            if isinstance(result, dict):
+                                gen = result.get("generated_text", "")
+                            elif (
+                                isinstance(result, list)
+                                and result
+                                and isinstance(result[0], dict)
+                            ):
+                                gen = result[0].get("generated_text", "")
+                            else:
+                                gen = str(result)
+                            results.append(
+                                {
+                                    "input": item,
+                                    "text": gen,
+                                    "prediction": gen,
+                                }
+                            )
+                        else:
+                            # Fallback: store as raw text
+                            results.append(
+                                {
+                                    "input": item,
+                                    "text": str(result),
+                                    "prediction": str(result),
+                                }
+                            )
 
                 elif model_type == "local":
                     # For local models that implement __call__
