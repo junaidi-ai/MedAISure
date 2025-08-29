@@ -231,6 +231,84 @@ class ClinicalAccuracyMetric(Metric):
 
 
 class ReasoningQualityMetric(Metric):
+    """Token-overlap F1 plus lightweight reasoning heuristics.
+
+    Components:
+    - overlap_f1: token overlap between reference and predicted rationale
+    - structure_score: presence of structure markers (because, therefore, steps)
+    - evidence_score: mentions of evidence (labs, imaging, vitals, findings)
+    - factual_consistency: simple rule checks against common clinical facts
+    - fallacy_penalty: heuristic detection of common fallacy phrases
+
+    Final score is a weighted combination clamped to [0,1].
+    A per-sample breakdown is available via get_last_breakdown().
+    """
+
+    _W_WEIGHTS = {
+        "overlap_f1": 0.4,
+        "structure": 0.15,
+        "evidence": 0.2,
+        "factual": 0.25,
+    }
+
+    _STRUCTURE_MARKERS = {
+        "because",
+        "therefore",
+        "thus",
+        "hence",
+        "so",
+        "in conclusion",
+        "first",
+        "second",
+        "third",
+        "1.",
+        "2.",
+        "3.",
+        "step",
+    }
+
+    _EVIDENCE_MARKERS = {
+        "lab",
+        "wbc",
+        "lactate",
+        "troponin",
+        "imaging",
+        "xray",
+        "x-ray",
+        "ct",
+        "scan",
+        "vitals",
+        "fever",
+        "tachycardia",
+        "hypotension",
+        "finding",
+        "study",
+        "source",
+        "evidence",
+    }
+
+    _FALLACY_PHRASES = {
+        "correlation implies causation",
+        "post hoc",
+        "begs the question",
+        "circular reasoning",
+        "non sequitur",
+        "because i say",
+        "everyone knows",
+        "obviously true",
+    }
+
+    # minimal factual rules: diagnosis -> expected treatment/evidence keywords
+    _FACTS = {
+        "pneumonia": {"antibiotic", "antibiotics", "xray", "x-ray", "infiltrate"},
+        "sepsis": {"iv fluids", "fluids", "lactate", "hypotension"},
+        "myocardial infarction": {"troponin", "ekg", "aspirin", "heparin"},
+        "mi": {"troponin", "ekg", "aspirin", "heparin"},
+    }
+
+    def __init__(self) -> None:
+        self._last_breakdown: List[Dict[str, Any]] = []
+
     @property
     def name(self) -> str:
         return "reasoning_quality"
@@ -239,29 +317,7 @@ class ReasoningQualityMetric(Metric):
         self, expected_outputs: List[Dict], model_outputs: List[Dict]
     ) -> float:
         Metric.validate_inputs(expected_outputs, model_outputs)
-
-        def f1(a: Any, b: Any) -> float:
-            a_tokens = _tokenize(a)
-            b_tokens = _tokenize(b)
-            if not a_tokens and not b_tokens:
-                return 1.0
-            if not a_tokens or not b_tokens:
-                return 0.0
-            common = 0
-            b_count: Dict[str, int] = {}
-            for tok in b_tokens:
-                b_count[tok] = b_count.get(tok, 0) + 1
-            for tok in a_tokens:
-                if b_count.get(tok, 0) > 0:
-                    common += 1
-                    b_count[tok] -= 1
-            precision = common / len(b_tokens)
-            recall = common / len(a_tokens)
-            return (
-                0.0
-                if (precision + recall) == 0
-                else 2 * precision * recall / (precision + recall)
-            )
+        self._last_breakdown = []
 
         scores: List[float] = []
         for ref, pred in zip(expected_outputs, model_outputs):
@@ -272,8 +328,105 @@ class ReasoningQualityMetric(Metric):
                 or (pred or {}).get("prediction")
                 or (pred or {}).get("text")
             )
-            scores.append(f1(r, p))
+
+            f1_score = self._f1(r, p)
+            structure = self._structure_score(p)
+            evidence = self._evidence_score(p)
+            factual = self._factual_consistency_score(
+                (ref or {}).get("answer") or (ref or {}).get("diagnosis"), p
+            )
+            fallacy_pen = self._fallacy_penalty(p)
+
+            weighted = (
+                self._W_WEIGHTS["overlap_f1"] * f1_score
+                + self._W_WEIGHTS["structure"] * structure
+                + self._W_WEIGHTS["evidence"] * evidence
+                + self._W_WEIGHTS["factual"] * factual
+            )
+            score = max(0.0, min(1.0, weighted - fallacy_pen))
+            scores.append(score)
+
+            self._last_breakdown.append(
+                {
+                    "reference_rationale": _normalize_text(r),
+                    "predicted_rationale": _normalize_text(p),
+                    "overlap_f1": f1_score,
+                    "structure_score": structure,
+                    "evidence_score": evidence,
+                    "factual_consistency": factual,
+                    "fallacy_penalty": fallacy_pen,
+                    "final_score": score,
+                }
+            )
+
         return float(sum(scores) / len(scores)) if scores else float("nan")
+
+    def get_last_breakdown(self) -> List[Dict[str, Any]]:
+        return self._last_breakdown
+
+    # ----------------------- helpers -----------------------
+    def _f1(self, a: Any, b: Any) -> float:
+        a_tokens = _tokenize(a)
+        b_tokens = _tokenize(b)
+        if not a_tokens and not b_tokens:
+            return 1.0
+        if not a_tokens or not b_tokens:
+            return 0.0
+        common = 0
+        b_count: Dict[str, int] = {}
+        for tok in b_tokens:
+            b_count[tok] = b_count.get(tok, 0) + 1
+        for tok in a_tokens:
+            if b_count.get(tok, 0) > 0:
+                common += 1
+                b_count[tok] -= 1
+        precision = common / len(b_tokens)
+        recall = common / len(a_tokens)
+        return (
+            0.0
+            if (precision + recall) == 0
+            else 2 * precision * recall / (precision + recall)
+        )
+
+    def _structure_score(self, text: Any) -> float:
+        t = _normalize_text(text)
+        if not t:
+            return 0.0
+        hits = sum(1 for m in self._STRUCTURE_MARKERS if m in t)
+        # cap at 3 for diminishing returns
+        return min(1.0, hits / 3.0)
+
+    def _evidence_score(self, text: Any) -> float:
+        t = _normalize_text(text)
+        if not t:
+            return 0.0
+        hits = sum(1 for m in self._EVIDENCE_MARKERS if m in t)
+        return min(1.0, hits / 3.0)
+
+    def _fallacy_penalty(self, text: Any) -> float:
+        t = _normalize_text(text)
+        if not t:
+            return 0.0
+        hits = sum(1 for m in self._FALLACY_PHRASES if m in t)
+        # each hit penalizes modestly, capped
+        return min(0.4, 0.15 * hits)
+
+    def _factual_consistency_score(self, diagnosis: Any, text: Any) -> float:
+        diag = _normalize_text(diagnosis)
+        t = _normalize_text(text)
+        if not t:
+            return 0.0
+        if not diag:
+            # if unknown diagnosis, score based on generic evidence mentions
+            return self._evidence_score(t)
+        expected = set()
+        for key, facts in self._FACTS.items():
+            if key in diag:
+                expected |= facts
+        if not expected:
+            return self._evidence_score(t)
+        matches = sum(1 for kw in expected if kw in t)
+        return min(1.0, matches / max(1, len(expected) // 2))
 
 
 class DiagnosticAccuracyMetric(Metric):
