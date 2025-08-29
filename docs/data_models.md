@@ -235,7 +235,7 @@ The evaluation framework applies minimal default schemas per `TaskType` when tas
   - Outputs require: `answer`
 
 - **Summarization**
-  - Inputs require: `text`
+  - Inputs require: `document`
   - Outputs require: `summary`
 
 - **Diagnostic Reasoning**
@@ -250,3 +250,129 @@ Notes:
 - These defaults are defined in `bench/evaluation/validators.py` under `DEFAULT_SCHEMAS` and are used by `ensure_task_schemas()`.
 - Inline datasets may use either flat rows or nested form `{ "input": { ... }, "output": { ... } }`. See `validate_task_dataset()` for details.
 - Strict validation mode in the harness will raise on schema violations; non-strict mode attaches validation errors to result metadata.
+
+## Task-Type Examples
+
+Below are concise, runnable examples for each built-in task type.
+
+### QA
+
+```python
+from bench.models.task_types import MedicalQATask
+
+task = MedicalQATask("qa-demo")
+task.dataset = [
+    {"input": {"question": "What is BP?"}, "output": {"answer": "blood pressure"}}
+]
+metrics = task.evaluate([{ "answer": "blood pressure" }])  # {"accuracy": 1.0, "clinical_correctness": 1.0}
+```
+
+### Diagnostic Reasoning
+
+```python
+from bench.models.task_types import DiagnosticReasoningTask
+
+task = DiagnosticReasoningTask("dx-demo")
+task.dataset = [
+    {"input": {"case": "60M chest pain"}, "output": {"diagnosis": "ACS"}}
+]
+metrics = task.evaluate([{ "diagnosis": "ACS", "explanation": "because ECG shows ST elevation" }])
+```
+
+### Summarization
+
+```python
+from bench.models.task_types import ClinicalSummarizationTask
+
+task = ClinicalSummarizationTask("sum-demo")
+task.dataset = [
+    {"input": {"document": "Patient with HTN and DM."}, "output": {"summary": "HTN, DM."}}
+]
+metrics = task.evaluate([{ "summary": "HTN, DM." }])
+```
+
+## Creating Custom Task Instances
+
+You can define your own tasks using `MedicalTask` (YAML/JSON) and validate/load them via the loader/validators.
+
+### Minimal YAML Example
+
+```yaml
+schema_version: 1
+task_id: qa-custom
+task_type: qa
+description: Answer short questions
+inputs:
+  - { question: "What is HR?" }
+expected_outputs:
+  - { answer: "heart rate" }
+metrics: [accuracy]
+input_schema:
+  required: [question]
+output_schema:
+  required: [answer]
+dataset:
+  - input:  { question: "What is BP?" }
+    output: { answer: "blood pressure" }
+```
+
+### Load and Validate
+
+```python
+from bench.models.medical_task import MedicalTask
+from bench.evaluation.validators import validate_task_dataset
+
+task = MedicalTask.from_file("qa-custom.yaml")
+validate_task_dataset(task)  # raises if required keys missing
+```
+
+See also:
+- `bench/evaluation/task_loader.py` for loading tasks from files/URLs
+- `bench/evaluation/model_runner.py` for running models on tasks
+
+## Task-Specific Metrics
+
+This framework ships with lightweight, task-specific metrics implemented in the task classes under `bench/models/task_types.py`. These are intentionally simple placeholders and should be replaced or extended for production use.
+
+- **QA (`MedicalQATask`)**
+  - `accuracy`: case-insensitive exact match of `answer`
+  - `clinical_correctness`: proxy equal to `accuracy`
+
+- **Diagnostic Reasoning (`DiagnosticReasoningTask`)**
+  - `diagnostic_accuracy`: case-insensitive exact match of `diagnosis`
+  - `reasoning_quality`: heuristic based on presence of explanation cues (e.g., "because", "due to") in `explanation`/`rationale`
+
+- **Summarization (`ClinicalSummarizationTask`)**
+  - `rouge_l`: unigram-overlap proxy (not true ROUGE-L)
+  - `clinical_relevance`: overlap ratio with a small set of medical keywords
+  - `factual_consistency`: penalizes hallucinated numbers not present in the reference
+
+For full implementations, consider integrating standard NLP metrics (e.g., official ROUGE, BERTScore) and clinical factuality checks.
+
+## End-to-End Usage
+
+To see how tasks are loaded and models are executed over them, refer to:
+
+- `bench/evaluation/task_loader.py`
+  - Key methods: `TaskLoader.load_task()`, `TaskLoader.load_tasks()`, `TaskLoader.list_available_tasks()`
+  - Supports loading by ID, local path, or HTTP(S) URL with validation
+
+- `bench/evaluation/model_runner.py`
+  - Key methods: `ModelRunner.load_model()`, `ModelRunner.run_model()` / `run_model_async()`, `ModelRunner.unload_model()`
+  - Supports HuggingFace pipelines, local Python module models, and API-based models
+
+You can combine these to evaluate a model end-to-end:
+
+```python
+from bench.evaluation.task_loader import TaskLoader
+from bench.evaluation.model_runner import ModelRunner
+
+loader = TaskLoader()
+task = loader.load_task("bench/tasks/clinical_summarization_basic.yaml")
+
+runner = ModelRunner()
+runner.load_model({"type": "local", "path": "tests/fixtures/simple_local_model.py", "callable": "predict"})
+
+outputs = runner.run_model(task.inputs)
+metrics = task.evaluate(outputs)
+```

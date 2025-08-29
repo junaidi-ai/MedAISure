@@ -20,6 +20,22 @@ class ResultAggregator:
 
     This class handles the collection, aggregation, and persistence of evaluation
     results, including computing summary statistics across tasks.
+
+    Example – minimal flow:
+        >>> from bench.evaluation.result_aggregator import ResultAggregator
+        >>> from bench.models import EvaluationResult
+        >>> ra = ResultAggregator(output_dir="results")
+        >>> er = EvaluationResult(
+        ...     model_id="demo",
+        ...     task_id="task1",
+        ...     inputs=[{"text": "x"}],
+        ...     model_outputs=[{"label": "y"}],
+        ...     metrics_results={"accuracy": 1.0},
+        ... )
+        >>> ra.add_evaluation_result(er, run_id="run-1")
+        >>> report = ra.get_report("run-1")
+        >>> isinstance(report.overall_scores, dict)
+        True
     """
 
     def __init__(self, output_dir: Optional[Union[str, Path]] = None):
@@ -46,6 +62,19 @@ class ResultAggregator:
             evaluation_result: The evaluation result to add
             run_id: Optional run ID to associate with this result. If not provided,
                    a new run will be created.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(
+            ...     model_id="m",
+            ...     task_id="t",
+            ...     inputs=[{"q": 1}],
+            ...     model_outputs=[{"label": 1}],
+            ...     metrics_results={"accuracy": 1.0},
+            ... )
+            >>> ra.add_evaluation_result(er, run_id="run-A")
+            >>> list(ra.reports.keys())
+            ['run-A']
         """
         if run_id is None:
             # Generate a deterministic run ID if not provided
@@ -83,6 +112,20 @@ class ResultAggregator:
 
         Raises:
             ValueError: If no report exists for the given run_id.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(
+            ...     model_id="m",
+            ...     task_id="t",
+            ...     inputs=[{"q": 1}],
+            ...     model_outputs=[{"label": 1}],
+            ...     metrics_results={"accuracy": 1.0},
+            ... )
+            >>> ra.add_evaluation_result(er, run_id="run-A")
+            >>> rep = ra.get_report("run-A")
+            >>> rep.metadata.get("run_id")
+            'run-A'
         """
         if run_id not in self.reports:
             raise ValueError(f"No report found for run {run_id}")
@@ -99,6 +142,20 @@ class ResultAggregator:
 
         Returns:
             Path to the saved report.
+
+        Example:
+            >>> ra = ResultAggregator(output_dir="results")
+            >>> er = EvaluationResult(
+            ...     model_id="m",
+            ...     task_id="t",
+            ...     inputs=[{"q": 1}],
+            ...     model_outputs=[{"label": 1}],
+            ...     metrics_results={"accuracy": 1.0},
+            ... )
+            >>> ra.add_evaluation_result(er, run_id="run-A")
+            >>> p = ra.save_report(ra.get_report("run-A"))  # doctest: +ELLIPSIS
+            >>> str(p).endswith('.json')
+            True
         """
         if output_path is None:
             # Generate a filename based on model id and timestamp
@@ -154,6 +211,16 @@ class ResultAggregator:
 
         Returns:
             Mapping metric -> {"mean": x, "median": y, "p50": z, ...}
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er1 = EvaluationResult(model_id="m", task_id="t1", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.8})
+            >>> er2 = EvaluationResult(model_id="m", task_id="t2", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.6})
+            >>> ra.add_evaluation_result(er1, run_id="r")
+            >>> ra.add_evaluation_result(er2, run_id="r")
+            >>> stats = ra.aggregate_statistics("r", metrics=["acc"])  # doctest: +ELLIPSIS
+            >>> round(stats["acc"]["mean"], 3)
+            0.7
         """
         report = self.get_report(run_id)
         task_scores = report.task_scores
@@ -204,6 +271,16 @@ class ResultAggregator:
 
         Returns:
             List of dict rows: {"task_id": str, <metric>: value, ...}
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er1 = EvaluationResult(model_id="m", task_id="t1", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.8})
+            >>> er2 = EvaluationResult(model_id="m", task_id="t2", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.6})
+            >>> ra.add_evaluation_result(er1, run_id="r")
+            >>> ra.add_evaluation_result(er2, run_id="r")
+            >>> rows = ra.filter_and_sort_tasks("r", sort_by="acc")
+            >>> [r["task_id"] for r in rows]  # doctest: +ELLIPSIS
+            ['t2', 't1']
         """
         report = self.get_report(run_id)
         include_tasks = set(tasks) if tasks is not None else None
@@ -235,12 +312,28 @@ class ResultAggregator:
     def export_report_json(
         self, run_id: str, output_path: Optional[Union[str, Path]] = None
     ) -> Path:
-        """Export a report to JSON (wrapper around save_report)."""
+        """Export a report to JSON (wrapper around save_report).
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 1.0})
+            >>> ra.add_evaluation_result(er, run_id="r")
+            >>> p = ra.export_report_json("r")  # doctest: +ELLIPSIS
+            >>> p.suffix
+            '.json'
+        """
         report = self.get_report(run_id)
         return self.save_report(report, output_path)
 
     def export_report_csv(self, run_id: str, output_path: Union[str, Path]) -> Path:
-        """Export a report to CSV with per-task rows and an overall row."""
+        """Export a report to CSV with per-task rows and an overall row.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 1.0})
+            >>> ra.add_evaluation_result(er, run_id="r")
+            >>> _ = ra.export_report_csv("r", "results/demo.csv")  # doctest: +ELLIPSIS
+        """
         report = self.get_report(run_id)
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -285,7 +378,14 @@ class ResultAggregator:
         max_examples: int = 5,
         include_validation_errors: bool = False,
     ) -> Path:
-        """Export a report to a Markdown table."""
+        """Export a report to a Markdown table.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 1.0})
+            >>> ra.add_evaluation_result(er, run_id="r")
+            >>> _ = ra.export_report_markdown("r", "results/demo.md")  # doctest: +ELLIPSIS
+        """
         report = self.get_report(run_id)
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -359,7 +459,14 @@ class ResultAggregator:
         max_examples: int = 5,
         include_validation_errors: bool = False,
     ) -> Path:
-        """Export a simple HTML table for the report (no external deps)."""
+        """Export a simple HTML table for the report (no external deps).
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 1.0})
+            >>> ra.add_evaluation_result(er, run_id="r")
+            >>> _ = ra.export_report_html("r", "results/demo.html")  # doctest: +ELLIPSIS
+        """
         report = self.get_report(run_id)
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -474,6 +581,16 @@ class ResultAggregator:
 
         Returns:
             Dict with 'overall', 'per_task', and 'metadata'.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er1 = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.8})
+            >>> er2 = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.9})
+            >>> ra.add_evaluation_result(er1, run_id="A")
+            >>> ra.add_evaluation_result(er2, run_id="B")
+            >>> diff = ra.compare_runs("A", "B", metrics=["acc"])  # doctest: +ELLIPSIS
+            >>> round(diff["overall"]["acc"], 3)
+            0.1
         """
         rep_a = self.get_report(run_a)
         rep_b = self.get_report(run_b)
@@ -522,6 +639,16 @@ class ResultAggregator:
         """Plot a metric across tasks. If matplotlib not available, return data only.
 
         Returns a dict with keys: metric, tasks, values, and optionally 'saved_to'.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er1 = EvaluationResult(model_id="m", task_id="t1", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.8})
+            >>> er2 = EvaluationResult(model_id="m", task_id="t2", inputs=[{}], model_outputs=[{}], metrics_results={"acc": 0.6})
+            >>> ra.add_evaluation_result(er1, run_id="r")
+            >>> ra.add_evaluation_result(er2, run_id="r")
+            >>> data = ra.plot_metric_distribution("r", "acc")
+            >>> set(data.keys()) >= {"metric", "tasks", "values"}
+            True
         """
         report = self.get_report(run_id)
         tasks = []
@@ -574,6 +701,11 @@ class ResultAggregator:
 
         Returns:
             A deterministic run ID string.
+
+        Example:
+            >>> rid = ResultAggregator.generate_run_id("m", ["t1", "t2"], timestamp="2024-01-01T00:00:00Z")
+            >>> isinstance(rid, str) and len(rid) > 0
+            True
         """
         import hashlib
 

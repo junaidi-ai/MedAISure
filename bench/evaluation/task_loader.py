@@ -21,7 +21,19 @@ T = TypeVar("T", bound=MedicalTask)
 
 
 class TaskLoader:
-    """Loads and manages medical evaluation tasks."""
+    """Loads and manages medical evaluation tasks.
+
+    Supports loading tasks by id, file path, or HTTP(S) URL; lightweight
+    discovery; and listing with basic metadata.
+
+    Example – basic usage:
+        >>> from bench.evaluation.task_loader import TaskLoader
+        >>> tl = TaskLoader(tasks_dir="bench/tasks")
+        >>> _ = tl.discover_tasks()  # doctest: +ELLIPSIS
+        >>> tasks = tl.list_available_tasks()  # doctest: +ELLIPSIS
+        >>> isinstance(tasks, list)
+        True
+    """
 
     def __init__(self, tasks_dir: str = "tasks"):
         """Initialize the TaskLoader with a directory containing task definitions.
@@ -47,6 +59,14 @@ class TaskLoader:
         Raises:
             FileNotFoundError: If task definition is not found
             ValueError: If task definition is invalid
+
+        Example:
+            >>> from bench.evaluation.task_loader import TaskLoader
+            >>> tl = TaskLoader(tasks_dir="bench/tasks")
+            >>> try:
+            ...     t = tl.load_task("clinical_summarization_basic")  # doctest: +SKIP
+            ... except FileNotFoundError:
+            ...     pass
         """
         if task_id in self._tasks:
             return self._tasks[task_id]
@@ -143,6 +163,13 @@ class TaskLoader:
 
         Returns:
             Dictionary mapping task IDs to MedicalTask (or subclass) instances
+
+        Example:
+            >>> tl = TaskLoader(tasks_dir="bench/tasks")
+            >>> try:
+            ...     tasks = tl.load_tasks(["clinical_summarization_basic"])  # doctest: +SKIP
+            ... except FileNotFoundError:
+            ...     pass
         """
         if task_type is None:
             task_type = MedicalTask
@@ -153,6 +180,12 @@ class TaskLoader:
         """Discover available task definition files in ``tasks_dir``.
 
         Returns a mapping of ``task_id -> file path``.
+
+        Example:
+            >>> tl = TaskLoader(tasks_dir="bench/tasks")
+            >>> reg = tl.discover_tasks()  # doctest: +ELLIPSIS
+            >>> isinstance(reg, dict)
+            True
         """
         registry: Dict[str, str] = {}
         # YAML tasks
@@ -171,6 +204,17 @@ class TaskLoader:
 
         Reads YAML/JSON headers and returns summary information without full
         validation. Safe-guards against malformed files and logs warnings.
+
+        Returns:
+            List of dicts with keys: ``task_id``, ``name``, ``description``,
+            ``metrics``, ``num_examples``, ``file``.
+
+        Example:
+            >>> tl = TaskLoader(tasks_dir="bench/tasks")
+            >>> _ = tl.discover_tasks()  # doctest: +ELLIPSIS
+            >>> rows = tl.list_available_tasks()  # doctest: +ELLIPSIS
+            >>> isinstance(rows, list)
+            True
         """
         logger = logging.getLogger(__name__)
         tasks: List[Dict[str, Any]] = []
@@ -205,7 +249,11 @@ class TaskLoader:
 
     # --- Internal helpers ---
     def _load_task_data_from_file(self, task_file: Path) -> Dict[str, Any]:
-        """Load and parse YAML/JSON task data from a local file."""
+        """Load and parse YAML/JSON task data from a local file.
+
+        Raises:
+            ValueError: If the file extension is unsupported.
+        """
         if task_file.suffix.lower() in {".yaml", ".yml"}:
             with open(task_file, "r") as f:
                 data = yaml.safe_load(f)
@@ -218,7 +266,11 @@ class TaskLoader:
             raise ValueError(f"Unsupported task file extension: {task_file.suffix}")
 
     def _load_task_data_from_url(self, url: str) -> Dict[str, Any]:
-        """Load and parse YAML/JSON task data from an HTTP(S) URL."""
+        """Load and parse YAML/JSON task data from an HTTP(S) URL.
+
+        Raises:
+            ValueError: If the URL content type is unsupported.
+        """
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
         content_type = resp.headers.get("Content-Type", "").lower()

@@ -38,7 +38,13 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class MetricResult:
-    """Container for metric calculation results."""
+    """Container for metric calculation results.
+
+    Attributes:
+        metric_name: Registered name of the metric.
+        value: Numeric score for the metric.
+        metadata: Optional extra details (e.g., num_samples, warnings, errors).
+    """
 
     metric_name: str
     value: float
@@ -46,7 +52,33 @@ class MetricResult:
 
 
 class MetricCalculator:
-    """Calculates evaluation metrics for model predictions."""
+    """Calculates evaluation metrics for model predictions.
+
+    This class provides:
+    - A registry of general-purpose metrics (accuracy, precision, recall, f1, etc.).
+    - Lightweight medical heuristics (clinical_correctness, diagnostic_accuracy, reasoning_quality, rouge_l, clinical_relevance, factual_consistency).
+    - A simple API to register custom metrics via `register_metric()`.
+
+    Example – basic usage:
+        >>> from bench.evaluation.metric_calculator import MetricCalculator
+        >>> mc = MetricCalculator()
+        >>> preds = [{"label": "yes"}, {"label": "no"}]
+        >>> refs = [{"label": "yes"}, {"label": "no"}]
+        >>> res = mc.calculate_metrics("task-demo", preds, refs, metric_names=["accuracy"])  # doctest: +ELLIPSIS
+        >>> round(res["accuracy"].value, 3)
+        1.0
+
+    Example – registering a custom metric:
+        >>> def exact_match(y_true, y_pred, **kw):
+        ...     return float(sum(int(t == p) for t, p in zip(y_true, y_pred)) / len(y_true))
+        >>> mc = MetricCalculator()
+        >>> mc.register_metric("exact_match", exact_match)
+        >>> preds = [{"label": "A"}, {"label": "B"}]
+        >>> refs = [{"label": "A"}, {"label": "C"}]
+        >>> res = mc.calculate_metrics("task-demo", preds, refs, metric_names=["exact_match"])  # doctest: +ELLIPSIS
+        >>> round(res["exact_match"].value, 3)
+        0.5
+    """
 
     # Built-in metrics registry
     _METRICS_REGISTRY = {
@@ -241,6 +273,16 @@ class MetricCalculator:
 
         Returns:
             Dictionary mapping metric names to MetricResult objects
+
+        Example:
+            >>> mc = MetricCalculator()
+            >>> preds = [{"label": "yes"}, {"label": "no"}]
+            >>> refs = [{"label": "yes"}, {"label": "no"}]
+            >>> results = mc.calculate_metrics("t1", preds, refs, metric_names=["accuracy", "f1"])  # doctest: +ELLIPSIS
+            >>> sorted(results.keys())  # doctest: +ELLIPSIS
+            ['accuracy', 'f1']
+            >>> round(results['accuracy'].value, 3)
+            1.0
         """
         if not predictions or not references:
             raise ValueError("Predictions and references must not be empty")
@@ -488,6 +530,14 @@ class MetricCalculator:
 
         Returns:
             Dictionary of aggregated metric results
+
+        Example:
+            >>> mc = MetricCalculator()
+            >>> r1 = {"accuracy": MetricResult("accuracy", 0.8), "f1": MetricResult("f1", 0.7)}
+            >>> r2 = {"accuracy": MetricResult("accuracy", 0.9), "f1": MetricResult("f1", 0.6)}
+            >>> agg = mc.aggregate_metrics([r1, r2], aggregation="mean")
+            >>> round(agg["accuracy"].value, 3)
+            0.85
         """
         if not metric_results:
             return {}

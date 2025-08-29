@@ -21,10 +21,23 @@ R = TypeVar("R")  # Result type
 class ModelRunner(Generic[M, T, R]):
     """Handles loading and running different types of models.
 
+    Supports three model sources: HuggingFace pipelines, local Python modules,
+    and simple HTTP API-backed models. Caches loaded models and their configs.
+
     Args:
         M: Type variable for the model class
         T: Type variable for input data
         R: Type variable for result data
+
+    Example – quick start:
+        >>> from bench.evaluation.model_runner import ModelRunner
+        >>> mr = ModelRunner()
+        >>> # Load a HuggingFace pipeline (requires transformers, may download weights)
+        >>> # _ = mr.load_model("hf-cls", model_type="huggingface", model_path="prajjwal1/bert-tiny", hf_task="text-classification")  # doctest: +SKIP
+        >>> # Run on small inputs
+        >>> # preds = mr.run_model("hf-cls", inputs=[{"text": "Patient is stable."}])  # doctest: +SKIP
+        >>> isinstance(mr, ModelRunner)
+        True
     """
 
     def __init__(self) -> None:
@@ -54,6 +67,35 @@ class ModelRunner(Generic[M, T, R]):
         Raises:
             ValueError: If the model type is unsupported or required
                 arguments are missing.
+
+        Examples:
+            HuggingFace (pipeline):
+                >>> mr = ModelRunner()
+                >>> # Tiny model to keep downloads small; requires transformers
+                >>> # pipe = mr.load_model(
+                ... #     "hf-sum",
+                ... #     model_type="huggingface",
+                ... #     model_path="sshleifer/tiny-t5",
+                ... #     hf_task="summarization",
+                ... # )  # doctest: +SKIP
+
+            Local module:
+                >>> # Suppose mypkg.model has a load_model(path) -> callable
+                >>> mr = ModelRunner()
+                >>> # model = mr.load_model(
+                ... #     "local-demo",
+                ... #     model_type="local",
+                ... #     model_path="/tmp/model.bin",
+                ... #     module_path="bench.examples.mypkg.model",
+                ... # )  # doctest: +SKIP
+
+            API model registration:
+                >>> mr = ModelRunner()
+                >>> cfg = mr.load_model(
+                ...     "api-demo", model_type="api", endpoint="https://api.example/v1/predict", api_key="sk-xxx"
+                ... )
+                >>> isinstance(cfg, dict)
+                True
         """
         if model_name in self._models:
             logger.warning(f"Model {model_name} is already loaded. Unload it first.")
@@ -194,6 +236,12 @@ class ModelRunner(Generic[M, T, R]):
 
         Args:
             model_name: Name of the model to unload.
+
+        Example:
+            >>> mr = ModelRunner()
+            >>> _ = mr.load_model("api-x", model_type="api", endpoint="https://api.example", api_key="k")
+            >>> mr.unload_model("api-x")
+            >>> # No exception means success
         """
         if model_name in self._models:
             del self._models[model_name]
@@ -221,6 +269,12 @@ class ModelRunner(Generic[M, T, R]):
         Raises:
             ImportError: If the module cannot be imported.
             ValueError: If model_path or module_path is not provided or invalid.
+
+        Example:
+            >>> mr = ModelRunner()
+            >>> # model = mr._load_local_model(
+            ... #     "demo", model_path="/tmp/m.bin", module_path="bench.examples.mypkg.model"
+            ... # )  # doctest: +SKIP
         """
         if not model_path:
             raise ValueError("model_path is required for local models")
@@ -280,6 +334,12 @@ class ModelRunner(Generic[M, T, R]):
 
         Raises:
             ValueError: If required arguments are missing.
+
+        Example:
+            >>> mr = ModelRunner()
+            >>> cfg = mr._load_api_model("api-a", endpoint="https://api.example", api_key="k")
+            >>> set(cfg.keys()) >= {"type", "endpoint", "api_key"}
+            True
         """
         if "api_key" not in kwargs:
             raise ValueError("api_key is required for API models")
@@ -372,6 +432,19 @@ class ModelRunner(Generic[M, T, R]):
 
         Raises:
             ValueError: If model_id is not found or inputs are invalid.
+
+        Examples:
+            API model:
+                >>> mr = ModelRunner()
+                >>> _ = mr.load_model("api-x", model_type="api", endpoint="https://api.example", api_key="k")
+                >>> out = mr.run_model("api-x", inputs=[{"text": "abc"}], batch_size=1)
+                >>> isinstance(out, list)
+                True
+
+            HuggingFace (summarization):
+                >>> mr = ModelRunner()
+                >>> # _ = mr.load_model("hf-sum", model_type="huggingface", model_path="sshleifer/tiny-t5", hf_task="summarization")  # doctest: +SKIP
+                >>> # out = mr.run_model("hf-sum", inputs=[{"document": "Short note."}], batch_size=1)  # doctest: +SKIP
         """
         if model_id not in self._models:
             raise ValueError(f"Model {model_id} not loaded. Call load_model() first.")
@@ -635,6 +708,14 @@ class ModelRunner(Generic[M, T, R]):
         """Asynchronous wrapper around run_model using a thread executor.
 
         This avoids adding async HTTP dependencies while providing an async API.
+
+        Example:
+            >>> import asyncio
+            >>> mr = ModelRunner()
+            >>> _ = mr.load_model("api-y", model_type="api", endpoint="https://api.example", api_key="k")
+            >>> async def _go():
+            ...     return await mr.run_model_async("api-y", inputs=[{"text": "abc"}], batch_size=1)
+            >>> # asyncio.run(_go())  # doctest: +SKIP
         """
         import asyncio
 

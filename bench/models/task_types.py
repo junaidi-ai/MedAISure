@@ -1,3 +1,25 @@
+"""Task-type convenience classes.
+
+Provides lightweight, ready-to-use specializations of `MedicalTask` for:
+- `MedicalQATask` (inputs: question → output: answer)
+- `DiagnosticReasoningTask` (inputs: case → output: diagnosis)
+- `ClinicalSummarizationTask` (inputs: document → output: summary)
+
+Each class documents the minimal input/output schemas, accepted dataset row
+shapes, and a simple `evaluate()` implementation with examples.
+
+Example – quick usage:
+    >>> from bench.models.task_types import MedicalQATask
+    >>> qa = MedicalQATask("qa-mini", description="Tiny QA demo")
+    >>> qa.dataset = [
+    ...     {"input": {"question": "What is BP?"}, "output": {"answer": "blood pressure"}}
+    ... ]
+    >>> qa.inputs, qa.expected_outputs  # aligned examples
+    ([{'question': 'What is BP?'}], [{'answer': 'blood pressure'}])
+    >>> qa.evaluate([{"answer": "blood pressure"}])
+    {'accuracy': 1.0, 'clinical_correctness': 1.0}
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -27,9 +49,16 @@ class MedicalQATask(MedicalTask):
     Expected schemas:
     - input_schema.required: ["question"]
     - output_schema.required: ["answer"]
-    Dataset rows may be one of:
+
+    Accepted dataset row shapes:
     - {"input": {"question": ...}, "output": {"answer": ...}}
     - {"question": ..., "answer": ...}
+
+    Example dataset (JSON):
+        [
+          {"input": {"question": "What is BP?"}, "output": {"answer": "blood pressure"}},
+          {"question": "What is HR?", "answer": "heart rate"}
+        ]
     """
 
     def __init__(
@@ -49,6 +78,15 @@ class MedicalQATask(MedicalTask):
         )
 
     def load_data(self, data_path: str | Path) -> None:
+        """Load dataset from a .json list or .csv with columns.
+
+        Args:
+            data_path: Path to JSON or CSV file. See class docstring for shapes.
+
+        Raises:
+            FileNotFoundError: If file is missing
+            ValueError: If unsupported extension
+        """
         rows = _read_json_or_csv(data_path)
         dataset: List[Dict[str, Any]] = []
         for r in rows:
@@ -65,6 +103,14 @@ class MedicalQATask(MedicalTask):
         self.expected_outputs = [row["output"] for row in dataset]
 
     def evaluate(self, model_outputs: List[Dict[str, Any]]) -> Dict[str, float]:
+        """Compute naive accuracy and clinical_correctness (proxy = accuracy).
+
+        Args:
+            model_outputs: List of dicts, each with key "answer".
+
+        Returns:
+            Dict with keys: "accuracy", "clinical_correctness" in [0, 1].
+        """
         # Exact-match accuracy (case-insensitive, stripped)
         gold = [o.get("answer", "") for o in (self.expected_outputs or [])]
         pred = [o.get("answer", "") for o in (model_outputs or [])]
@@ -86,6 +132,9 @@ class DiagnosticReasoningTask(MedicalTask):
     Expected schemas:
     - input_schema.required: ["case"]
     - output_schema.required: ["diagnosis"]
+
+    Example record:
+        {"input": {"case": "60M chest pain"}, "output": {"diagnosis": "ACS"}}
     """
 
     def __init__(
@@ -120,6 +169,11 @@ class DiagnosticReasoningTask(MedicalTask):
         self.expected_outputs = [row["output"] for row in dataset]
 
     def evaluate(self, model_outputs: List[Dict[str, Any]]) -> Dict[str, float]:
+        """Compute diagnostic_accuracy and a simple reasoning_quality proxy.
+
+        reasoning_quality heuristic counts occurrences of typical explanation
+        cues (e.g., "because", "due to") in an optional "explanation" field.
+        """
         gold = [o.get("diagnosis", "") for o in (self.expected_outputs or [])]
         pred = [o.get("diagnosis", "") for o in (model_outputs or [])]
         n = min(len(gold), len(pred))
@@ -147,6 +201,13 @@ class ClinicalSummarizationTask(MedicalTask):
     Expected schemas:
     - input_schema.required: ["document"]
     - output_schema.required: ["summary"]
+
+    Notes:
+    - `load_data` maps aliases: {"text"|"note"} → "document".
+    - `evaluate` computes:
+      - "rouge_l": unigram-overlap proxy
+      - "clinical_relevance": medical keyword overlap ratio
+      - "factual_consistency": penalizes hallucinated numbers not in reference
     """
 
     def __init__(
@@ -187,6 +248,14 @@ class ClinicalSummarizationTask(MedicalTask):
         return [t for t in (text or "").lower().split() if t]
 
     def evaluate(self, model_outputs: List[Dict[str, Any]]) -> Dict[str, float]:
+        """Compute lightweight ROUGE-L proxy, clinical relevance, and consistency.
+
+        Args:
+            model_outputs: List of dicts with key "summary".
+
+        Returns:
+            Dict with keys: "rouge_l", "clinical_relevance", "factual_consistency".
+        """
         refs = [o.get("summary", "") for o in (self.expected_outputs or [])]
         hyps = [o.get("summary", "") for o in (model_outputs or [])]
         n = min(len(refs), len(hyps))

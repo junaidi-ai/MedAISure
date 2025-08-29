@@ -1,3 +1,26 @@
+"""Core task data models used by MedAISure.
+
+This module defines the `TaskType` enum and the `MedicalTask` Pydantic model,
+which represent the canonical schema for describing benchmark tasks.
+
+Quick start:
+    >>> from bench.models.medical_task import MedicalTask, TaskType
+    >>> task = MedicalTask(
+    ...     task_id="qa-demo",
+    ...     task_type=TaskType.QA,
+    ...     description="Answer short medical questions",
+    ...     inputs=[{"question": "What is BP?"}],
+    ...     expected_outputs=[{"answer": "blood pressure"}],
+    ...     metrics=["accuracy"],
+    ...     input_schema={"required": ["question"]},
+    ...     output_schema={"required": ["answer"]},
+    ... )
+    >>> task.to_dict()["task_type"]
+    'qa'
+    >>> print(task.convert("yaml").splitlines()[0])
+    schema_version: 1
+"""
+
 from __future__ import annotations
 
 from enum import Enum
@@ -13,6 +36,14 @@ from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 
 class TaskType(str, Enum):
+    """Enumeration of supported benchmark task types.
+
+    - DIAGNOSTIC_REASONING: Case-based reasoning → diagnosis
+    - QA: Question answering
+    - SUMMARIZATION: Clinical/medical text summarization
+    - COMMUNICATION: Patient/provider communication generation
+    """
+
     DIAGNOSTIC_REASONING = "diagnostic_reasoning"
     QA = "qa"
     SUMMARIZATION = "summarization"
@@ -20,7 +51,39 @@ class TaskType(str, Enum):
 
 
 class MedicalTask(BaseModel):
-    """Represents a medical evaluation task definition."""
+    """Represents a medical evaluation task definition.
+
+    Fields:
+        schema_version: Integer version for forward compatibility (default 1).
+        task_id: Unique identifier for the task (non-empty string).
+        name: Optional human-friendly name (defaults to task_id when omitted).
+        task_type: One of `TaskType` values.
+        description: Optional free-text description.
+        inputs: List of input example dicts for the task (non-empty).
+        expected_outputs: List of expected output example dicts, 1:1 with inputs when both provided.
+        metrics: Non-empty, unique metric names.
+        input_schema/output_schema: Minimal schemas with optional `required: [..]` keys.
+        dataset: Optional inline records used for lightweight examples or micro-benchmarks.
+
+    Examples:
+        Create and serialize a task
+        >>> t = MedicalTask(
+        ...     task_id="sum-1", task_type=TaskType.SUMMARIZATION,
+        ...     inputs=[{"document": "Patient note"}],
+        ...     expected_outputs=[{"summary": "Short note"}],
+        ...     metrics=["rouge_l"],
+        ...     input_schema={"required": ["document"]},
+        ...     output_schema={"required": ["summary"]},
+        ... )
+        >>> isinstance(json.loads(t.to_json()), dict)
+        True
+
+        Save and load from YAML
+        >>> path = Path("/tmp/medaisure_demo.yaml")
+        >>> t.save(path, format="yaml")
+        >>> MedicalTask.from_file(path).task_id
+        'sum-1'
+    """
 
     # Simple schema versioning for forward compatibility
     schema_version: int = 1
@@ -176,17 +239,22 @@ class MedicalTask(BaseModel):
         include: Optional[set | dict] = None,
         exclude: Optional[set | dict] = None,
     ) -> str:
-        """Return a JSON string representation of the model with optional include/exclude."""
+        """Return a JSON string representation of the model.
+
+        Args:
+            indent: Optional indentation for pretty printing.
+            include/exclude: Optional fields to include/exclude.
+        """
         return self.model_dump_json(indent=indent, include=include, exclude=exclude)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "MedicalTask":
-        """Create a MedicalTask from a plain dict with validation."""
+        """Create a `MedicalTask` from a plain dict with validation."""
         return cls.model_validate(data)
 
     @classmethod
     def from_json(cls, data: str) -> "MedicalTask":
-        """Create a MedicalTask from a JSON string with validation."""
+        """Create a `MedicalTask` from a JSON string with validation."""
         return cls.model_validate_json(data)
 
     # --- YAML helpers ---
@@ -196,6 +264,10 @@ class MedicalTask(BaseModel):
 
     @classmethod
     def from_yaml(cls, data: str) -> "MedicalTask":
+        """Create a `MedicalTask` from YAML string with validation.
+
+        Ensures a default `schema_version` when absent.
+        """
         payload = yaml.safe_load(data) or {}
         if "schema_version" not in payload:
             payload["schema_version"] = 1
@@ -222,6 +294,14 @@ class MedicalTask(BaseModel):
 
     # --- File I/O ---
     def save(self, file_path: str | Path, format: Optional[str] = None) -> None:
+        """Persist the task to disk in JSON or YAML format.
+
+        Args:
+            file_path: Target file path; extension is used when `format` is not provided.
+            format: One of {"json", "yaml", "yml"}.
+        Raises:
+            ValueError: If format/extension is not supported.
+        """
         path = Path(file_path)
         fmt = (format or path.suffix.lstrip(".")).lower()
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -234,6 +314,7 @@ class MedicalTask(BaseModel):
 
     @classmethod
     def from_file(cls, file_path: str | Path) -> "MedicalTask":
+        """Load and validate a task from a JSON or YAML file."""
         path = Path(file_path)
         text = path.read_text()
         suf = path.suffix.lower()
@@ -245,6 +326,7 @@ class MedicalTask(BaseModel):
 
     # --- Conversion helper ---
     def convert(self, to: str) -> str:
+        """Convert the task to a different textual format ("json" or "yaml")."""
         to = to.lower()
         if to == "json":
             return self.to_json(indent=2)
