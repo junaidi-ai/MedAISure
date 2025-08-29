@@ -376,3 +376,28 @@ runner.load_model({"type": "local", "path": "tests/fixtures/simple_local_model.p
 outputs = runner.run_model(task.inputs)
 metrics = task.evaluate(outputs)
 ```
+
+## Task Registry
+
+For dynamic registration, discovery, and filtered listing of tasks, use `bench/evaluation/task_registry.py`.
+
+- `TaskRegistry.register()` / `register_from_file()` / `register_from_url()`
+- `TaskRegistry.get()` to retrieve by ID
+- `TaskRegistry.discover()` to scan a tasks directory
+- `TaskRegistry.list_available(task_type=..., min_examples=..., has_metrics=...)` for simple filtering
+
+Example:
+
+```python
+from bench.evaluation.task_registry import TaskRegistry
+from bench.models.medical_task import TaskType
+
+reg = TaskRegistry(tasks_dir="bench/tasks")
+reg.discover()
+
+# Filter to QA tasks that declare metrics and have >= 1 example
+rows = reg.list_available(task_type=TaskType.QA, min_examples=1, has_metrics=True)
+
+# Load a specific task (from discovery or previously registered)
+task = reg.get(rows[0].task_id)
+```
