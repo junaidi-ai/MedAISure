@@ -225,3 +225,28 @@ except ValidationError as e:
 3. Use type hints for better IDE support and code clarity
 4. Store and share evaluation results using the serialization methods
 5. Include relevant metadata for traceability
+
+## Task-Type Schema Requirements
+
+The evaluation framework applies minimal default schemas per `TaskType` when tasks do not provide explicit `input_schema`/`output_schema`. These defaults are enforced during task load and evaluation. Required keys are:
+
+- **QA**
+  - Inputs require: `question`
+  - Outputs require: `answer`
+
+- **Summarization**
+  - Inputs require: `text`
+  - Outputs require: `summary`
+
+- **Diagnostic Reasoning**
+  - Inputs require: `symptoms`
+  - Outputs require: `diagnosis`
+
+- **Communication**
+  - Inputs require: `prompt`
+  - Outputs require: `response`
+
+Notes:
+- These defaults are defined in `bench/evaluation/validators.py` under `DEFAULT_SCHEMAS` and are used by `ensure_task_schemas()`.
+- Inline datasets may use either flat rows or nested form `{ "input": { ... }, "output": { ... } }`. See `validate_task_dataset()` for details.
+- Strict validation mode in the harness will raise on schema violations; non-strict mode attaches validation errors to result metadata.

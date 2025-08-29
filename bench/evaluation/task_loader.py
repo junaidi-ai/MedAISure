@@ -15,6 +15,7 @@ import requests  # type: ignore[import-untyped]
 import yaml
 
 from ..models.medical_task import MedicalTask, TaskType
+from .validators import ensure_task_schemas, validate_task_dataset
 
 T = TypeVar("T", bound=MedicalTask)
 
@@ -103,6 +104,16 @@ class TaskLoader:
                 output_schema=task_data.get("output_schema", {}),
                 dataset=task_data.get("dataset", []),
             )
+
+            # Ensure schemas have sensible defaults per TaskType if unspecified
+            in_schema, out_schema = ensure_task_schemas(
+                task.task_type, task.input_schema, task.output_schema
+            )
+            task.input_schema = in_schema
+            task.output_schema = out_schema
+
+            # Validate inline dataset against schemas (raises ValueError on issues)
+            validate_task_dataset(task)
 
             self._tasks[task_id] = task
             # Update registry

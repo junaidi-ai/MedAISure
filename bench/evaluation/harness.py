@@ -18,6 +18,7 @@ from .metric_calculator import MetricCalculator
 from .model_runner import ModelRunner
 from .result_aggregator import ResultAggregator
 from .task_loader import TaskLoader
+from .validators import ensure_task_schemas, validate_record_against_schema
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,8 @@ class EvaluationHarness:
 
         # Internal: track the active model id for cleanup
         self._active_model_id: Optional[str] = None
+        # Internal: validation behavior flag set per evaluate() call
+        self._strict_validation: bool = False
 
         logger.info(
             "Initialized EvaluationHarness with "
@@ -114,6 +117,7 @@ class EvaluationHarness:
         batch_size: int = 8,
         use_cache: bool = True,
         save_results: bool = True,
+        strict_validation: bool = False,
         **model_kwargs: Any,
     ) -> BenchmarkReport:
         """Run evaluation on the specified model and tasks.
@@ -146,6 +150,9 @@ class EvaluationHarness:
         # Get the loaded model from the runner's _models dictionary
         model = self.model_runner._models[model_id]
 
+        # Set validation mode for this run
+        self._strict_validation = bool(strict_validation)
+
         # Initialize results
         task_results = {}
         start_time = time.time()
@@ -174,7 +181,10 @@ class EvaluationHarness:
                 else:
                     # Run evaluation
                     task_result = self._evaluate_task(
-                        model=model, model_id=model_id, task=task, batch_size=batch_size
+                        model=model,
+                        model_id=model_id,
+                        task=task,
+                        batch_size=batch_size,
                     )
 
                     # Cache results
@@ -211,6 +221,9 @@ class EvaluationHarness:
                     self._on_task_end(task_id, task_result)
 
             except Exception as e:
+                # In strict validation mode, propagate exceptions to fail fast
+                if self._strict_validation:
+                    raise
                 if self._on_error:
                     try:
                         self._on_error(task_id, e)
@@ -376,11 +389,43 @@ class EvaluationHarness:
         if not inputs:
             raise ValueError(f"No dataset found for task {task.task_id}")
 
+        # Validate inputs against schema (non-strict by default)
+        validation_errors: List[str] = []
+        try:
+            in_schema, out_schema = ensure_task_schemas(
+                task.task_type, task.input_schema, task.output_schema
+            )
+            for idx, rec in enumerate(inputs):
+                # Support nested dataset rows with 'input'
+                payload = rec.get("input") if isinstance(rec, dict) else None
+                payload = payload if isinstance(payload, dict) else rec
+                validate_record_against_schema(
+                    payload, in_schema, label="inputs", index=idx
+                )
+        except Exception as e:
+            if self._strict_validation:
+                raise
+            validation_errors.append(str(e))
+
         # Run model inference
         logger.info(f"Running inference on {len(inputs)} examples...")
         predictions = self.model_runner.run_model(
             model_id=model_id, inputs=inputs, batch_size=batch_size
         )
+
+        # Validate outputs against schema (non-strict by default)
+        try:
+            # predictions are list[dict]; support models returning nested structures
+            for idx, rec in enumerate(predictions):
+                payload = rec.get("output") if isinstance(rec, dict) else None
+                payload = payload if isinstance(payload, dict) else rec
+                validate_record_against_schema(
+                    payload, out_schema, label="model_outputs", index=idx
+                )
+        except Exception as e:
+            if self._strict_validation:
+                raise
+            validation_errors.append(str(e))
 
         # Calculate metrics
         logger.info("Calculating metrics...")
@@ -404,7 +449,7 @@ class EvaluationHarness:
         metrics = {name: result.value for name, result in metric_results.items()}
 
         # Create evaluation result
-        return EvaluationResult(
+        result = EvaluationResult(
             model_id=model_id,
             task_id=task.task_id,
             inputs=inputs,
@@ -419,6 +464,11 @@ class EvaluationHarness:
                 "predictions": predictions[:10],  # First few predictions
             },
         )
+        if validation_errors:
+            # Attach collected validation issues for user inspection
+            result.metadata["validation_errors"] = validation_errors
+            logger.warning("Validation issues encountered: %s", validation_errors)
+        return result
 
     def _generate_run_id(self, model_id: str, task_ids: List[str]) -> str:
         """Generate a unique run ID based on model and task IDs.
