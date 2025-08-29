@@ -276,7 +276,7 @@
           1,
           2
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -284,7 +284,7 @@
             "description": "Finalize the design and implementation of the base Metric abstract class that all metrics will inherit from.",
             "dependencies": [],
             "details": "1. Review and refine the existing Metric ABC implementation\n2. Add documentation for each method\n3. Consider adding additional utility methods like validation\n4. Implement error handling for invalid inputs\n5. Create unit tests for the base interface\n6. Ensure proper type hinting and validation",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

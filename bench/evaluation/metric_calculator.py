@@ -35,6 +35,13 @@ from sklearn.metrics import (
 
 logger = logging.getLogger(__name__)
 
+# Optional class-based metrics registry (light dependency; local module)
+try:  # pragma: no cover - integration convenience
+    from .metrics import MetricRegistry, get_default_registry
+except Exception:  # pragma: no cover - if not available, proceed without registry
+    MetricRegistry = None  # type: ignore
+    get_default_registry = None  # type: ignore
+
 
 @dataclass
 class MetricResult:
@@ -93,10 +100,24 @@ class MetricCalculator:
         "r2": r2_score,
     }
 
-    def __init__(self) -> None:
+    def __init__(
+        self, registry: Optional["MetricRegistry"] = None, prefer_registry: bool = False
+    ) -> None:
+        """Initialize the metric calculator.
+
+        Args:
+            registry: Optional MetricRegistry instance to use for class-based metrics.
+            prefer_registry: If True and a registry is provided, attempt to compute
+                requested metrics via the registry first; fall back to built-ins for
+                any names not present in the registry.
+        """
         self.metrics: Dict[str, Dict[str, Any]] = {}
         self._register_builtin_metrics()
         self._register_medical_metrics()
+
+        # Registry integration (optional)
+        self.registry = registry
+        self.prefer_registry = bool(prefer_registry and registry is not None)
 
     def _register_builtin_metrics(self) -> None:
         """Register all built-in metrics."""
@@ -290,15 +311,59 @@ class MetricCalculator:
         if len(predictions) != len(references):
             raise ValueError("Predictions and references must have the same length")
 
+        # 1) Optionally compute via class-based registry first
+        results: Dict[str, MetricResult] = {}
+        handled_by_registry: set[str] = set()
+
+        if self.registry is not None and (
+            self.prefer_registry or metric_names is not None
+        ):
+            try:
+                # Choose which names to ask the registry for
+                reg_names: List[str]
+                if metric_names is not None:
+                    reg_names = metric_names
+                else:
+                    # If no specific list provided, try all metrics available in registry
+                    # Access internal names conservatively
+                    if hasattr(self.registry, "_metrics") and isinstance(
+                        self.registry._metrics, dict
+                    ):  # type: ignore[attr-defined]
+                        reg_names = list(self.registry._metrics.keys())  # type: ignore[attr-defined]
+                    else:
+                        reg_names = []
+
+                if reg_names:
+                    reg_scores = self.registry.calculate_metrics(
+                        reg_names,
+                        expected_outputs=references,
+                        model_outputs=predictions,
+                    )
+                    for mname, val in reg_scores.items():
+                        results[mname] = MetricResult(
+                            metric_name=mname,
+                            value=float(val),
+                            metadata={"source": "registry", "task_id": task_id},
+                        )
+                    handled_by_registry.update(reg_scores.keys())
+            except Exception as e:  # Soft-fail to built-ins
+                logger.warning(f"Registry calculation failed, falling back. Error: {e}")
+
+        # 2) Compute remaining metrics via built-in registry
         metrics_to_use: Dict[str, Dict[str, Any]] = self.metrics
         if metric_names is not None:
             metrics_to_use = {
                 name: self.metrics[name]
                 for name in metric_names
-                if name in self.metrics
+                if name in self.metrics and name not in handled_by_registry
             }
-
-        results: Dict[str, MetricResult] = {}
+        else:
+            # When no names provided, avoid recomputing those already handled
+            metrics_to_use = {
+                name: info
+                for name, info in self.metrics.items()
+                if name not in handled_by_registry
+            }
 
         for metric_name, metric_info in metrics_to_use.items():
             try:

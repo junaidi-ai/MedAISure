@@ -14,6 +14,8 @@ __all__ = [
     "MetricCalculator",
     "ResultAggregator",
     "EvaluationHarness",
+    "Metric",
+    "MetricRegistry",
 ]
 
 
@@ -23,6 +25,8 @@ _ATTR_TO_MODULE = {
     "MetricCalculator": "bench.evaluation.metric_calculator",
     "ResultAggregator": "bench.evaluation.result_aggregator",
     "EvaluationHarness": "bench.evaluation.harness",
+    "Metric": "bench.evaluation.metrics.base",
+    "MetricRegistry": "bench.evaluation.metrics.registry",
 }
 
 
