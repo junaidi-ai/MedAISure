@@ -142,11 +142,24 @@ def register_model(
     model_type: str = typer.Option(
         "local", help="Model type (local, huggingface, api)"
     ),
+    module_path: Optional[str] = typer.Option(
+        None,
+        help="For local models: Python import path to module exposing load_model()",
+    ),
+    load_func: Optional[str] = typer.Option(
+        None,
+        help="For local models: function name to load the model (default: load_model)",
+    ),
 ):
     """Register a model for evaluation (stored in a simple local registry)."""
     model_id = model_id or model_path.stem
     reg = _load_registry()
-    reg[model_id] = {"path": str(model_path), "type": model_type}
+    entry: Dict[str, str] = {"path": str(model_path), "type": model_type}
+    if module_path:
+        entry["module"] = module_path
+    if load_func:
+        entry["load_func"] = load_func
+    reg[model_id] = entry
     _save_registry(reg)
     console.print(
         f"[green]Registered model[/green]: {model_id} -> {model_path} ({model_type})"
@@ -168,7 +181,7 @@ def evaluate(
         Path("./results"), help="Directory to store results"
     ),
     format: str = typer.Option(
-        "json", help="Output format for saved report (json|yaml)"
+        "json", help="Output format for saved report (json|yaml|md|csv)"
     ),
     tasks_dir: Path = typer.Option(
         Path("bench/tasks"), help="Directory with task YAML/JSON files"
@@ -188,6 +201,10 @@ def evaluate(
 
     model_type = model_type or (cfg.model_type if cfg else "huggingface")
     out_dir = Path(cfg.output_dir if cfg else output_dir)
+
+    # Resolve tasks from config if not provided on CLI
+    if (not tasks) and cfg and cfg.tasks:
+        tasks = cfg.tasks
 
     harness = EvaluationHarness(tasks_dir=str(tasks_dir), results_dir=str(out_dir))
 
@@ -211,6 +228,22 @@ def evaluate(
                 description=f"Evaluating ({idx}/{n}) {current or ''}",
             )
 
+        # Determine model path/type from registry if present
+        reg = _load_registry()
+        reg_entry = reg.get(model_id)
+        effective_model_type = model_type
+        model_kwargs: Dict[str, object] = {}
+        if reg_entry:
+            effective_model_type = (
+                reg_entry.get("type", effective_model_type) or effective_model_type
+            )
+            if reg_entry.get("path"):
+                model_kwargs["model_path"] = reg_entry["path"]
+            if reg_entry.get("module"):
+                model_kwargs["module_path"] = reg_entry["module"]
+            if reg_entry.get("load_func"):
+                model_kwargs["load_func"] = reg_entry["load_func"]
+
         report = EvaluationHarness(
             tasks_dir=str(tasks_dir),
             results_dir=str(out_dir),
@@ -218,20 +251,61 @@ def evaluate(
         ).evaluate(
             model_id=model_id,
             task_ids=tasks,  # type: ignore[arg-type]
-            model_type=model_type,
+            model_type=str(effective_model_type),
             batch_size=cfg.batch_size if cfg else batch_size,
             use_cache=cfg.use_cache if cfg else use_cache,
             save_results=cfg.save_results if cfg else save_results,
+            **model_kwargs,
         )
 
-    # Save or print summary
-    default_out = out_dir / f"{report.metadata.get('run_id', 'results')}.{format}"
+    # Save or print summary in requested format
+    run_id = str(report.metadata.get("run_id", "results"))
+    fmt = format.lower()
     try:
-        report.save(default_out, format=format)
-        console.print(f"[green]Saved report[/green]: {default_out}")
+        if fmt in {"json", "yaml", "yml"}:
+            default_out = (
+                out_dir / f"{run_id}.{('yaml' if fmt in {'yaml','yml'} else 'json')}"
+            )
+            report.save(default_out, format=fmt)
+            console.print(f"[green]Saved report[/green]: {default_out}")
+        elif fmt == "md":
+            lines = [
+                "# MedAISure Benchmark Report",
+                f"Model: `{report.model_id}`",
+                f"Timestamp: {report.timestamp.isoformat()}",
+                "",
+                "## Overall Scores",
+            ]
+            for k, v in (report.overall_scores or {}).items():
+                lines.append(f"- {k}: {v:.4f}")
+            lines.append("")
+            lines.append("## Per-Task Averages")
+            for t, metrics in (report.task_scores or {}).items():
+                lines.append(f"- {t}:")
+                for k, v in (metrics or {}).items():
+                    lines.append(f"  - {k}: {v:.4f}")
+            content = "\n".join(lines)
+            default_out = out_dir / f"{run_id}.md"
+            default_out.write_text(content)
+            console.print(f"[green]Saved report[/green]: {default_out}")
+        elif fmt == "csv":
+            # Write a single file containing two CSV sections
+            content = (
+                "# Overall\n"
+                + report.overall_scores_to_csv()
+                + "\n# Tasks\n"
+                + report.task_scores_to_csv()
+            )
+            default_out = out_dir / f"{run_id}.csv"
+            default_out.write_text(content)
+            console.print(f"[green]Saved report[/green]: {default_out}")
+        else:
+            raise typer.BadParameter("Unsupported format. Use json|yaml|md|csv")
     except Exception as e:
         console.print(f"[red]Failed to save report[/red]: {e}")
-    console.print_json(data=report.to_dict(exclude={"detailed_results"}))
+
+    # Print a concise JSON summary to stdout (use JSON string to handle datetimes)
+    console.print_json(json=report.to_json(indent=2, exclude={"detailed_results"}))
 
 
 @app.command("generate-report")

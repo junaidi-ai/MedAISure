@@ -450,7 +450,7 @@
               "6.1"
             ],
             "details": "1. Implement model loading based on model_id\n2. Add task filtering based on user input\n3. Create configuration handling from config_file\n4. Set up the evaluation pipeline execution\n5. Implement result storage in the specified output_dir\n6. Add support for different output formats (json, md, csv)",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

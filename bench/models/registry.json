@@ -1,0 +1,7 @@
+{
+  "simple-local": {
+    "path": "/tmp/dummy.bin",
+    "type": "local",
+    "module": "tests.fixtures.simple_local_model"
+  }
+}
