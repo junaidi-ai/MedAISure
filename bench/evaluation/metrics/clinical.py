@@ -14,6 +14,39 @@ from typing import Any, Dict, List
 
 from .base import Metric
 
+# ------------------------- Shared Synonyms -------------------------
+# Central map for label synonyms used across metrics as needed.
+LABEL_SYNONYMS: Dict[str, str] = {
+    # cardiology
+    "mi": "myocardial infarction",
+    "hf": "heart failure",
+    "chf": "heart failure",
+    "cad": "coronary artery disease",
+    "af": "atrial fibrillation",
+    "htn": "hypertension",
+    # neurology
+    "cva": "stroke",
+    "tia": "transient ischemic attack",
+    # pulmonary
+    "copd": "chronic obstructive pulmonary disease",
+    "pna": "pneumonia",
+    "pe": "pulmonary embolism",
+    # vascular/hematology
+    "dvt": "deep vein thrombosis",
+    # renal
+    "aki": "acute kidney injury",
+    "ckd": "chronic kidney disease",
+    # endocrine/infectious
+    "dm": "diabetes mellitus",
+    "uti": "urinary tract infection",
+    # other common
+    "hld": "hyperlipidemia",
+    "arf": "acute renal failure",
+    "pud": "peptic ulcer disease",
+    "afib": "atrial fibrillation",
+    "gerd": "gastroesophageal reflux disease",
+}
+
 
 def _normalize_text(s: Any) -> str:
     if s is None:
@@ -430,6 +463,14 @@ class ReasoningQualityMetric(Metric):
 
 
 class DiagnosticAccuracyMetric(Metric):
+    def _normalize_label(self, s: Any) -> str:
+        """Normalize diagnosis/label text, including simple synonyms.
+
+        Includes simple mappings for common abbreviations after base normalization.
+        """
+        t = _normalize_text(s)
+        return LABEL_SYNONYMS.get(t, t)
+
     @property
     def name(self) -> str:
         return "diagnostic_accuracy"
@@ -458,9 +499,9 @@ class DiagnosticAccuracyMetric(Metric):
             pred_label = (pred or {}).get("label") or (pred or {}).get("prediction")
             specialty = (ref or {}).get("specialty") or (pred or {}).get("specialty")
 
-            # Normalize text labels for comparison
-            t_norm = _normalize_text(exp_label)
-            p_norm = _normalize_text(pred_label)
+            # Normalize text labels for comparison (with synonym mapping)
+            t_norm = self._normalize_label(exp_label)
+            p_norm = self._normalize_label(pred_label)
 
             # Base correctness
             base = 1.0 if (t_norm and p_norm and t_norm == p_norm) else 0.0

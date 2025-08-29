@@ -12,6 +12,7 @@ from .clinical import (
     ClinicalRelevanceMetric,
     DiagnosticAccuracyMetric,
     ReasoningQualityMetric,
+    LABEL_SYNONYMS,
 )
 from .registry import MetricRegistry
 
@@ -22,6 +23,7 @@ __all__ = [
     "ReasoningQualityMetric",
     "DiagnosticAccuracyMetric",
     "ClinicalRelevanceMetric",
+    "LABEL_SYNONYMS",
     "get_default_registry",
 ]
 
