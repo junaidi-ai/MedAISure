@@ -149,7 +149,7 @@
               "2.3"
             ],
             "details": "Implement advanced serialization features including:\n- Support for multiple formats (JSON, YAML, CSV where applicable)\n- Custom serializers for complex types\n- Versioning support for schema evolution\n- Partial serialization/deserialization\n- Performance optimizations for large datasets\n- Methods to convert between different formats\n- Documentation for serialization APIs",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

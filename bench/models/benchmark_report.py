@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import json
+import csv
+from io import StringIO
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
+
+import yaml
 
 from pydantic import BaseModel, Field, PrivateAttr, field_validator, model_validator
 
@@ -13,6 +17,9 @@ from .medical_task import MedicalTask
 
 class BenchmarkReport(BaseModel):
     """Aggregated benchmark report for a model across tasks."""
+
+    # Simple schema versioning for forward compatibility
+    schema_version: int = 1
 
     model_id: str
     timestamp: datetime = Field(
@@ -167,13 +174,23 @@ class BenchmarkReport(BaseModel):
                     raise ValueError(f"task_scores[{task_id}][{name}] must be numeric")
 
     # Persistence helpers used by the harness and docs
-    def save(self, file_path: Union[str, Path]) -> None:
+    def save(self, file_path: Union[str, Path], format: Optional[str] = None) -> None:
+        """Save the report to a file in JSON or YAML. Defaults to JSON by extension.
+
+        Examples:
+        - report.save("report.json")
+        - report.save("report.yaml")
+        - report.save("/path/to/report", format="json")
+        """
         path = Path(file_path)
+        fmt = (format or path.suffix.lstrip(".") or "json").lower()
         path.parent.mkdir(parents=True, exist_ok=True)
-        data = self.model_dump()
-        # Ensure datetime is serialized
-        with path.open("w") as f:
-            json.dump(data, f, indent=2, default=str)
+        if fmt == "json":
+            path.write_text(self.to_json(indent=2))
+        elif fmt in {"yaml", "yml"}:
+            path.write_text(self.to_yaml())
+        else:
+            raise ValueError(f"Unsupported format for BenchmarkReport.save: {fmt}")
 
     # Backwards-compatible alias used in docs
     def to_file(self, file_path: Union[str, Path]) -> None:
@@ -182,18 +199,36 @@ class BenchmarkReport(BaseModel):
     @classmethod
     def from_file(cls, file_path: Union[str, Path]) -> "BenchmarkReport":
         path = Path(file_path)
-        with path.open("r") as f:
-            data = json.load(f)
-        return cls.model_validate(data)
+        text = path.read_text()
+        suf = path.suffix.lower()
+        if suf == ".json":
+            return cls.from_json(text)
+        if suf in {".yaml", ".yml"}:
+            return cls.from_yaml(text)
+        raise ValueError(f"Unsupported file type for BenchmarkReport.from_file: {suf}")
 
     # --- Convenience serialization helpers ---
-    def to_dict(self) -> Dict[str, Any]:
-        """Return a plain-Python dict representation of the report."""
-        return self.model_dump()
+    def to_dict(
+        self,
+        *,
+        include: Optional[set | dict] = None,
+        exclude: Optional[set | dict] = None,
+    ) -> Dict[str, Any]:
+        """Return a plain-Python dict representation of the report.
 
-    def to_json(self, indent: int | None = None) -> str:
-        """Return a JSON string representation of the report."""
-        return self.model_dump_json(indent=indent)
+        Supports partial serialization via include/exclude.
+        """
+        return self.model_dump(include=include, exclude=exclude)
+
+    def to_json(
+        self,
+        indent: int | None = None,
+        *,
+        include: Optional[set | dict] = None,
+        exclude: Optional[set | dict] = None,
+    ) -> str:
+        """Return a JSON string representation of the report with optional include/exclude."""
+        return self.model_dump_json(indent=indent, include=include, exclude=exclude)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "BenchmarkReport":
@@ -204,6 +239,47 @@ class BenchmarkReport(BaseModel):
     def from_json(cls, data: str) -> "BenchmarkReport":
         """Create a BenchmarkReport from a JSON string with validation."""
         return cls.model_validate_json(data)
+
+    # --- YAML helpers ---
+    def to_yaml(self) -> str:
+        """Return a YAML string representation of the report."""
+        return yaml.safe_dump(json.loads(self.model_dump_json()), sort_keys=False)
+
+    @classmethod
+    def from_yaml(cls, data: str) -> "BenchmarkReport":
+        payload = yaml.safe_load(data) or {}
+        if "schema_version" not in payload:
+            payload["schema_version"] = 1
+        return cls.model_validate(payload)
+
+    # --- CSV exports for scores ---
+    def overall_scores_to_csv(self) -> str:
+        """Export overall_scores as CSV with columns: metric,score"""
+        sio = StringIO()
+        writer = csv.writer(sio)
+        writer.writerow(["metric", "score"])
+        for metric, score in (self.overall_scores or {}).items():
+            writer.writerow([metric, float(score)])
+        return sio.getvalue()
+
+    def task_scores_to_csv(self) -> str:
+        """Export task_scores as CSV with columns: task_id,metric,score"""
+        sio = StringIO()
+        writer = csv.writer(sio)
+        writer.writerow(["task_id", "metric", "score"])
+        for task_id, metrics in (self.task_scores or {}).items():
+            for metric, score in (metrics or {}).items():
+                writer.writerow([task_id, metric, float(score)])
+        return sio.getvalue()
+
+    # --- Conversion helper ---
+    def convert(self, to: str) -> str:
+        to = to.lower()
+        if to == "json":
+            return self.to_json(indent=2)
+        if to in {"yaml", "yml"}:
+            return self.to_yaml()
+        raise ValueError(f"Unsupported conversion target: {to}")
 
     # --- Summary/statistics helpers ---
     def summary_statistics(self) -> Dict[str, Dict[str, float]]:

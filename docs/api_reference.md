@@ -123,3 +123,45 @@ ra.export_report_json("run-1", output_path="bench/results/run-1.json")
 - `MedicalTask`: fields include `task_id`, `task_type`, `name`, `description`, `inputs`, `expected_outputs`, `metrics`, `input_schema`, `output_schema`, `dataset`
 - `EvaluationResult`: `model_id`, `task_id`, `inputs`, `model_outputs`, `metrics_results`, `metadata`, `timestamp`
 - `BenchmarkReport`: overall/task scores + `detailed_results`, JSON save/load helpers
+
+### Advanced Serialization (Models)
+
+- `schema_version`: int, default `1` on all models for forward compatibility
+
+- Partial serialization (all models):
+  - `to_dict(include=None, exclude=None)`
+  - `to_json(indent=None, include=None, exclude=None)`
+
+- YAML support (all models):
+  - `to_yaml()` → YAML string
+  - `from_yaml(text: str)` → instance
+
+- File I/O and conversion (all models):
+  - `save(path, format=None)` → format inferred from extension (`.json`, `.yaml`, `.yml`) or by `format`
+  - `from_file(path)` → loads JSON/YAML by extension
+  - `convert(to)` → returns string in `json` or `yaml`
+
+- CSV helpers:
+  - `EvaluationResult`: `inputs_to_csv()`, `outputs_to_csv()`, `from_inputs_csv(model_id, task_id, csv_text)`, `from_outputs_csv(model_id, task_id, csv_text)`
+  - `MedicalTask`: `dataset_to_csv()`
+  - `BenchmarkReport`: `overall_scores_to_csv()`, `task_scores_to_csv()`
+
+Examples:
+```python
+from bench.models import MedicalTask, EvaluationResult, BenchmarkReport
+
+# YAML round-trip
+task_yaml = task.to_yaml()
+task2 = MedicalTask.from_yaml(task_yaml)
+
+# Partial JSON (only overall_scores)
+report_json = report.to_json(indent=2, include={"overall_scores": True})
+
+# Save/Load
+result.save("res.yaml")
+res2 = EvaluationResult.from_file("res.yaml")
+
+# CSV exports
+csv_inputs = res2.inputs_to_csv()
+csv_overall = report.overall_scores_to_csv()
+```

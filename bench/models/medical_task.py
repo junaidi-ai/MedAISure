@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from enum import Enum
+from io import StringIO
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import csv
+import json
+import yaml
 
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
@@ -15,6 +21,9 @@ class TaskType(str, Enum):
 
 class MedicalTask(BaseModel):
     """Represents a medical evaluation task definition."""
+
+    # Simple schema versioning for forward compatibility
+    schema_version: int = 1
 
     task_id: str
     name: Optional[str] = None
@@ -148,13 +157,27 @@ class MedicalTask(BaseModel):
         return v
 
     # --- Convenience serialization helpers ---
-    def to_dict(self) -> Dict[str, Any]:
-        """Return a plain-Python dict representation of the model."""
-        return self.model_dump()
+    def to_dict(
+        self,
+        *,
+        include: Optional[set | dict] = None,
+        exclude: Optional[set | dict] = None,
+    ) -> Dict[str, Any]:
+        """Return a plain-Python dict representation of the model.
 
-    def to_json(self, indent: Optional[int] = None) -> str:
-        """Return a JSON string representation of the model."""
-        return self.model_dump_json(indent=indent)
+        Supports partial serialization via include/exclude.
+        """
+        return self.model_dump(include=include, exclude=exclude)
+
+    def to_json(
+        self,
+        indent: Optional[int] = None,
+        *,
+        include: Optional[set | dict] = None,
+        exclude: Optional[set | dict] = None,
+    ) -> str:
+        """Return a JSON string representation of the model with optional include/exclude."""
+        return self.model_dump_json(indent=indent, include=include, exclude=exclude)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "MedicalTask":
@@ -165,3 +188,66 @@ class MedicalTask(BaseModel):
     def from_json(cls, data: str) -> "MedicalTask":
         """Create a MedicalTask from a JSON string with validation."""
         return cls.model_validate_json(data)
+
+    # --- YAML helpers ---
+    def to_yaml(self) -> str:
+        """Return a YAML string representation of the model."""
+        return yaml.safe_dump(json.loads(self.model_dump_json()), sort_keys=False)
+
+    @classmethod
+    def from_yaml(cls, data: str) -> "MedicalTask":
+        payload = yaml.safe_load(data) or {}
+        if "schema_version" not in payload:
+            payload["schema_version"] = 1
+        return cls.model_validate(payload)
+
+    # --- CSV helpers ---
+    def dataset_to_csv(self) -> str:
+        """Export `dataset` to CSV string (best-effort flattening)."""
+        rows = self.dataset or []
+        if not rows:
+            return ""
+        # Compute headers union
+        headers: List[str] = []
+        for r in rows:
+            for k in r.keys():
+                if k not in headers:
+                    headers.append(k)
+        buf = StringIO()
+        writer = csv.DictWriter(buf, fieldnames=headers)
+        writer.writeheader()
+        for r in rows:
+            writer.writerow({k: r.get(k) for k in headers})
+        return buf.getvalue()
+
+    # --- File I/O ---
+    def save(self, file_path: str | Path, format: Optional[str] = None) -> None:
+        path = Path(file_path)
+        fmt = (format or path.suffix.lstrip(".")).lower()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if fmt == "json":
+            path.write_text(self.to_json(indent=2))
+        elif fmt in {"yaml", "yml"}:
+            path.write_text(self.to_yaml())
+        else:
+            raise ValueError(f"Unsupported format for MedicalTask.save: {fmt}")
+
+    @classmethod
+    def from_file(cls, file_path: str | Path) -> "MedicalTask":
+        path = Path(file_path)
+        text = path.read_text()
+        suf = path.suffix.lower()
+        if suf == ".json":
+            return cls.from_json(text)
+        if suf in {".yaml", ".yml"}:
+            return cls.from_yaml(text)
+        raise ValueError(f"Unsupported file type for MedicalTask.from_file: {suf}")
+
+    # --- Conversion helper ---
+    def convert(self, to: str) -> str:
+        to = to.lower()
+        if to == "json":
+            return self.to_json(indent=2)
+        if to in {"yaml", "yml"}:
+            return self.to_yaml()
+        raise ValueError(f"Unsupported conversion target: {to}")

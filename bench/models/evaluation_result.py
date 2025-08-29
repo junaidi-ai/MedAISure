@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, TYPE_CHECKING
+from io import StringIO
+from pathlib import Path
+from typing import Any, Dict, List, TYPE_CHECKING, Optional
+
+import csv
+import json
+import yaml
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
@@ -11,6 +17,9 @@ if TYPE_CHECKING:  # Avoid runtime import cycles; satisfies linters and type che
 
 class EvaluationResult(BaseModel):
     """Represents the result of evaluating a model on a specific task."""
+
+    # Simple schema versioning for forward compatibility
+    schema_version: int = 1
 
     model_id: str = Field(
         ..., description="Identifier for the evaluated model (e.g., name or hash)."
@@ -140,13 +149,27 @@ class EvaluationResult(BaseModel):
                     )
 
     # --- Convenience serialization helpers ---
-    def to_dict(self) -> Dict[str, Any]:
-        """Return a plain-Python dict representation of the model."""
-        return self.model_dump()
+    def to_dict(
+        self,
+        *,
+        include: Optional[set | dict] = None,
+        exclude: Optional[set | dict] = None,
+    ) -> Dict[str, Any]:
+        """Return a plain-Python dict representation of the model.
 
-    def to_json(self, indent: int | None = None) -> str:
-        """Return a JSON string representation of the model."""
-        return self.model_dump_json(indent=indent)
+        Supports partial serialization via `include`/`exclude` like pydantic's model_dump.
+        """
+        return self.model_dump(include=include, exclude=exclude)
+
+    def to_json(
+        self,
+        indent: int | None = None,
+        *,
+        include: Optional[set | dict] = None,
+        exclude: Optional[set | dict] = None,
+    ) -> str:
+        """Return a JSON string representation of the model with optional include/exclude."""
+        return self.model_dump_json(indent=indent, include=include, exclude=exclude)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "EvaluationResult":
@@ -157,6 +180,109 @@ class EvaluationResult(BaseModel):
     def from_json(cls, data: str) -> "EvaluationResult":
         """Create an EvaluationResult from a JSON string with validation."""
         return cls.model_validate_json(data)
+
+    # --- YAML helpers ---
+    def to_yaml(self) -> str:
+        """Return a YAML string representation of the model."""
+        return yaml.safe_dump(json.loads(self.model_dump_json()), sort_keys=False)
+
+    @classmethod
+    def from_yaml(cls, data: str) -> "EvaluationResult":
+        """Create an EvaluationResult from a YAML string with validation."""
+        payload = yaml.safe_load(data) or {}
+        # Basic schema version normalization
+        if "schema_version" not in payload:
+            payload["schema_version"] = 1
+        return cls.model_validate(payload)
+
+    # --- CSV helpers for tabular fields ---
+    def _list_of_dicts_to_csv(self, rows: List[Dict[str, Any]]) -> str:
+        if not rows:
+            return ""
+        # Collect all headers seen across rows for robustness
+        headers: List[str] = []
+        for r in rows:
+            for k in r.keys():
+                if k not in headers:
+                    headers.append(k)
+        buf = StringIO()
+        writer = csv.DictWriter(buf, fieldnames=headers)
+        writer.writeheader()
+        for r in rows:
+            writer.writerow({k: self._coerce_csv_value(r.get(k)) for k in headers})
+        return buf.getvalue()
+
+    @staticmethod
+    def _coerce_csv_value(v: Any) -> Any:
+        # Keep primitives, stringify others (e.g., datetime) via ISO or str
+        if isinstance(v, datetime):
+            return v.isoformat()
+        return v
+
+    def inputs_to_csv(self) -> str:
+        """Export `inputs` list of dicts to CSV string."""
+        return self._list_of_dicts_to_csv(self.inputs or [])
+
+    def outputs_to_csv(self) -> str:
+        """Export `model_outputs` list of dicts to CSV string."""
+        return self._list_of_dicts_to_csv(self.model_outputs or [])
+
+    @classmethod
+    def from_inputs_csv(
+        cls, model_id: str, task_id: str, csv_text: str
+    ) -> "EvaluationResult":
+        """Create instance with `inputs` populated from CSV; other fields empty."""
+        reader = csv.DictReader(StringIO(csv_text))
+        inputs = [dict(row) for row in reader]
+        return cls(model_id=model_id, task_id=task_id, inputs=inputs)
+
+    @classmethod
+    def from_outputs_csv(
+        cls, model_id: str, task_id: str, csv_text: str
+    ) -> "EvaluationResult":
+        """Create instance with `model_outputs` populated from CSV; other fields empty."""
+        reader = csv.DictReader(StringIO(csv_text))
+        outs = [dict(row) for row in reader]
+        return cls(model_id=model_id, task_id=task_id, model_outputs=outs)
+
+    # --- File I/O with format selection ---
+    def save(self, file_path: str | Path, format: Optional[str] = None) -> None:
+        """Save to a file; format inferred from extension if not provided.
+
+        Supported formats: json, yaml.
+        """
+        path = Path(file_path)
+        fmt = (format or path.suffix.lstrip(".")).lower()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if fmt == "json":
+            path.write_text(self.to_json(indent=2))
+        elif fmt in {"yaml", "yml"}:
+            path.write_text(self.to_yaml())
+        else:
+            raise ValueError(f"Unsupported format for EvaluationResult.save: {fmt}")
+
+    @classmethod
+    def from_file(cls, file_path: str | Path) -> "EvaluationResult":
+        path = Path(file_path)
+        suffix = path.suffix.lower()
+        text = path.read_text()
+        if suffix == ".json":
+            return cls.from_json(text)
+        if suffix in {".yaml", ".yml"}:
+            return cls.from_yaml(text)
+        raise ValueError(
+            f"Unsupported file type for EvaluationResult.from_file: {suffix}"
+        )
+
+    # --- Conversion helpers ---
+    def convert(self, to: str) -> str:
+        """Convert the whole object to a target format string (json|yaml)."""
+        to = to.lower()
+        if to == "json":
+            return self.to_json(indent=2)
+        if to in {"yaml", "yml"}:
+            return self.to_yaml()
+        raise ValueError(f"Unsupported conversion target: {to}")
 
     # --- Simple summary/statistics helpers ---
     def metric_summary(self) -> Dict[str, Dict[str, float]]:
