@@ -70,7 +70,7 @@ jobs:
         run: |
           set +e
           echo "Attempting GPU smoke test (if GPUs available on runner)"
-          docker run --rm --gpus all medaisure/gpu:ci python3 scripts/gpu_smoke.py
+          docker run --rm --gpus all --entrypoint python3 medaisure/gpu:ci scripts/gpu_smoke.py
           status=$?
           if [ $status -eq 0 ]; then
             echo "GPU smoke succeeded"
@@ -78,7 +78,7 @@ jobs:
           fi
           echo "GPU not available or failed ($status). Running CPU fallback check."
           set -e
-          docker run --rm medaisure/gpu:ci python3 - <<'PY'
+          docker run --rm --entrypoint python3 medaisure/gpu:ci - <<'PY'
           import torch, time
           print('torch', torch.__version__)
           print('cuda_available', torch.cuda.is_available())
