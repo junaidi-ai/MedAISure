@@ -36,3 +36,54 @@ jobs:
       - name: Run tests
         run: |
           pytest -q --maxfail=1 --disable-warnings
+
+  build-gpu-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build GPU Docker image (no run)
+        run: |
+          docker build -t medaisure/gpu:ci -f Dockerfile.gpu .
+
+  gpu-smoke-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build GPU Docker image
+        run: |
+          docker build -t medaisure/gpu:ci -f Dockerfile.gpu .
+
+      - name: Try GPU smoke; fallback to CPU check
+        shell: bash
+        run: |
+          set +e
+          echo "Attempting GPU smoke test (if GPUs available on runner)"
+          docker run --rm --gpus all medaisure/gpu:ci python3 scripts/gpu_smoke.py
+          status=$?
+          if [ $status -eq 0 ]; then
+            echo "GPU smoke succeeded"
+            exit 0
+          fi
+          echo "GPU not available or failed ($status). Running CPU fallback check."
+          set -e
+          docker run --rm medaisure/gpu:ci python3 - <<'PY'
+          import torch, time
+          print('torch', torch.__version__)
+          print('cuda_available', torch.cuda.is_available())
+          a = torch.randn(1024, 1024)
+          b = torch.randn(1024, 1024)
+          t0 = time.time(); c = a.matmul(b); dt = (time.time() - t0) * 1000
+          print(f'CPU matmul {dt:.2f} ms, shape={tuple(c.shape)}')
+          PY

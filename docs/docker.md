@@ -19,6 +19,17 @@ docker build -t medaisure/cpu:latest -f Dockerfile .
 docker build -t medaisure/gpu:latest -f Dockerfile.gpu .
 ```
 
+### CUDA-enabled PyTorch wheels
+
+The GPU image pins CUDA 11.8 PyTorch wheels during build:
+
+```bash
+python3 -m pip install --index-url https://download.pytorch.org/whl/cu118 \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
+```
+
+If you adjust CUDA or PyTorch versions, ensure you use the matching index URL and compatible versions.
+
 ## Run (Docker)
 
 ```bash
@@ -30,6 +41,14 @@ docker run --rm --gpus all -v "$PWD/data:/app/data" -v "$PWD/results:/app/result
 
 # Show a task (replace <id>)
 docker run --rm medaisure/cpu:latest show <id>
+```
+
+### GPU Smoke Test
+
+Run a quick CUDA sanity test inside the GPU image:
+
+```bash
+docker run --rm --gpus all medaisure/gpu:latest python3 scripts/gpu_smoke.py
 ```
 
 ## Run (Docker Compose)
@@ -45,6 +64,12 @@ docker compose up --build medaisure-gpu
 Volumes:
 - `./data` is mounted to `/app/data`
 - `./results` is mounted to `/app/results`
+
+To run only the GPU smoke service using profiles:
+
+```bash
+docker compose --profile smoke up --build medaisure-gpu-smoke
+```
 
 ## Environment Variables
 

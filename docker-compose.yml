@@ -26,3 +26,18 @@ services:
               capabilities: [gpu]
     # Requires: docker run --gpus all ... or compose with NVIDIA runtime configured
     command: ["list", "--json"]
+
+  medaisure-gpu-smoke:
+    profiles: ["smoke"]
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: medaisure/gpu:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: ["python3", "scripts/gpu_smoke.py"]

@@ -20,10 +20,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Python dependencies
 COPY requirements.txt ./
 RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt && \
+    # Ensure CUDA-enabled PyTorch wheels (CUDA 11.8)
+    python3 -m pip install --index-url https://download.pytorch.org/whl/cu118 \
+      torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
 
 # Copy source
 COPY . .
+
+# Install package to expose console_scripts (medaisure-benchmark)
+RUN python3 -m pip install .
 
 # Default entrypoint uses the console script from setup.py
 ENTRYPOINT ["medaisure-benchmark"]
