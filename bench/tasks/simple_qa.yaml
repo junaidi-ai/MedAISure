@@ -1,0 +1,24 @@
+task_type: "qa"
+name: "Simple QA"
+description: "Minimal QA task for integration tests."
+inputs:
+  - question: ""
+expected_outputs:
+  - answer: ""
+input_schema:
+  required: ["question"]
+output_schema:
+  required: ["answer"]
+metrics:
+  - name: "clinical_correctness"
+  - name: "accuracy"
+
+dataset:
+  - input:
+      question: "What is a common symptom of influenza?"
+    output:
+      answer: "fever"
+  - input:
+      question: "What symptom often accompanies seasonal allergies?"
+    output:
+      answer: "sneezing"

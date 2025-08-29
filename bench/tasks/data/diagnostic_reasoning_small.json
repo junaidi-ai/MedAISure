@@ -1,0 +1,14 @@
+[
+  {
+    "input": {"case": "35-year-old with fever, productive cough, chest pain"},
+    "output": {"diagnosis": "pneumonia"}
+  },
+  {
+    "input": {"case": "22-year-old with polyuria, polydipsia, weight loss"},
+    "output": {"diagnosis": "diabetes mellitus"}
+  },
+  {
+    "input": {"case": "65-year-old with resting tremor, bradykinesia, rigidity"},
+    "output": {"diagnosis": "parkinsons disease"}
+  }
+]

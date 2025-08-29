@@ -2,18 +2,18 @@ task_type: "qa"
 name: "Medical QA - Symptoms"
 description: "Answer simple symptom-related medical questions."
 inputs:
-  - text: "Q: What is a common symptom of influenza?"
-  - text: "Q: Name one typical symptom of dehydration in adults."
+  - question: "Q: What is a common symptom of influenza?"
+  - question: "Q: Name one typical symptom of dehydration in adults."
 expected_outputs:
   - answer: "fever"
   - answer: "dry mouth"
 input_schema:
   type: "object"
   properties:
-    text:
+    question:
       type: "string"
       description: "The question (may include brief context)."
-  required: ["text"]
+  required: ["question"]
 output_schema:
   type: "object"
   properties:
@@ -31,11 +31,11 @@ metrics:
 
 dataset:
   - id: 1
-    text: "Q: What is a common symptom of influenza?"
+    question: "Q: What is a common symptom of influenza?"
     answer: "fever"
   - id: 2
-    text: "Q: Name one typical symptom of dehydration in adults."
+    question: "Q: Name one typical symptom of dehydration in adults."
     answer: "dry mouth"
   - id: 3
-    text: "Q: What symptom often accompanies seasonal allergic rhinitis?"
+    question: "Q: What symptom often accompanies seasonal allergic rhinitis?"
     answer: "sneezing"

@@ -2,18 +2,18 @@ task_type: "qa"
 name: "Medical QA - Treatments"
 description: "Answer basic treatment-oriented medical questions."
 inputs:
-  - text: "Q: What is the first-line treatment for bacterial strep throat?"
-  - text: "Q: Name one lifestyle change recommended for hypertension."
+  - question: "Q: What is the first-line treatment for bacterial strep throat?"
+  - question: "Q: Name one lifestyle change recommended for hypertension."
 expected_outputs:
   - answer: "penicillin"
   - answer: "reduced salt intake"
 input_schema:
   type: "object"
   properties:
-    text:
+    question:
       type: "string"
       description: "The question (may include brief context)."
-  required: ["text"]
+  required: ["question"]
 output_schema:
   type: "object"
   properties:
@@ -31,14 +31,14 @@ metrics:
 
 dataset:
   - id: 1
-    text: "Q: What is the first-line treatment for bacterial strep throat?"
+    question: "Q: What is the first-line treatment for bacterial strep throat?"
     answer: "penicillin"
   - id: 2
-    text: "Q: Name one lifestyle change recommended for hypertension."
+    question: "Q: Name one lifestyle change recommended for hypertension."
     answer: "reduced salt intake"
   - id: 3
-    text: "Q: Which vitamin is commonly supplemented for osteoporosis prevention?"
+    question: "Q: Which vitamin is commonly supplemented for osteoporosis prevention?"
     answer: "vitamin D"
   - id: 4
-    text: "Q: What is a common first-line therapy for type 2 diabetes?"
+    question: "Q: What is a common first-line therapy for type 2 diabetes?"
     answer: "metformin"

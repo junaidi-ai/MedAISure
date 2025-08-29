@@ -47,7 +47,7 @@ def test_add_many_results_benchmark(benchmark):
 
 
 @pytest.mark.benchmark(group="serialization")
-def test_serialization_throughput_json_yaml(benchmark):
+def test_serialization_throughput_json(benchmark):
     report = BenchmarkReport(
         model_id="m1",
         detailed_results=[
@@ -62,10 +62,25 @@ def test_serialization_throughput_json_yaml(benchmark):
         ],
     )
 
-    # Benchmark JSON dump
     json_text = benchmark(report.to_json)
     assert isinstance(json_text, str)
 
-    # Benchmark YAML dump
+
+@pytest.mark.benchmark(group="serialization")
+def test_serialization_throughput_yaml(benchmark):
+    report = BenchmarkReport(
+        model_id="m1",
+        detailed_results=[
+            EvaluationResult(
+                model_id="m1",
+                task_id=f"t{i}",
+                inputs=[{"q": str(i)}],
+                model_outputs=[{"a": str(i)}],
+                metrics_results={"accuracy": 0.5, "f1": 0.5},
+            )
+            for i in range(50)
+        ],
+    )
+
     yaml_text = benchmark(report.to_yaml)
     assert isinstance(yaml_text, str)

@@ -1,0 +1,20 @@
+task_type: "diagnostic_reasoning"
+name: "Diagnostic Reasoning - Basic"
+description: "Predict diagnosis from brief clinical cases."
+inputs:
+  - case: ""
+expected_outputs:
+  - diagnosis: ""
+input_schema:
+  required: ["case"]
+output_schema:
+  required: ["diagnosis"]
+metrics:
+  - name: "diagnostic_accuracy"
+  - name: "reasoning_quality"
+
+dataset:
+  - input: { case: "35-year-old with fever, productive cough, chest pain" }
+    output: { diagnosis: "pneumonia" }
+  - input: { case: "22-year-old with polyuria, polydipsia, weight loss" }
+    output: { diagnosis: "diabetes mellitus" }

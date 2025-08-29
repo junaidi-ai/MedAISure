@@ -1,0 +1,21 @@
+task_type: "summarization"
+name: "Clinical Summarization - Basic"
+description: "Summarize short clinical notes into concise summaries."
+inputs:
+  - document: ""
+expected_outputs:
+  - summary: ""
+input_schema:
+  required: ["document"]
+output_schema:
+  required: ["summary"]
+metrics:
+  - name: "rouge_l"
+  - name: "clinical_relevance"
+  - name: "factual_consistency"
+
+dataset:
+  - input:
+      document: "Patient is a 58-year-old male with history of hypertension and diabetes. Presented with chest pain. Troponin elevated. ECG shows ST depressions. Treatment started with aspirin and beta blocker."
+    output:
+      summary: "58-year-old male with HTN/DM presented with chest pain; elevated troponin and ST depressions. Started on aspirin and beta-blocker."

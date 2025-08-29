@@ -152,6 +152,7 @@ class EvaluationHarness:
 
         # Evaluate on each task
         for idx, task_id in enumerate(tqdm(task_ids, desc="Evaluating tasks"), start=1):
+            task: Optional[MedicalTask] = None
             try:
                 if self._on_progress:
                     self._on_progress(idx, len(task_ids), task_id)
@@ -219,6 +220,39 @@ class EvaluationHarness:
                 logger.error(
                     f"Error evaluating task {task_id}: {str(e)}", exc_info=True
                 )
+                # Insert a placeholder result so the task key appears in the final report
+                try:
+                    # Attempt to use the task's declared metrics for placeholder keys
+                    metrics_dict: Dict[str, float] = {}
+                    if task is not None and getattr(task, "metrics", None):
+                        names: List[str] = []
+                        for m in task.metrics:  # type: ignore[union-attr]
+                            if isinstance(m, dict) and "name" in m:
+                                names.append(str(m["name"]))
+                            elif isinstance(m, str):
+                                names.append(m)
+                        metrics_dict = {name: 0.0 for name in names}
+                    else:
+                        # Fallback if task isn't available
+                        metrics_dict = {"score": 0.0}
+
+                    placeholder = EvaluationResult(
+                        model_id=model_id,
+                        task_id=task_id,
+                        inputs=[],
+                        model_outputs=[],
+                        metrics_results=metrics_dict,
+                        metadata={
+                            "error": str(e),
+                            "note": "Placeholder result due to evaluation failure",
+                        },
+                    )
+                    task_results[task_id] = placeholder
+                    # Intentionally do NOT call on_task_end for error placeholders to
+                    # maintain semantics expected by tests (only successful tasks end).
+                except Exception:
+                    # As a last resort, skip adding results for this task
+                    pass
                 # Continue with other tasks on error
                 continue
 
