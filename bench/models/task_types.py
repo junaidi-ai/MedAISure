@@ -173,7 +173,9 @@ class ClinicalSummarizationTask(MedicalTask):
                 inp = r.get("input", {})
                 out = r.get("output", {})
             else:
-                inp = {"document": r.get("document", "")}
+                # Accept aliases: 'text' or 'note' map to 'document'
+                doc = r.get("document") or r.get("text") or r.get("note") or ""
+                inp = {"document": doc}
                 out = {"summary": r.get("summary", "")}
             dataset.append({"input": inp, "output": out})
         self.dataset = dataset

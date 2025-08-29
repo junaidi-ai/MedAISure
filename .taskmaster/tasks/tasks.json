@@ -206,7 +206,7 @@
             "description": "Complete the implementation of the ClinicalSummarizationTask class including data loading functionality and create 2-3 specific task instances with medical documents and reference summaries.",
             "dependencies": [],
             "details": "1. Implement the load_data method to parse medical documents and reference summaries\n2. Create sample data files with clinical notes, reports, and reference summaries\n3. Develop 2-3 specific task instances (e.g., discharge summary, radiology report summary)\n4. Implement methods to evaluate generated summaries using specified metrics\n5. Add functionality to handle different document types and lengths",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

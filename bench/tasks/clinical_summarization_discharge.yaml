@@ -2,21 +2,21 @@ task_type: "summarization"
 name: "Clinical Summarization - Discharge Notes"
 description: "Summarize discharge notes into concise summaries capturing key diagnoses, treatments, and follow-ups."
 inputs:
-  - text: "65-year-old with community-acquired pneumonia treated with IV ceftriaxone and azithromycin; improved and stable for discharge."
-  - text: "45-year-old with poorly controlled type 2 diabetes admitted for DKA; treated with insulin drip and fluids; improved and discharged on basal-bolus regimen."
+  - document: "65-year-old with community-acquired pneumonia treated with IV ceftriaxone and azithromycin; improved and stable for discharge."
+  - document: "45-year-old with poorly controlled type 2 diabetes admitted for DKA; treated with insulin drip and fluids; improved and discharged on basal-bolus regimen."
 expected_outputs:
   - summary: "CAP treated with ceftriaxone/azithromycin; improved; outpatient follow-up."
   - summary: "DKA resolved; on basal-bolus insulin; diabetes follow-up."
 input_schema:
   type: "object"
   properties:
-    text:
+    document:
       type: "string"
-      description: "Clinical note text used as model input (duplicate of note)."
+      description: "Clinical note text used as model input."
     note:
       type: "string"
-      description: "Original clinical note for relevance comparison."
-  required: ["text"]
+      description: "Optional: original clinical note for relevance comparison."
+  required: ["document"]
 output_schema:
   type: "object"
   properties:
@@ -38,9 +38,9 @@ metrics:
 dataset:
   - id: 1
     note: "65-year-old admitted with fever, productive cough, and right lower lobe infiltrate on CXR. Treated with IV ceftriaxone and azithromycin. Improved oxygenation, afebrile for 48h. Discharge with oral antibiotics and PCP follow-up."
-    text: "65-year-old admitted with fever, productive cough, and right lower lobe infiltrate on CXR. Treated with IV ceftriaxone and azithromycin. Improved oxygenation, afebrile for 48h. Discharge with oral antibiotics and PCP follow-up."
+    document: "65-year-old admitted with fever, productive cough, and right lower lobe infiltrate on CXR. Treated with IV ceftriaxone and azithromycin. Improved oxygenation, afebrile for 48h. Discharge with oral antibiotics and PCP follow-up."
     summary: "Community-acquired pneumonia treated with ceftriaxone/azithromycin; improved; discharge with oral antibiotics and PCP follow-up."
   - id: 2
     note: "45-year-old with T2DM presented with abdominal pain and Kussmaul breathing. Labs showed high anion gap metabolic acidosis and ketonemia. Managed with insulin drip, IV fluids, and electrolyte correction. Transitioned to basal-bolus insulin; diabetes education provided."
-    text: "45-year-old with T2DM presented with abdominal pain and Kussmaul breathing. Labs showed high anion gap metabolic acidosis and ketonemia. Managed with insulin drip, IV fluids, and electrolyte correction. Transitioned to basal-bolus insulin; diabetes education provided."
+    document: "45-year-old with T2DM presented with abdominal pain and Kussmaul breathing. Labs showed high anion gap metabolic acidosis and ketonemia. Managed with insulin drip, IV fluids, and electrolyte correction. Transitioned to basal-bolus insulin; diabetes education provided."
     summary: "DKA resolved after insulin and fluids; discharge on basal-bolus insulin with diabetes education and follow-up."

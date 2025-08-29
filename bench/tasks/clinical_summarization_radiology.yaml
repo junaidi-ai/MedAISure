@@ -1,0 +1,35 @@
+task_type: "summarization"
+name: "Clinical Summarization - Radiology Reports"
+description: "Summarize radiology reports into concise impressions capturing key findings and recommendations."
+inputs:
+  - document: "Chest X-ray: Right lower lobe opacity with air bronchograms; no pleural effusion; cardiac silhouette normal."
+  - document: "CT head without contrast: No intracranial hemorrhage; mild white matter hypodensities consistent with chronic microvascular changes."
+expected_outputs:
+  - summary: "RLL consolidation; suggest pneumonia; clinical correlation."
+  - summary: "No acute intracranial process; chronic microvascular changes noted."
+input_schema:
+  type: "object"
+  properties:
+    document:
+      type: "string"
+      description: "Radiology report text to summarize."
+  required: ["document"]
+output_schema:
+  type: "object"
+  properties:
+    summary:
+      type: "string"
+      description: "Concise summary/impression."
+  required: ["summary"]
+metrics:
+  - name: "rouge_l"
+  - name: "clinical_relevance"
+  - name: "factual_consistency"
+
+dataset:
+  - id: 1
+    document: "Chest X-ray: There is focal airspace opacity in the right lower lobe with air bronchograms. No pleural effusion. Cardiomediastinal silhouette is within normal limits."
+    summary: "Right lower lobe consolidation without effusion; findings suggest pneumonia."
+  - id: 2
+    document: "CT head without contrast: No evidence of acute intracranial hemorrhage, mass effect, or midline shift. Mild periventricular white matter hypodensities consistent with chronic microvascular ischemic changes."
+    summary: "No acute intracranial abnormality; chronic microvascular changes present."
