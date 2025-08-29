@@ -1,0 +1,28 @@
+services:
+  medaisure-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: medaisure/cpu:latest
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+    command: ["list", "--json"]
+
+  medaisure-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: medaisure/gpu:latest
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Requires: docker run --gpus all ... or compose with NVIDIA runtime configured
+    command: ["list", "--json"]

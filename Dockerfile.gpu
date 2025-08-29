@@ -1,0 +1,30 @@
+# GPU-enabled Dockerfile for MedAISure
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# System dependencies and Python
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    python3 \
+    python3-pip \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+COPY requirements.txt ./
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -r requirements.txt
+
+# Copy source
+COPY . .
+
+# Default entrypoint uses the console script from setup.py
+ENTRYPOINT ["medaisure-benchmark"]
+CMD ["list", "--json"]

@@ -369,7 +369,7 @@
         "testStrategy": "1. Build tests:\n   - Verify Docker images build successfully\n   - Test both CPU and GPU configurations\n\n2. Runtime tests:\n   - Test container execution with sample tasks\n   - Verify proper volume mounting and data access\n   - Test GPU detection and utilization\n\n3. Environment tests:\n   - Verify all dependencies are correctly installed\n   - Test Python version and library compatibility\n   - Ensure reproducibility across different host systems",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -377,7 +377,7 @@
             "description": "Develop and test the base Dockerfile for CPU environments, ensuring all dependencies are properly installed and the container functions correctly.",
             "dependencies": [],
             "details": "1. Review and finalize the provided base Dockerfile\n2. Test building the image with the Python 3.10 slim base\n3. Verify all system dependencies (build-essential, git) are installed correctly\n4. Ensure Python dependencies from requirements.txt install properly\n5. Test the ENTRYPOINT configuration with the medaisure.cli module\n6. Document any issues or optimizations needed",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

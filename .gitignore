@@ -79,6 +79,7 @@ Thumbs.db
 
 # Local development
 bench/results/
+results/
 bench/training/__pycache__/
 bench/examples/__pycache__/
 
