@@ -400,7 +400,7 @@
               "5.2"
             ],
             "details": "1. Review and finalize the provided docker-compose.yml file\n2. Test the compose configuration for both CPU and GPU services\n3. Verify volume mounting for data and results directories\n4. Test the command configuration for evaluation runs\n5. Ensure GPU resource allocation is properly configured\n6. Document how to use docker-compose for different evaluation scenarios\n7. Create sample commands for common use cases",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
