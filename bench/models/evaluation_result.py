@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, TYPE_CHECKING
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
+
+if TYPE_CHECKING:  # Avoid runtime import cycles; satisfies linters and type checkers
+    from .medical_task import MedicalTask
 
 
 class EvaluationResult(BaseModel):
@@ -45,6 +48,11 @@ class EvaluationResult(BaseModel):
     def _validate_inputs(cls, v: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if v is None:
             return []
+        if not isinstance(v, list):
+            raise ValueError("inputs must be a list of dicts")
+        for i, item in enumerate(v):
+            if not isinstance(item, dict):
+                raise ValueError(f"inputs[{i}] must be a dict")
         return v
 
     @field_validator("model_id", "task_id")
@@ -61,6 +69,11 @@ class EvaluationResult(BaseModel):
     ) -> List[Dict[str, Any]]:
         if v is None:
             return []
+        if not isinstance(v, list):
+            raise ValueError("model_outputs must be a list of dicts")
+        for i, item in enumerate(v):
+            if not isinstance(item, dict):
+                raise ValueError(f"model_outputs[{i}] must be a dict")
         data = info.data or {}
         inputs = data.get("inputs", [])
         if inputs and len(v) != len(inputs):
@@ -76,6 +89,55 @@ class EvaluationResult(BaseModel):
                 raise ValueError("metrics_results values must be numeric")
             out[k] = float(val)
         return out
+
+    @field_validator("timestamp")
+    @classmethod
+    def _validate_timestamp(cls, v: datetime) -> datetime:
+        # Ensure timezone-aware; coerce naive to UTC
+        if v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v.astimezone(timezone.utc)
+
+    # --- Relationship checks (opt-in) ---
+    def validate_against_task(self, task: "MedicalTask") -> None:
+        """Validate relationships and basic schema alignment with a `MedicalTask`.
+
+        - Ensure `task_id` matches
+        - If task.metrics provided, ensure all reported metrics exist in task.metrics
+        - If task.input_schema.required present, ensure each input dict has required keys
+        - If task.output_schema.required present, ensure each model_output dict has required keys
+        """
+        if self.task_id != task.task_id:
+            raise ValueError(
+                f"task_id mismatch: result={self.task_id} task={task.task_id}"
+            )
+
+        if task.metrics:
+            unknown = [
+                m for m in (self.metrics_results or {}).keys() if m not in task.metrics
+            ]
+            if unknown:
+                raise ValueError(
+                    f"metrics_results contains metrics not defined by task: {unknown}"
+                )
+
+        req_in = (task.input_schema or {}).get("required") or []
+        if req_in:
+            for i, rec in enumerate(self.inputs or []):
+                missing = [k for k in req_in if k not in rec]
+                if missing:
+                    raise ValueError(
+                        f"inputs[{i}] missing required keys per task.input_schema: {missing}"
+                    )
+
+        req_out = (task.output_schema or {}).get("required") or []
+        if req_out:
+            for i, rec in enumerate(self.model_outputs or []):
+                missing = [k for k in req_out if k not in rec]
+                if missing:
+                    raise ValueError(
+                        f"model_outputs[{i}] missing required keys per task.output_schema: {missing}"
+                    )
 
     # --- Convenience serialization helpers ---
     def to_dict(self) -> Dict[str, Any]:
