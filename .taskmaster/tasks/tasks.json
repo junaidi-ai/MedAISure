@@ -9,7 +9,7 @@
         "testStrategy": "1. Unit tests for each component:\n   - Test TaskLoader with sample task definitions\n   - Test ModelRunner with mock models\n   - Test MetricCalculator with predefined inputs/outputs\n   - Test ResultAggregator with sample results\n\n2. Integration tests:\n   - End-to-end test with simple model and task\n   - Verify correct data flow between components\n\n3. Schema validation tests:\n   - Ensure all data structures conform to defined schemas\n   - Test error handling for malformed inputs",
         "priority": "high",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -80,7 +80,7 @@
             "description": "Develop comprehensive documentation for the evaluation framework including API references, usage examples, and extension guides.",
             "dependencies": [],
             "details": "Create documentation including:\n- API reference for all public classes and methods\n- Usage examples for common evaluation scenarios\n- Extension guides for adding new tasks, metrics, and model types\n- Configuration reference for the framework\n- Troubleshooting guide for common issues\n- Performance optimization tips\n- Contribution guidelines for the project",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]

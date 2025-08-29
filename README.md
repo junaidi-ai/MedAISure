@@ -32,37 +32,50 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .[dev]  # Includes development dependencies
 ```
 
-### Basic Usage
+### Get Started
 
 ```python
 from bench.evaluation import EvaluationHarness
 
-# Initialize the evaluation harness
-harness = EvaluationHarness(
-    tasks_dir="path/to/tasks",
-    results_dir="path/to/results",
-    cache_dir="path/to/cache"
+h = EvaluationHarness(
+    tasks_dir="bench/tasks",
+    results_dir="bench/results",
+    cache_dir="bench/results/cache",
+    log_level="INFO",
 )
 
-# List available tasks
-tasks = harness.list_available_tasks()
-print(f"Available tasks: {[t['task_id'] for t in tasks]}")
-
-# Run evaluation on a specific task
-results = harness.evaluate(
-    model_id="my-model",
-    task_ids=["medical_nli"],
-    model_type="local",
-    model_path="path/to/model"
+# Discover tasks and run one with a Hugging Face model
+tasks = h.list_available_tasks()
+report = h.evaluate(
+    model_id="textattack/bert-base-uncased-MNLI",
+    task_ids=[tasks[0]["task_id"]],
+    model_type="huggingface",
+    batch_size=4,
+    use_cache=False,
 )
-
-print(f"Evaluation results: {results}")
+print(report.overall_scores)
 ```
 
 ## 📚 Documentation
 
 For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://junaidi-ai.github.io/MedAISure/).
 
+Also see local docs in this repo:
+
+- Usage Guide: [docs/usage.md](docs/usage.md)
+- API Reference: [docs/api_reference.md](docs/api_reference.md)
+- Extension Guide: [docs/extensions.md](docs/extensions.md)
+- Configuration: [docs/configuration.md](docs/configuration.md)
+- Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
+- Performance Tips: [docs/performance.md](docs/performance.md)
+
+Examples you can run:
+
+- HF text classification: [bench/examples/run_hf_text_classification.py](bench/examples/run_hf_text_classification.py)
+- HF summarization: [bench/examples/run_hf_summarization.py](bench/examples/run_hf_summarization.py)
+- Local model: [bench/examples/run_local_model.py](bench/examples/run_local_model.py)
+- API model: [bench/examples/run_api_model.py](bench/examples/run_api_model.py)
+- Custom metric: [bench/examples/register_custom_metric.py](bench/examples/register_custom_metric.py)
 
 
 ## 👋 Overview
