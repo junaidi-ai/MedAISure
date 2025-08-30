@@ -115,6 +115,48 @@ def display_task_list(rows: List[Dict[str, object]]) -> None:
     console.print(table)
 
 
+def _display_evaluation_summary(report: BenchmarkReport) -> None:
+    """Print a concise Rich table summary for evaluation results.
+
+    Shows overall metrics and per-task averages to make terminal output
+    human-friendly while keeping JSON output available for machines.
+    """
+    table = Table(title="Evaluation Summary")
+    table.add_column("Section")
+    table.add_column("Key")
+    table.add_column("Value", justify="right")
+
+    # Overall metrics
+    overall = report.overall_scores or {}
+    if overall:
+        for k, v in overall.items():
+            try:
+                sval = f"{float(v):.4f}"
+            except Exception:
+                sval = str(v)
+            table.add_row("Overall", k, sval)
+    else:
+        table.add_row("Overall", "-", "-")
+
+    # Per-task averages
+    tasks = report.task_scores or {}
+    if tasks:
+        for task_name, metrics in tasks.items():
+            if not metrics:
+                table.add_row(task_name, "-", "-")
+                continue
+            for mk, mv in metrics.items():
+                try:
+                    sval = f"{float(mv):.4f}"
+                except Exception:
+                    sval = str(mv)
+                table.add_row(task_name, mk, sval)
+    else:
+        table.add_row("Tasks", "-", "-")
+
+    console.print(table)
+
+
 # ----------------------
 # HTML rendering helper
 # ----------------------
@@ -207,7 +249,9 @@ def list_models(
     ),
 ):
     """List registered models from the local registry."""
-    reg = _load_registry()
+    # Loading registry is quick, but wrap for consistent UX
+    with console.status("Loading model registry..."):
+        reg = _load_registry()
     if not reg:
         if json_output:
             console.print_json(data={})
@@ -280,7 +324,8 @@ def register_model(
     if model_type not in {"local", "huggingface", "api"}:
         raise typer.BadParameter("model_type must be one of: local|huggingface|api")
 
-    reg: Dict[str, Dict[str, str]] = _load_registry()
+    with console.status("Loading model registry..."):
+        reg: Dict[str, Dict[str, str]] = _load_registry()
 
     # Infer default model_id
     if model_id:
@@ -353,7 +398,8 @@ def register_model(
 
     # Persist
     reg[model_id] = entry  # type: ignore[assignment]
-    _save_registry(reg)
+    with console.status("Saving model registry..."):
+        _save_registry(reg)
     console.print(
         f"[green]Registered model[/green]: {model_id} -> {entry.get('path', entry.get('endpoint', ''))} ({model_type})"
     )
@@ -390,7 +436,8 @@ def evaluate(
     # Merge with config file if provided
     cfg: Optional[BenchmarkConfig] = None
     if config_file:
-        cfg = BenchmarkConfig.from_file(config_file)
+        with console.status(f"Loading config: {config_file}..."):
+            cfg = BenchmarkConfig.from_file(config_file)
 
     model_type = model_type or (cfg.model_type if cfg else "huggingface")
     out_dir = Path(cfg.output_dir if cfg else output_dir)
@@ -475,7 +522,8 @@ def evaluate(
             default_out = (
                 out_dir / f"{run_id}.{('yaml' if fmt in {'yaml','yml'} else 'json')}"
             )
-            report.save(default_out, format=fmt)
+            with console.status("Saving report..."):
+                report.save(default_out, format=fmt)
             console.print(f"[green]Saved report[/green]: {default_out}")
         elif fmt == "md":
             lines = [
@@ -495,7 +543,8 @@ def evaluate(
                     lines.append(f"  - {k}: {v:.4f}")
             content = "\n".join(lines)
             default_out = out_dir / f"{run_id}.md"
-            default_out.write_text(content)
+            with console.status("Saving report (markdown)..."):
+                default_out.write_text(content)
             console.print(f"[green]Saved report[/green]: {default_out}")
         elif fmt == "csv":
             # Write a single file containing two CSV sections
@@ -506,7 +555,8 @@ def evaluate(
                 + report.task_scores_to_csv()
             )
             default_out = out_dir / f"{run_id}.csv"
-            default_out.write_text(content)
+            with console.status("Saving report (csv)..."):
+                default_out.write_text(content)
             console.print(f"[green]Saved report[/green]: {default_out}")
         else:
             raise typer.BadParameter("Unsupported format. Use json|yaml|md|csv")
@@ -515,6 +565,9 @@ def evaluate(
 
     # Print a concise JSON summary to stdout (use JSON string to handle datetimes)
     console.print_json(json=report.to_json(indent=2, exclude={"detailed_results"}))
+
+    # Also print a styled summary table for human readability
+    _display_evaluation_summary(report)
 
 
 @app.command("generate-report")
@@ -528,7 +581,8 @@ def generate_report(
     format: str = typer.Option("md", help="Report format (md|json|yaml|csv)"),
 ):
     """Generate a human-readable report from results."""
-    report = BenchmarkReport.from_file(results_file)
+    with console.status("Loading results..."):
+        report = BenchmarkReport.from_file(results_file)
 
     fmt = format.lower()
     if fmt == "md":
@@ -562,17 +616,20 @@ def generate_report(
             + report.task_scores_to_csv()
         )
     elif fmt == "html":
-        content = _report_to_html(report)
+        with console.status("Rendering HTML..."):
+            content = _report_to_html(report)
     elif fmt == "pdf":
         # Generate HTML first; then try converting using WeasyPrint if available
-        html_content = _report_to_html(report)
+        with console.status("Rendering HTML for PDF..."):
+            html_content = _report_to_html(report)
         if output_file is None:
             output_file = results_file.with_suffix(".pdf")
         output_file.parent.mkdir(parents=True, exist_ok=True)
         try:
             from weasyprint import HTML  # type: ignore
 
-            HTML(string=html_content).write_pdf(str(output_file))
+            with console.status("Generating PDF..."):
+                HTML(string=html_content).write_pdf(str(output_file))
             console.print(f"[green]Generated PDF report[/green]: {output_file}")
             return
         except ImportError:
@@ -586,7 +643,8 @@ def generate_report(
     if output_file is None:
         output_file = results_file.with_suffix(f".{format}")
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.write_text(content)
+    with console.status("Writing file..."):
+        output_file.write_text(content)
     console.print(f"[green]Generated report[/green]: {output_file}")
 
 
