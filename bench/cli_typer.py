@@ -91,6 +91,27 @@ def _unique_model_id(base: str, reg: Dict[str, Dict[str, str]]) -> str:
     return candidate
 
 
+# ----------------------
+# Validation & error helpers
+# ----------------------
+
+
+def _ensure_exists(path: Path, kind: str = "path") -> None:
+    """Exit with a user-friendly error if a file/dir does not exist."""
+    p = Path(path)
+    if not p.exists():
+        console.print(f"[red]{kind.capitalize()} not found[/red]: {p}")
+        raise typer.Exit(code=1)
+
+
+def _ensure_not_dir(path: Path, label: str = "output") -> None:
+    """Exit with a user-friendly error if given path resolves to a directory."""
+    p = Path(path)
+    if p.exists() and p.is_dir():
+        console.print(f"[red]{label.capitalize()} path is a directory[/red]: {p}")
+        raise typer.Exit(code=1)
+
+
 # --------------
 # Helper outputs
 # --------------
@@ -228,6 +249,7 @@ def list_tasks(
     ),
 ):
     """List all available tasks in the benchmark."""
+    _ensure_exists(tasks_dir, kind="tasks directory")
     harness = EvaluationHarness(tasks_dir=str(tasks_dir))
     rows = harness.list_available_tasks()
     if json_output:
@@ -350,6 +372,8 @@ def register_model(
             raise typer.BadParameter(f"model_path does not exist: {model_path}")
         if not module_path:
             raise typer.BadParameter("module_path is required for local models")
+        # Validate file path early for clearer UX
+        _ensure_exists(model_path, kind="model path")
         # Validate import and callable if possible
         try:
             import importlib
@@ -446,6 +470,7 @@ def evaluate(
     if (not tasks) and cfg and cfg.tasks:
         tasks = cfg.tasks
 
+    _ensure_exists(tasks_dir, kind="tasks directory")
     harness = EvaluationHarness(tasks_dir=str(tasks_dir), results_dir=str(out_dir))
 
     # If no tasks specified, evaluate all
@@ -581,6 +606,10 @@ def generate_report(
     format: str = typer.Option("md", help="Report format (md|json|yaml|csv)"),
 ):
     """Generate a human-readable report from results."""
+    # Validate inputs
+    _ensure_exists(results_file, kind="results file")
+    if output_file is not None:
+        _ensure_not_dir(output_file, label="output")
     with console.status("Loading results..."):
         report = BenchmarkReport.from_file(results_file)
 
