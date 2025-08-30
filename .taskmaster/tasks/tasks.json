@@ -461,7 +461,7 @@
               "6.1"
             ],
             "details": "1. Implement task discovery and listing functionality\n2. Create formatted output for task listing\n3. Implement model registration logic\n4. Add support for different model types (local, huggingface, api)\n5. Implement model configuration validation\n6. Create model ID generation for unspecified IDs",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

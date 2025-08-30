@@ -12,7 +12,7 @@ This CLI is additive and does not replace the existing argparse CLI in bench/cli
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import json
 
@@ -77,6 +77,20 @@ def _save_registry(data: Dict[str, Dict[str, str]]) -> None:
     REGISTRY_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
 
+def _unique_model_id(base: str, reg: Dict[str, Dict[str, str]]) -> str:
+    """Generate a unique model ID based on the base string.
+
+    If the base already exists, append a numeric suffix: base-1, base-2, ...
+    """
+    base = base.strip() or "model"
+    candidate = base
+    idx = 1
+    while candidate in reg:
+        candidate = f"{base}-{idx}"
+        idx += 1
+    return candidate
+
+
 # --------------
 # Helper outputs
 # --------------
@@ -133,36 +147,165 @@ def list_tasks(
     display_task_list(rows)
 
 
+@app.command("list-models")
+def list_models(
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit machine-readable JSON"
+    ),
+    show_secrets: bool = typer.Option(
+        False, help="Include sensitive fields like api_key in output"
+    ),
+):
+    """List registered models from the local registry."""
+    reg = _load_registry()
+    if not reg:
+        if json_output:
+            console.print_json(data={})
+        else:
+            console.print("[yellow]No models registered.[/yellow]")
+        raise typer.Exit(code=0)
+
+    if json_output:
+        # Optionally mask secrets
+        safe = {}
+        for mid, entry in reg.items():
+            e = dict(entry)
+            if not show_secrets and "api_key" in e:
+                e.pop("api_key", None)
+            safe[mid] = e
+        console.print_json(data=safe)
+        raise typer.Exit(code=0)
+
+    # Pretty table
+    table = Table(title="Registered Models")
+    table.add_column("Model ID")
+    table.add_column("Type")
+    table.add_column("Path/Endpoint")
+    table.add_column("Module")
+    table.add_column("HF Task")
+    for mid, entry in reg.items():
+        mtype = str(entry.get("type", ""))
+        loc = str(entry.get("path") or entry.get("endpoint") or "")
+        module = str(entry.get("module", ""))
+        hf_task = str(entry.get("hf_task", ""))
+        table.add_row(mid, mtype, loc, module, hf_task)
+    console.print(table)
+
+
 @app.command("register-model")
 def register_model(
-    model_path: Path = typer.Argument(..., help="Path to model or model configuration"),
+    model_path: Optional[Path] = typer.Argument(
+        None, help="Path to model or model configuration (HF: hub id allowed)"
+    ),
     model_id: Optional[str] = typer.Option(
-        None, help="Custom ID for the model. Defaults to basename."
+        None, help="Custom ID for the model. Auto-generated if omitted."
     ),
-    model_type: str = typer.Option(
-        "local", help="Model type (local, huggingface, api)"
-    ),
+    model_type: str = typer.Option("local", help="Model type (local|huggingface|api)"),
+    # Local model options
     module_path: Optional[str] = typer.Option(
         None,
-        help="For local models: Python import path to module exposing load_model()",
+        help="[local] Python import path to module exposing a load function",
     ),
     load_func: Optional[str] = typer.Option(
         None,
-        help="For local models: function name to load the model (default: load_model)",
+        help="[local] Function name to load the model (default: load_model)",
     ),
+    # HF options
+    hf_task: Optional[str] = typer.Option(
+        None,
+        help="[huggingface] HF pipeline task (e.g., summarization, text-classification)",
+    ),
+    # API options
+    endpoint: Optional[str] = typer.Option(None, help="[api] Inference endpoint URL"),
+    api_key: Optional[str] = typer.Option(None, help="[api] API key / token"),
+    timeout: float = typer.Option(30.0, help="[api] Request timeout in seconds"),
+    max_retries: int = typer.Option(0, help="[api] Max retries on request failure"),
+    backoff_factor: float = typer.Option(0.5, help="[api] Exponential backoff base"),
 ):
-    """Register a model for evaluation (stored in a simple local registry)."""
-    model_id = model_id or model_path.stem
-    reg = _load_registry()
-    entry: Dict[str, str] = {"path": str(model_path), "type": model_type}
-    if module_path:
-        entry["module"] = module_path
-    if load_func:
-        entry["load_func"] = load_func
-    reg[model_id] = entry
+    """Register a model for evaluation (stored in a simple local registry).
+
+    Performs basic validation per model type and generates a unique ID if needed.
+    """
+    model_type = (model_type or "").strip().lower()
+    if model_type not in {"local", "huggingface", "api"}:
+        raise typer.BadParameter("model_type must be one of: local|huggingface|api")
+
+    reg: Dict[str, Dict[str, str]] = _load_registry()
+
+    # Infer default model_id
+    if model_id:
+        model_id = model_id.strip()
+    else:
+        base = "model"
+        if model_path is not None:
+            base = model_path.stem or model_path.name or "model"
+        elif model_type == "api" and endpoint:
+            base = Path(endpoint.rstrip("/")).name or "api"
+        elif model_type == "huggingface" and model_path is None:
+            base = "hf-model"
+        model_id = _unique_model_id(base, reg)
+
+    entry: Dict[str, Any] = {"type": model_type}
+
+    # Per-type validation and fields
+    if model_type == "local":
+        if model_path is None:
+            raise typer.BadParameter("model_path is required for local models")
+        if not model_path.exists():
+            raise typer.BadParameter(f"model_path does not exist: {model_path}")
+        if not module_path:
+            raise typer.BadParameter("module_path is required for local models")
+        # Validate import and callable if possible
+        try:
+            import importlib
+
+            mod = importlib.import_module(module_path)
+            func_name = (load_func or "load_model").strip()
+            fn = getattr(mod, func_name, None)
+            if not callable(fn):
+                raise typer.BadParameter(
+                    f"Module '{module_path}' has no callable '{func_name}'"
+                )
+        except Exception as e:
+            raise typer.BadParameter(f"Failed to import '{module_path}': {e}")
+
+        entry.update(
+            {
+                "path": str(model_path),
+                "module": module_path,
+                "load_func": (load_func or "load_model"),
+            }
+        )
+
+    elif model_type == "huggingface":
+        if model_path is None:
+            raise typer.BadParameter(
+                "model_path is required for huggingface models (hub id or path)"
+            )
+        entry.update(
+            {"path": str(model_path), "hf_task": (hf_task or "text-classification")}
+        )
+
+    elif model_type == "api":
+        if not endpoint:
+            raise typer.BadParameter("endpoint is required for api models")
+        if not api_key:
+            raise typer.BadParameter("api_key is required for api models")
+        entry.update(
+            {
+                "endpoint": endpoint,
+                "api_key": api_key,
+                "timeout": float(timeout),
+                "max_retries": int(max_retries),
+                "backoff_factor": float(backoff_factor),
+            }
+        )
+
+    # Persist
+    reg[model_id] = entry  # type: ignore[assignment]
     _save_registry(reg)
     console.print(
-        f"[green]Registered model[/green]: {model_id} -> {model_path} ({model_type})"
+        f"[green]Registered model[/green]: {model_id} -> {entry.get('path', entry.get('endpoint', ''))} ({model_type})"
     )
 
 
@@ -237,12 +380,28 @@ def evaluate(
             effective_model_type = (
                 reg_entry.get("type", effective_model_type) or effective_model_type
             )
+            # Common fields
             if reg_entry.get("path"):
                 model_kwargs["model_path"] = reg_entry["path"]
+            # Local fields
             if reg_entry.get("module"):
                 model_kwargs["module_path"] = reg_entry["module"]
             if reg_entry.get("load_func"):
                 model_kwargs["load_func"] = reg_entry["load_func"]
+            # HF fields
+            if reg_entry.get("hf_task"):
+                model_kwargs["hf_task"] = reg_entry["hf_task"]
+            # API fields
+            if reg_entry.get("endpoint"):
+                model_kwargs["endpoint"] = reg_entry["endpoint"]
+            if reg_entry.get("api_key"):
+                model_kwargs["api_key"] = reg_entry["api_key"]
+            if reg_entry.get("timeout") is not None:
+                model_kwargs["timeout"] = reg_entry["timeout"]
+            if reg_entry.get("max_retries") is not None:
+                model_kwargs["max_retries"] = reg_entry["max_retries"]
+            if reg_entry.get("backoff_factor") is not None:
+                model_kwargs["backoff_factor"] = reg_entry["backoff_factor"]
 
         report = EvaluationHarness(
             tasks_dir=str(tasks_dir),
@@ -365,6 +524,7 @@ def generate_report(
 app.command("list_tasks")(list_tasks)
 app.command("register_model")(register_model)
 app.command("generate_report")(generate_report)
+app.command("list_models")(list_models)
 
 
 def main() -> None:
