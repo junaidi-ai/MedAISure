@@ -12,6 +12,18 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 import os
+import pickle
+from pathlib import Path
+
+try:  # optional dependency via scikit-learn
+    import joblib  # type: ignore
+except Exception:  # pragma: no cover - optional
+    joblib = None  # type: ignore[assignment]
+
+try:  # optional heavy dependency
+    import torch  # type: ignore
+except Exception:  # pragma: no cover - optional
+    torch = None  # type: ignore[assignment]
 
 
 class ModelInterface(ABC):
@@ -74,17 +86,43 @@ class LocalModel(ModelInterface):
         if predict_fn is None and model_path is None:
             raise ValueError("Either predict_fn or model_path must be provided")
 
-        self._model_obj: Optional[Any] = None
-        if model_path is not None:
-            obj = loader(model_path) if loader is not None else None
-            self._model_obj = obj
-
         self._predict_fn = predict_fn
+        self._model_obj: Optional[Any] = None
+        self._model_file: Optional[Path] = None
         self._model_id = model_id or (
             os.path.basename(model_path) if model_path else "local-model"
         )
 
+        # Initialize metadata container early
+        self._meta: Dict[str, Any] = {}
+
+        if model_path is not None:
+            self._model_file = Path(model_path)
+
+            # Use provided loader if any, else try auto loaders by extension
+            if loader is not None:
+                try:
+                    self._model_obj = loader(model_path)
+                except Exception as e:
+                    raise ValueError(
+                        f"Custom loader failed for {model_path}: {e}"
+                    ) from e
+            else:
+                # For auto-loading, require the file to exist
+                if not self._model_file.exists():
+                    raise FileNotFoundError(f"Model file not found: {model_path}")
+                self._model_obj = self._auto_load_model(self._model_file)
+
+            # Populate metadata after loading (best-effort; may be empty if file doesn't exist)
+            self._populate_metadata()
+
     def predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        # Basic input validation/coercion
+        if not isinstance(inputs, list):  # pragma: no cover - defensive
+            inputs = [inputs]  # type: ignore[list-item]
+        if not all(isinstance(x, dict) for x in inputs):  # pragma: no cover - defensive
+            inputs = [x if isinstance(x, dict) else {"input": x} for x in inputs]  # type: ignore[union-attr]
+
         try:
             if self._predict_fn is not None:
                 out = self._predict_fn(inputs)
@@ -100,7 +138,11 @@ class LocalModel(ModelInterface):
 
             # Fallback to .predict
             if hasattr(self._model_obj, "predict"):
-                out = self._model_obj.predict(inputs)  # type: ignore[attr-defined]
+                try:
+                    out = self._model_obj.predict(inputs)  # type: ignore[attr-defined]
+                except TypeError:
+                    # Some sklearn-like models expect features, not dicts; best-effort pass-through
+                    out = self._model_obj.predict(inputs)  # type: ignore[attr-defined]
                 return out if isinstance(out, list) else [out]
 
             return [{} for _ in inputs]
@@ -111,6 +153,69 @@ class LocalModel(ModelInterface):
     @property
     def model_id(self) -> str:
         return self._model_id
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        # Merge base metadata with extracted
+        base = {"model_id": self._model_id, "framework": "local"}
+        return {**base, **(self._meta or {})}
+
+    # ---- Internal helpers ----
+    def _auto_load_model(self, path: Path) -> Any:
+        """Automatically load a local model object from common file formats.
+
+        Supported:
+        - .pkl/.pickle -> pickle.load
+        - .joblib -> joblib.load (if available)
+        - .pt/.pth -> torch.load (if available)
+        Otherwise falls back to pickle.load.
+        """
+        suffix = path.suffix.lower()
+        if suffix in {".pkl", ".pickle"}:
+            with path.open("rb") as f:
+                return pickle.load(f)
+        if suffix == ".joblib":
+            if joblib is None:
+                raise ImportError("joblib is required to load .joblib models")
+            return joblib.load(str(path))
+        if suffix in {".pt", ".pth"}:
+            if torch is None:
+                raise ImportError("torch is required to load .pt/.pth models")
+            return torch.load(str(path), map_location="cpu")
+        # Default fallback
+        with path.open("rb") as f:
+            return pickle.load(f)
+
+    def _populate_metadata(self) -> None:
+        try:
+            if not self._model_file:
+                return
+            stat = self._model_file.stat()
+            obj = self._model_obj
+            cls = type(obj).__name__ if obj is not None else None
+            # Try to infer framework from object/module
+            framework = None
+            mod_name = getattr(type(obj), "__module__", "") if obj is not None else ""
+            if "sklearn" in mod_name:
+                framework = "scikit-learn"
+            elif torch is not None and obj is not None and hasattr(obj, "state_dict"):
+                framework = "torch"
+            elif joblib is not None and self._model_file.suffix.lower() == ".joblib":
+                framework = "joblib"
+            elif self._model_file.suffix.lower() in {".pkl", ".pickle"}:
+                framework = "pickle"
+
+            self._meta = {
+                "file_path": str(self._model_file),
+                "file_size": stat.st_size,
+                "file_mtime": stat.st_mtime,
+                "ext": self._model_file.suffix.lower(),
+                "object_class": cls,
+                "object_module": mod_name,
+                "framework": framework or "local",
+            }
+        except Exception:  # pragma: no cover - metadata best-effort only
+            self._meta = self._meta or {}
 
 
 class HuggingFaceModel(ModelInterface):

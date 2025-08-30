@@ -71,6 +71,49 @@ preds = mr.run_model("my_local", inputs=[{"text": "x"}], batch_size=2)
 
 Returned prediction dicts typically include `{"label", "score"}` for classification or `{"summary"|"text"|"prediction"}` for generative tasks.
 
+## LocalModel (`bench/evaluation/model_interface.py`)
+
+- `LocalModel(predict_fn: Optional[Callable]=None, model_path: Optional[str]=None, loader: Optional[Callable]=None, model_id: Optional[str]=None)`
+  - Load local models directly from files or wrap a Python callable.
+  - Auto-loaders by extension:
+    - `.pkl`/`.pickle` → `pickle.load`
+    - `.joblib` → `joblib.load` (optional dependency)
+    - `.pt`/`.pth` → `torch.load` (optional dependency)
+  - Prediction: calls the model object (if callable) or its `.predict()` method; otherwise uses `predict_fn`.
+  - `metadata` includes `file_path`, `ext`, `file_size`, `file_mtime`, `object_class`, `object_module`, and inferred `framework`.
+
+Examples (runnable scripts):
+
+```bash
+python bench/examples/run_localmodel_pickle.py
+python bench/examples/run_localmodel_joblib.py   # requires joblib
+python bench/examples/run_localmodel_torch.py    # requires torch
+```
+
+Inline usage – Pickle:
+```python
+from bench.evaluation.model_interface import LocalModel
+lm = LocalModel(model_path=".local_models/echo.pkl")
+preds = lm.predict([{"text": "hello"}, {"text": "world"}])
+print(preds, lm.metadata)
+```
+
+Inline usage – Joblib:
+```python
+from bench.evaluation.model_interface import LocalModel
+lm = LocalModel(model_path=".local_models/echo.joblib")
+preds = lm.predict([{"a": 1}, {"bbb": 2}])
+print(preds)
+```
+
+Inline usage – Torch:
+```python
+from bench.evaluation.model_interface import LocalModel
+lm = LocalModel(model_path=".local_models/echo.pt")
+preds = lm.predict([{"x": 0.1}, {"x": 0.9}])
+print(preds)
+```
+
 ## MetricCalculator (`bench/evaluation/metric_calculator.py`)
 - Built-ins: `accuracy`, `precision`, `recall`, `f1`, `roc_auc`, `average_precision`, `mse`, `mae`, `r2`
 - Medical: `diagnostic_accuracy`, `clinical_correctness`, `reasoning_quality`, `rouge_l`, `clinical_relevance`, `factual_consistency`

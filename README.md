@@ -56,6 +56,23 @@ report = h.evaluate(
 print(report.overall_scores)
 ```
 
+### LocalModel quick examples
+
+Use LocalModel to load local models saved with pickle/joblib/torch, or wrap a callable.
+
+```python
+from bench.evaluation.model_interface import LocalModel
+
+# Load a pickled callable or estimator
+lm = LocalModel(model_path=".local_models/echo.pkl")
+preds = lm.predict([{"text": "hello"}, {"text": "world"}])
+print(preds, lm.metadata)
+
+# Or provide your own predict function
+lm2 = LocalModel(predict_fn=lambda batch: [{"y": i} for i, _ in enumerate(batch)])
+print(lm2.predict([{"a":1}, {"a":2}]))
+```
+
 ## 📚 Documentation
 
 For detailed documentation, including API reference and advanced usage, please visit our [documentation site](https://junaidi-ai.github.io/MedAISure/).
@@ -80,6 +97,9 @@ Examples you can run:
 - HF text classification: [bench/examples/run_hf_text_classification.py](bench/examples/run_hf_text_classification.py)
 - HF summarization: [bench/examples/run_hf_summarization.py](bench/examples/run_hf_summarization.py)
 - Local model: [bench/examples/run_local_model.py](bench/examples/run_local_model.py)
+- LocalModel (pickle): [bench/examples/run_localmodel_pickle.py](bench/examples/run_localmodel_pickle.py)
+- LocalModel (joblib): [bench/examples/run_localmodel_joblib.py](bench/examples/run_localmodel_joblib.py)
+- LocalModel (torch): [bench/examples/run_localmodel_torch.py](bench/examples/run_localmodel_torch.py)
 - API model: [bench/examples/run_api_model.py](bench/examples/run_api_model.py)
 - Custom metric: [bench/examples/register_custom_metric.py](bench/examples/register_custom_metric.py)
 
