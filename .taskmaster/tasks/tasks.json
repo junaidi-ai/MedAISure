@@ -431,7 +431,7 @@
           3,
           4
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -517,7 +517,7 @@
           1,
           2
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -525,7 +525,7 @@
             "description": "Complete the design and implementation of the abstract ModelInterface class with all required methods and properties.",
             "dependencies": [],
             "details": "Implement the ModelInterface ABC with proper type hints and docstrings. Ensure the interface includes:\n- Abstract predict method with proper input/output typing\n- Abstract model_id property\n- Optional metadata property\n- Error handling guidelines\n- Documentation for extension requirements",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

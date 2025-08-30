@@ -6,7 +6,20 @@ import importlib
 import logging
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
+
+if TYPE_CHECKING:  # pragma: no cover - typing-only import
+    from .model_interface import ModelInterface
 
 # Third-party imports
 
@@ -45,6 +58,22 @@ class ModelRunner(Generic[M, T, R]):
         self._models: Dict[str, Any] = {}
         self._model_configs: Dict[str, Dict[str, Any]] = {}
         self._tokenizers: Dict[str, Any] = {}
+
+    def register_interface_model(self, model: "ModelInterface") -> None:
+        """Register a model implementing the ModelInterface.
+
+        This allows external callers to construct rich model wrappers and plug
+        them into the runner for use with run_model().
+
+        Args:
+            model: An instance implementing ModelInterface.
+        """
+        # Store object and minimal config
+        self._models[model.model_id] = model
+        self._model_configs[model.model_id] = {
+            "type": "interface",
+        }
+        logger.info(f"Registered interface model: {model.model_id}")
 
     def load_model(
         self,
@@ -110,6 +139,16 @@ class ModelRunner(Generic[M, T, R]):
             model = self._load_local_model(model_name, model_path_str, **kwargs)
         elif model_type == "api":
             model = self._load_api_model(model_name, **kwargs)
+        elif model_type == "interface":
+            # Expect a concrete ModelInterface instance passed as 'model'
+            mi = kwargs.get("model")
+            if mi is None:
+                raise ValueError(
+                    "For model_type='interface', pass a 'model' instance implementing ModelInterface"
+                )
+            # Delay import for typing only to avoid hard dependency here
+            self.register_interface_model(mi)
+            model = mi
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -579,6 +618,14 @@ class ModelRunner(Generic[M, T, R]):
                 elif model_type == "api":
                     # For API models that implement __call__
                     batch_results = model(batch)
+                    if not isinstance(batch_results, list):
+                        batch_results = [batch_results]
+                    results.extend(batch_results)
+
+                elif model_type == "interface":
+                    # For ModelInterface implementations
+                    # We only rely on the standard predict() batch method
+                    batch_results = model.predict(batch)
                     if not isinstance(batch_results, list):
                         batch_results = [batch_results]
                     results.extend(batch_results)

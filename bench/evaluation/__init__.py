@@ -16,6 +16,11 @@ __all__ = [
     "EvaluationHarness",
     "Metric",
     "MetricRegistry",
+    "ModelInterface",
+    "LocalModel",
+    "HuggingFaceModel",
+    "APIModel",
+    "ModelRegistry",
 ]
 
 
@@ -27,6 +32,12 @@ _ATTR_TO_MODULE = {
     "EvaluationHarness": "bench.evaluation.harness",
     "Metric": "bench.evaluation.metrics.base",
     "MetricRegistry": "bench.evaluation.metrics.registry",
+    # Model interface exports
+    "ModelInterface": "bench.evaluation.model_interface",
+    "LocalModel": "bench.evaluation.model_interface",
+    "HuggingFaceModel": "bench.evaluation.model_interface",
+    "APIModel": "bench.evaluation.model_interface",
+    "ModelRegistry": "bench.evaluation.model_interface",
 }
 
 
