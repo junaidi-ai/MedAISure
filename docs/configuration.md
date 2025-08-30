@@ -1,6 +1,22 @@
+- **MEDAISURE_NO_RICH**
+  - Purpose: Disable Rich live console rendering during tests/CI, and force plain stdout output for both text and JSON from the Typer CLI in `bench/cli_typer.py`.
+  - Values: `"1"` (enabled) or unset/other (disabled).
+  - Behavior when set to `1`:
+    - Rich status/progress bars are not created (`_status()` becomes no-op).
+    - `_print()` writes plain text to `sys.stdout` (captured by pytest/CliRunner).
+    - `_print_json()` always writes raw JSON to `sys.stdout` (no ANSI styling), ensuring robust parsing in tests.
+    - Python logging is disabled via `logging.disable(logging.CRITICAL)` to avoid noisy writes to captured streams.
+  - Recommended usage:
+    - Local runs of the CLI can omit it for nicer output.
+    - Enable for pytest and CI runs to avoid flaky captures: `export MEDAISURE_NO_RICH=1`.
+  - CI: The default GitHub Actions workflow sets this for the test job (see `.github/workflows/tests.yml`).
+
 # Configuration Reference
 
 Key parameters and where they apply.
+
+## Environment Variables
+- `MEDAISURE_NO_RICH`: Disable Rich live console rendering during tests/CI, and force plain stdout output for both text and JSON from the Typer CLI in `bench/cli_typer.py`.
 
 ## EvaluationHarness
 - `tasks_dir`: where task YAML/JSON files are discovered

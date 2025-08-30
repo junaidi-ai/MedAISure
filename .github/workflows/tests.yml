@@ -10,6 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      MEDAISURE_NO_RICH: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

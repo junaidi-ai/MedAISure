@@ -12,6 +12,9 @@ This CLI is additive and does not replace the existing argparse CLI in bench/cli
 from __future__ import annotations
 
 from pathlib import Path
+import sys
+import os
+import logging
 from typing import Any, Dict, List, Optional
 
 import json
@@ -27,7 +30,95 @@ from .evaluation.harness import EvaluationHarness
 from .models.benchmark_report import BenchmarkReport
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
-console = Console()
+
+
+class _NullConsole:
+    def print(self, *args, **kwargs):
+        return
+
+    def print_json(self, *args, **kwargs):
+        return
+
+    def status(self, *args, **kwargs):
+        from contextlib import nullcontext
+
+        return nullcontext()
+
+
+# Initialize a module-level console lazily configured
+console: Console | _NullConsole = _NullConsole()
+
+
+def _get_console() -> Console | _NullConsole:
+    """Return a Console configured for the current environment.
+
+    When MEDAISURE_NO_RICH=1, force no color/terminal and write to sys.__stdout__
+    to avoid pytest capture's closed file descriptor issues.
+    """
+    if os.environ.get("MEDAISURE_NO_RICH") == "1":
+        return _NullConsole()
+    # Use standard stdout so Typer/CliRunner/pytest can capture
+    return Console(
+        file=sys.stdout,
+        force_terminal=False,
+        color_system=None,
+        no_color=True,
+        soft_wrap=True,
+    )
+
+
+def _configure_console_if_needed() -> None:
+    """Rebind the module-level console if env requires safer settings."""
+    global console
+    # Always refresh in case env changed between imports and command execution
+    console = _get_console()
+    # Additionally, suppress logging to avoid writes to captured streams during tests
+    if os.environ.get("MEDAISURE_NO_RICH") == "1":
+        logging.disable(logging.CRITICAL)
+    else:
+        logging.disable(logging.NOTSET)
+
+
+def _print(text: str) -> None:
+    """Safe printing helper that avoids Rich under MEDAISURE_NO_RICH."""
+    if os.environ.get("MEDAISURE_NO_RICH") == "1":
+        # Emit plain text to standard stdout (pytest captures this)
+        try:
+            print(text, file=sys.stdout)
+        except Exception:
+            # Fallback to normal stdout if __stdout__ unavailable
+            print(text)
+    else:
+        _get_console().print(text)
+
+
+def _print_json(data: str) -> None:
+    """Print JSON safely; expects a pre-serialized JSON string.
+
+    Always emit raw JSON to stdout to avoid ANSI styling that breaks parsers.
+    """
+    try:
+        print(data, file=sys.stdout)
+    except Exception:
+        print(data)
+
+
+def _status(msg: str):
+    """Return a Rich status context or a no-op context based on env.
+
+    If MEDAISURE_NO_RICH=1 is set, avoid creating live console renderables
+    which can clash with pytest's capture.
+    """
+    if os.environ.get("MEDAISURE_NO_RICH") == "1":
+        from contextlib import nullcontext
+
+        return nullcontext()
+    # Use a fresh console each time in case configuration changed
+    return _get_console().status(msg)
+
+
+def _rich_enabled() -> bool:
+    return os.environ.get("MEDAISURE_NO_RICH") != "1"
 
 
 # ----------------------
@@ -100,7 +191,7 @@ def _ensure_exists(path: Path, kind: str = "path") -> None:
     """Exit with a user-friendly error if a file/dir does not exist."""
     p = Path(path)
     if not p.exists():
-        console.print(f"[red]{kind.capitalize()} not found[/red]: {p}")
+        _print(f"{kind.capitalize()} not found: {p}")
         raise typer.Exit(code=1)
 
 
@@ -108,7 +199,7 @@ def _ensure_not_dir(path: Path, label: str = "output") -> None:
     """Exit with a user-friendly error if given path resolves to a directory."""
     p = Path(path)
     if p.exists() and p.is_dir():
-        console.print(f"[red]{label.capitalize()} path is a directory[/red]: {p}")
+        _print(f"{label.capitalize()} path is a directory: {p}")
         raise typer.Exit(code=1)
 
 
@@ -133,7 +224,8 @@ def display_task_list(rows: List[Dict[str, object]]) -> None:
             metrics,
             str(r.get("num_examples", "-")),
         )
-    console.print(table)
+    if _rich_enabled():
+        console.print(table)
 
 
 def _display_evaluation_summary(report: BenchmarkReport) -> None:
@@ -175,7 +267,8 @@ def _display_evaluation_summary(report: BenchmarkReport) -> None:
     else:
         table.add_row("Tasks", "-", "-")
 
-    console.print(table)
+    if _rich_enabled():
+        console.print(table)
 
 
 # ----------------------
@@ -249,14 +342,15 @@ def list_tasks(
     ),
 ):
     """List all available tasks in the benchmark."""
+    _configure_console_if_needed()
     _ensure_exists(tasks_dir, kind="tasks directory")
     harness = EvaluationHarness(tasks_dir=str(tasks_dir))
     rows = harness.list_available_tasks()
     if json_output:
-        console.print_json(data=rows)
+        _print_json(json.dumps(rows))
         raise typer.Exit(code=0)
     if not rows:
-        console.print("[yellow]No tasks found.[/yellow]")
+        _print("No tasks found.")
         raise typer.Exit(code=0)
     display_task_list(rows)
 
@@ -271,14 +365,15 @@ def list_models(
     ),
 ):
     """List registered models from the local registry."""
+    _configure_console_if_needed()
     # Loading registry is quick, but wrap for consistent UX
-    with console.status("Loading model registry..."):
+    with _status("Loading model registry..."):
         reg = _load_registry()
     if not reg:
         if json_output:
-            console.print_json(data={})
+            _print_json(json.dumps({}))
         else:
-            console.print("[yellow]No models registered.[/yellow]")
+            _print("No models registered.")
         raise typer.Exit(code=0)
 
     if json_output:
@@ -289,7 +384,7 @@ def list_models(
             if not show_secrets and "api_key" in e:
                 e.pop("api_key", None)
             safe[mid] = e
-        console.print_json(data=safe)
+        _print_json(json.dumps(safe))
         raise typer.Exit(code=0)
 
     # Pretty table
@@ -305,7 +400,8 @@ def list_models(
         module = str(entry.get("module", ""))
         hf_task = str(entry.get("hf_task", ""))
         table.add_row(mid, mtype, loc, module, hf_task)
-    console.print(table)
+    if _rich_enabled():
+        console.print(table)
 
 
 @app.command("register-model")
@@ -342,11 +438,12 @@ def register_model(
 
     Performs basic validation per model type and generates a unique ID if needed.
     """
+    _configure_console_if_needed()
     model_type = (model_type or "").strip().lower()
     if model_type not in {"local", "huggingface", "api"}:
         raise typer.BadParameter("model_type must be one of: local|huggingface|api")
 
-    with console.status("Loading model registry..."):
+    with _status("Loading model registry..."):
         reg: Dict[str, Dict[str, str]] = _load_registry()
 
     # Infer default model_id
@@ -371,6 +468,8 @@ def register_model(
         if not model_path.exists():
             raise typer.BadParameter(f"model_path does not exist: {model_path}")
         if not module_path:
+            # Print friendly message to ensure visibility in CLI output
+            _print("module_path is required for local models")
             raise typer.BadParameter("module_path is required for local models")
         # Validate file path early for clearer UX
         _ensure_exists(model_path, kind="model path")
@@ -407,8 +506,10 @@ def register_model(
 
     elif model_type == "api":
         if not endpoint:
+            _print("endpoint is required for api models")
             raise typer.BadParameter("endpoint is required for api models")
         if not api_key:
+            _print("api_key is required for api models")
             raise typer.BadParameter("api_key is required for api models")
         entry.update(
             {
@@ -422,10 +523,10 @@ def register_model(
 
     # Persist
     reg[model_id] = entry  # type: ignore[assignment]
-    with console.status("Saving model registry..."):
+    with _status("Saving model registry..."):
         _save_registry(reg)
-    console.print(
-        f"[green]Registered model[/green]: {model_id} -> {entry.get('path', entry.get('endpoint', ''))} ({model_type})"
+    _print(
+        f"Registered model: {model_id} -> {entry.get('path', entry.get('endpoint', ''))} ({model_type})"
     )
 
 
@@ -457,10 +558,11 @@ def evaluate(
     save_results: bool = typer.Option(True, help="Persist results to output_dir"),
 ):
     """Run evaluation on specified model and tasks."""
+    _configure_console_if_needed()
     # Merge with config file if provided
     cfg: Optional[BenchmarkConfig] = None
     if config_file:
-        with console.status(f"Loading config: {config_file}..."):
+        with _status(f"Loading config: {config_file}..."):
             cfg = BenchmarkConfig.from_file(config_file)
 
     model_type = model_type or (cfg.model_type if cfg else "huggingface")
@@ -478,57 +580,71 @@ def evaluate(
         rows = harness.list_available_tasks()
         tasks = [r["task_id"] for r in rows]
         if not tasks:
-            console.print("[red]No tasks to evaluate.[/red]")
+            _print("No tasks to evaluate.")
             raise typer.Exit(code=1)
 
-    # Progress feedback via callbacks
-    with Progress() as progress:
-        total = len(tasks)
-        task_id = progress.add_task("Evaluating...", total=total)
+    # Determine model path/type from registry if present
+    reg = _load_registry()
+    reg_entry = reg.get(model_id)
+    effective_model_type = model_type
+    model_kwargs: Dict[str, object] = {}
+    if reg_entry:
+        effective_model_type = (
+            reg_entry.get("type", effective_model_type) or effective_model_type
+        )
+        # Common fields
+        if reg_entry.get("path"):
+            model_kwargs["model_path"] = reg_entry["path"]
+        # Local fields
+        if reg_entry.get("module"):
+            model_kwargs["module_path"] = reg_entry["module"]
+        if reg_entry.get("load_func"):
+            model_kwargs["load_func"] = reg_entry["load_func"]
+        # HF fields
+        if reg_entry.get("hf_task"):
+            model_kwargs["hf_task"] = reg_entry["hf_task"]
+        # API fields
+        if reg_entry.get("endpoint"):
+            model_kwargs["endpoint"] = reg_entry["endpoint"]
+        if reg_entry.get("api_key"):
+            model_kwargs["api_key"] = reg_entry["api_key"]
+        if reg_entry.get("timeout") is not None:
+            model_kwargs["timeout"] = reg_entry["timeout"]
+        if reg_entry.get("max_retries") is not None:
+            model_kwargs["max_retries"] = reg_entry["max_retries"]
+        if reg_entry.get("backoff_factor") is not None:
+            model_kwargs["backoff_factor"] = reg_entry["backoff_factor"]
 
-        def on_progress(idx: int, n: int, current: Optional[str]):
-            progress.update(
-                task_id,
-                completed=idx,
-                description=f"Evaluating ({idx}/{n}) {current or ''}",
+    if _rich_enabled():
+        # Progress feedback via callbacks
+        with Progress() as progress:
+            total = len(tasks)
+            task_id = progress.add_task("Evaluating...", total=total)
+
+            def on_progress(idx: int, n: int, current: Optional[str]):
+                progress.update(
+                    task_id,
+                    completed=idx,
+                    description=f"Evaluating ({idx}/{n}) {current or ''}",
+                )
+
+            report = EvaluationHarness(
+                tasks_dir=str(tasks_dir),
+                results_dir=str(out_dir),
+                on_progress=on_progress,
+            ).evaluate(
+                model_id=model_id,
+                task_ids=tasks,  # type: ignore[arg-type]
+                model_type=str(effective_model_type),
+                batch_size=cfg.batch_size if cfg else batch_size,
+                use_cache=cfg.use_cache if cfg else use_cache,
+                save_results=cfg.save_results if cfg else save_results,
+                **model_kwargs,
             )
-
-        # Determine model path/type from registry if present
-        reg = _load_registry()
-        reg_entry = reg.get(model_id)
-        effective_model_type = model_type
-        model_kwargs: Dict[str, object] = {}
-        if reg_entry:
-            effective_model_type = (
-                reg_entry.get("type", effective_model_type) or effective_model_type
-            )
-            # Common fields
-            if reg_entry.get("path"):
-                model_kwargs["model_path"] = reg_entry["path"]
-            # Local fields
-            if reg_entry.get("module"):
-                model_kwargs["module_path"] = reg_entry["module"]
-            if reg_entry.get("load_func"):
-                model_kwargs["load_func"] = reg_entry["load_func"]
-            # HF fields
-            if reg_entry.get("hf_task"):
-                model_kwargs["hf_task"] = reg_entry["hf_task"]
-            # API fields
-            if reg_entry.get("endpoint"):
-                model_kwargs["endpoint"] = reg_entry["endpoint"]
-            if reg_entry.get("api_key"):
-                model_kwargs["api_key"] = reg_entry["api_key"]
-            if reg_entry.get("timeout") is not None:
-                model_kwargs["timeout"] = reg_entry["timeout"]
-            if reg_entry.get("max_retries") is not None:
-                model_kwargs["max_retries"] = reg_entry["max_retries"]
-            if reg_entry.get("backoff_factor") is not None:
-                model_kwargs["backoff_factor"] = reg_entry["backoff_factor"]
-
+    else:
         report = EvaluationHarness(
             tasks_dir=str(tasks_dir),
             results_dir=str(out_dir),
-            on_progress=on_progress,
         ).evaluate(
             model_id=model_id,
             task_ids=tasks,  # type: ignore[arg-type]
@@ -547,9 +663,9 @@ def evaluate(
             default_out = (
                 out_dir / f"{run_id}.{('yaml' if fmt in {'yaml','yml'} else 'json')}"
             )
-            with console.status("Saving report..."):
+            with _status("Saving report..."):
                 report.save(default_out, format=fmt)
-            console.print(f"[green]Saved report[/green]: {default_out}")
+            _print(f"Saved report: {default_out}")
         elif fmt == "md":
             lines = [
                 "# MedAISure Benchmark Report",
@@ -568,9 +684,9 @@ def evaluate(
                     lines.append(f"  - {k}: {v:.4f}")
             content = "\n".join(lines)
             default_out = out_dir / f"{run_id}.md"
-            with console.status("Saving report (markdown)..."):
+            with _status("Saving report (markdown)..."):
                 default_out.write_text(content)
-            console.print(f"[green]Saved report[/green]: {default_out}")
+            _print(f"Saved report: {default_out}")
         elif fmt == "csv":
             # Write a single file containing two CSV sections
             content = (
@@ -580,19 +696,19 @@ def evaluate(
                 + report.task_scores_to_csv()
             )
             default_out = out_dir / f"{run_id}.csv"
-            with console.status("Saving report (csv)..."):
+            with _status("Saving report (csv)..."):
                 default_out.write_text(content)
-            console.print(f"[green]Saved report[/green]: {default_out}")
+            _print(f"Saved report: {default_out}")
         else:
             raise typer.BadParameter("Unsupported format. Use json|yaml|md|csv")
     except Exception as e:
-        console.print(f"[red]Failed to save report[/red]: {e}")
+        _print(f"Failed to save report: {e}")
 
     # Print a concise JSON summary to stdout (use JSON string to handle datetimes)
-    console.print_json(json=report.to_json(indent=2, exclude={"detailed_results"}))
-
-    # Also print a styled summary table for human readability
-    _display_evaluation_summary(report)
+    if _rich_enabled():
+        _print_json(report.to_json(indent=2, exclude={"detailed_results"}))
+        # Also print a styled summary table for human readability
+        _display_evaluation_summary(report)
 
 
 @app.command("generate-report")
@@ -606,11 +722,12 @@ def generate_report(
     format: str = typer.Option("md", help="Report format (md|json|yaml|csv)"),
 ):
     """Generate a human-readable report from results."""
+    _configure_console_if_needed()
     # Validate inputs
     _ensure_exists(results_file, kind="results file")
     if output_file is not None:
         _ensure_not_dir(output_file, label="output")
-    with console.status("Loading results..."):
+    with _status("Loading results..."):
         report = BenchmarkReport.from_file(results_file)
 
     fmt = format.lower()
@@ -645,11 +762,11 @@ def generate_report(
             + report.task_scores_to_csv()
         )
     elif fmt == "html":
-        with console.status("Rendering HTML..."):
+        with _status("Rendering HTML..."):
             content = _report_to_html(report)
     elif fmt == "pdf":
         # Generate HTML first; then try converting using WeasyPrint if available
-        with console.status("Rendering HTML for PDF..."):
+        with _status("Rendering HTML for PDF..."):
             html_content = _report_to_html(report)
         if output_file is None:
             output_file = results_file.with_suffix(".pdf")
@@ -657,13 +774,13 @@ def generate_report(
         try:
             from weasyprint import HTML  # type: ignore
 
-            with console.status("Generating PDF..."):
+            with _status("Generating PDF..."):
                 HTML(string=html_content).write_pdf(str(output_file))
-            console.print(f"[green]Generated PDF report[/green]: {output_file}")
+            _print(f"Generated PDF report: {output_file}")
             return
         except ImportError:
-            console.print(
-                "[red]PDF generation requires 'weasyprint'. Install it or use --format html.[/red]"
+            _print(
+                "PDF generation requires 'weasyprint'. Install it or use --format html."
             )
             raise typer.Exit(code=1)
     else:
@@ -672,9 +789,9 @@ def generate_report(
     if output_file is None:
         output_file = results_file.with_suffix(f".{format}")
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    with console.status("Writing file..."):
+    with _status("Writing file..."):
         output_file.write_text(content)
-    console.print(f"[green]Generated report[/green]: {output_file}")
+    _print(f"Generated report: {output_file}")
 
 
 # --- Snake_case aliases for commands (to match task wording) ---

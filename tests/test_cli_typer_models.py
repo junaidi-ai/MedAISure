@@ -67,3 +67,31 @@ def test_list_models_populated_json_masking(
     assert res_full.exit_code == 0
     data_full = json.loads(res_full.stdout)
     assert data_full["remote-api"]["api_key"] == "secret-key"
+
+
+def test_list_models_populated_table(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    reg = set_tmp_registry(monkeypatch, tmp_path)
+    registry = {
+        "local-bert": {
+            "type": "local",
+            "path": "/models/bert.bin",
+            "module": "mypkg.model_loader",
+            "load_func": "load_model",
+        },
+        "remote-api": {
+            "type": "api",
+            "endpoint": "https://api.example/v1/predict",
+            "api_key": "secret-key",
+            "timeout": 15.0,
+        },
+    }
+    reg.write_text(json.dumps(registry))
+    result = runner.invoke(cli.app, ["list-models"])  # pretty output table
+    assert result.exit_code == 0
+    out = result.stdout
+    # Should contain table header and entries
+    assert "Registered Models" in out
+    assert "local-bert" in out
+    assert "remote-api" in out
+    assert "local" in out
+    assert "api" in out

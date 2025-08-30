@@ -1,0 +1,62 @@
+Recommendations
+To consolidate benchmarking with Med vLLM and any external Medical LLM,
+the roadmap needs more explicite performance track to match your goals.
+
+Suggested features:
+
+System performance metrics:
+Add latency/throughput capture per task/model. Export JSON/CSV with mean, std, p50/p95/p99, tokens/sec.
+Expose simple timers in EvaluationHarness.evaluate() and per-batch execution.
+Memory profiling:
+CPU: psutil/tracemalloc.
+GPU: torch.cuda.memory_stats or pynvml for allocated/peak, fragmentation; optionally context manager similar to tests/medical/memory_profiler.py in this repo.
+Power/energy measurement:
+NVIDIA: NVML via pynvml (instantaneous power draw, energy via sampling).
+Intel CPU: RAPL via pyJoules or reading sysfs, with fallbacks and disable on unsupported.
+Regression guardrails:
+Baseline JSON per model/task/hardware with tolerated deltas; fail CI on regressions beyond threshold.
+Parameterize by hardware ID to avoid cross-host noise.
+
+Visualization/reporting:
+ - Generate HTML (Plotly/MkDocs) comparing baseline vs current: latency histograms, throughput bars, memory/energy bars.
+ - Include p50/p95/p99, mean±std, and tokens/sec; allow filtering by model, task, hardware_id, git_sha, and flags.
+ - “Before vs after” view keyed by run_id and git SHA; export CSV/JSON and markdown snapshots for PRs.
+ - Optional Trend view across runs to detect drift.
+
+ Data schema (perf_log.json per run_id):
+ - metadata: { git_sha, timestamp, host: {hostname, os, cpu_model}, hardware: {gpu_name, driver, cuda, vram_gb}, flags: {MEDVLLM_ENABLE_TRITON_SOFTMAXV, ...} }
+ - entries: [
+   { task_id, model_id, model_type, batch_size, seq_len?, tokens_generated?,
+     latency_ms: {p50, p95, p99, mean, std}, throughput: {samples_per_s?, tokens_per_s?},
+     cpu_mem_mb: {peak, mean}, gpu_mem_mb: {peak, mean},
+     power_w?: {mean, max}, energy_j?: total,
+     notes?: str }
+ ]
+ - Store to results/<run_id>/perf_log.json; aggregate to results/perf_baselines/<hardware_id>.json
+
+ CI perf regression gates:
+ - Add a job that compares current perf_log.json against baseline for same hardware_id and model/task.
+ - Thresholds (configurable): latency +10% (warn), +20% (fail); throughput -10% (warn), -20% (fail); memory +10% (warn), +20% (fail).
+ - Allow override via label `perf-override-approved` with reviewer ack.
+
+ Proposed GitHub issues (titles):
+ - feat(harness): add timing + throughput capture with p50/p95/p99 and tokens/sec
+ - feat(harness): add CPU/GPU memory profiling (psutil, torch.cuda, pynvml) with context manager
+ - feat(harness): integrate power measurement (pynvml; RAPL fallback) with sampling + smoothing
+ - feat(reports): emit perf_log.json and CSV; add HTML report with baseline vs current comparison
+ - ci(perf): add regression gate comparing against baselines by hardware_id
+ - feat(metadata): detect and record hardware + driver + cuda + env flags in run metadata
+ - feat(hooks): accept user callbacks to log internal counters from med-vLLM
+ - docs(ADR): performance instrumentation design and data schema
+
+ Milestone plan (minimal PRs):
+ - M1: Timing + throughput + metadata logging (no external deps beyond psutil) → perf_log.json
+ - M2: GPU memory (torch.cuda if available), CPU memory; basic HTML report
+ - M3: NVML power integration (optional install), baseline store/compare, CI gate
+ - M4: Visualization polish, trend plots, med-vLLM hooks + env flag recording
+
+Hardware awareness:
+Detect device (CPU/GPU type, compute cap, driver) and log alongside results to ensure apples-to-apples.
+Med vLLM integration hooks:
+Allow custom callbacks so med-vLLM can push internal counters (KV cache hits, CUDA graph use, Triton kernel toggles).
+Record env toggles like MEDVLLM_ENABLE_TRITON_SOFTMAXV so perf can be sliced by optimization flags.

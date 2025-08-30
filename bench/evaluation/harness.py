@@ -1,6 +1,7 @@
 """Evaluation harness for running benchmarks on medical AI models."""
 
 import json
+import os
 import logging
 import time
 from dataclasses import asdict
@@ -158,7 +159,10 @@ class EvaluationHarness:
         start_time = time.time()
 
         # Evaluate on each task
-        for idx, task_id in enumerate(tqdm(task_ids, desc="Evaluating tasks"), start=1):
+        disable_tqdm = os.environ.get("MEDAISURE_NO_RICH") == "1"
+        for idx, task_id in enumerate(
+            tqdm(task_ids, desc="Evaluating tasks", disable=disable_tqdm), start=1
+        ):
             task: Optional[MedicalTask] = None
             try:
                 if self._on_progress:
