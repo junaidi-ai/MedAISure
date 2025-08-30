@@ -115,6 +115,56 @@ def display_task_list(rows: List[Dict[str, object]]) -> None:
     console.print(table)
 
 
+# ----------------------
+# HTML rendering helper
+# ----------------------
+
+
+def _report_to_html(report: BenchmarkReport) -> str:
+    """Render a simple HTML summary for a BenchmarkReport."""
+    rows_overall = "\n".join(
+        f"<li><strong>{k}</strong>: {float(v):.4f}</li>"
+        for k, v in (report.overall_scores or {}).items()
+    )
+    rows_tasks = []
+    for t, metrics in (report.task_scores or {}).items():
+        items = "\n".join(
+            f"<li>{k}: {float(v):.4f}</li>" for k, v in (metrics or {}).items()
+        )
+        rows_tasks.append(f"<li><strong>{t}</strong><ul>\n{items}\n</ul></li>")
+    rows_tasks_html = "\n".join(rows_tasks)
+
+    return f"""
+<!DOCTYPE html>
+<html lang=\"en\">\n  <head>
+    <meta charset=\"utf-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <title>MedAISure Benchmark Report</title>
+    <style>
+      body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 2rem; }}
+      h1 {{ margin-top: 0; }}
+      .meta {{ color: #666; font-size: 0.9rem; margin-bottom: 1rem; }}
+      h2 {{ margin-top: 1.5rem; }}
+      ul {{ line-height: 1.6; }}
+      code {{ background: #f6f8fa; padding: 0 0.25rem; border-radius: 4px; }}
+    </style>
+  </head>
+  <body>
+    <h1>MedAISure Benchmark Report</h1>
+    <div class=\"meta\">Model: <code>{report.model_id}</code><br/>Timestamp: {report.timestamp.isoformat()}</div>
+    <h2>Overall Scores</h2>
+    <ul>
+      {rows_overall}
+    </ul>
+    <h2>Per-Task Averages</h2>
+    <ul>
+      {rows_tasks_html}
+    </ul>
+  </body>
+  </html>
+    """
+
+
 # ---------
 # Commands
 # ---------
@@ -480,7 +530,8 @@ def generate_report(
     """Generate a human-readable report from results."""
     report = BenchmarkReport.from_file(results_file)
 
-    if format.lower() == "md":
+    fmt = format.lower()
+    if fmt == "md":
         # Simple markdown summary
         lines = [
             "# MedAISure Benchmark Report",
@@ -498,11 +549,11 @@ def generate_report(
             for k, v in (metrics or {}).items():
                 lines.append(f"  - {k}: {v:.4f}")
         content = "\n".join(lines)
-    elif format.lower() in {"json"}:
+    elif fmt in {"json"}:
         content = report.to_json(indent=2)
-    elif format.lower() in {"yaml", "yml"}:
+    elif fmt in {"yaml", "yml"}:
         content = report.to_yaml()
-    elif format.lower() == "csv":
+    elif fmt == "csv":
         # Combine overall + task CSVs into one markdown-friendly block
         content = (
             "# Overall\n"
@@ -510,8 +561,27 @@ def generate_report(
             + "\n# Tasks\n"
             + report.task_scores_to_csv()
         )
+    elif fmt == "html":
+        content = _report_to_html(report)
+    elif fmt == "pdf":
+        # Generate HTML first; then try converting using WeasyPrint if available
+        html_content = _report_to_html(report)
+        if output_file is None:
+            output_file = results_file.with_suffix(".pdf")
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            from weasyprint import HTML  # type: ignore
+
+            HTML(string=html_content).write_pdf(str(output_file))
+            console.print(f"[green]Generated PDF report[/green]: {output_file}")
+            return
+        except ImportError:
+            console.print(
+                "[red]PDF generation requires 'weasyprint'. Install it or use --format html.[/red]"
+            )
+            raise typer.Exit(code=1)
     else:
-        raise typer.BadParameter("Unsupported format. Use md|json|yaml|csv")
+        raise typer.BadParameter("Unsupported format. Use md|json|yaml|csv|html|pdf")
 
     if output_file is None:
         output_file = results_file.with_suffix(f".{format}")
