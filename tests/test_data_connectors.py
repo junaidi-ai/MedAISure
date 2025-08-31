@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import csv
 import json
+import gzip
+import zipfile
+import io
 from pathlib import Path
 
 
@@ -10,6 +13,7 @@ from bench.data import (
     CSVDataset,
     DataPreprocessor,
     SecureDataHandler,
+    ValidationError,
 )
 
 
@@ -77,3 +81,94 @@ def test_secure_data_handler_roundtrip():
     assert enc["b"] == 5 and enc["a"] != "hello"
     dec = handler.decrypt_data(enc)
     assert dec == src
+
+
+def test_json_dataset_gzip_and_zip(tmp_path: Path):
+    data = [{"id": 1, "t": "a"}, {"id": 2, "t": "b"}]
+
+    # gzip
+    gz = tmp_path / "data.json.gz"
+    with gzip.open(gz, "wt", encoding="utf-8") as f:
+        json.dump(data, f)
+    ds_gz = JSONDataset(gz, required_keys=["id", "t"])
+    items_gz = list(ds_gz.load_data())
+    assert items_gz == data
+
+    # zip
+    zf = tmp_path / "archive.zip"
+    with zipfile.ZipFile(zf, "w") as zipf:
+        zipf.writestr("nested.json", json.dumps(data))
+    ds_zip = JSONDataset(zf, required_keys=["id", "t"])
+    items_zip = list(ds_zip.load_data())
+    assert items_zip == data
+
+
+def test_csv_dataset_gzip_and_zip(tmp_path: Path):
+    rows = [
+        {"a": "1", "b": "2"},
+        {"a": "3", "b": "4"},
+    ]
+
+    # gzip
+    gz = tmp_path / "data.csv.gz"
+    with gzip.open(gz, "wt", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["a", "b"])
+        writer.writeheader()
+        writer.writerows(rows)
+    ds_gz = CSVDataset(gz, required_keys=["a", "b"])
+    items_gz = list(ds_gz.load_data())
+    assert items_gz == rows
+
+    # zip
+    zf = tmp_path / "archive_csv.zip"
+    # Prepare CSV content in-memory
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=["a", "b"])
+    writer.writeheader()
+    writer.writerows(rows)
+    with zipfile.ZipFile(zf, "w") as zipf:
+        zipf.writestr("nested.csv", buf.getvalue())
+    ds_zip = CSVDataset(zf, required_keys=["a", "b"])
+    items_zip = list(ds_zip.load_data())
+    assert items_zip == rows
+
+
+def test_required_keys_validation(tmp_path: Path):
+    # JSON missing key
+    data = [{"id": 1, "t": "a"}, {"t": "missing-id"}]
+    f = tmp_path / "data.json"
+    f.write_text(json.dumps(data), encoding="utf-8")
+    ds = JSONDataset(f, required_keys=["id", "t"])
+    try:
+        list(ds.load_data())
+        assert False, "Expected ValidationError for missing key in JSON"
+    except ValidationError:
+        pass
+
+    # CSV missing key
+    fcsv = tmp_path / "data.csv"
+    with fcsv.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=["a", "b"])
+        writer.writeheader()
+        writer.writerow({"a": "1", "b": "2"})
+        writer.writerow({"a": "3"})  # missing 'b'
+    dsc = CSVDataset(fcsv, required_keys=["a", "b"])
+    try:
+        list(dsc.load_data())
+        assert False, "Expected ValidationError for missing key in CSV"
+    except ValidationError:
+        pass
+
+
+def test_iter_batches(tmp_path: Path):
+    data = [{"id": i} for i in range(5)]
+    f = tmp_path / "data.json"
+    f.write_text(json.dumps(data), encoding="utf-8")
+    ds = JSONDataset(f, required_keys=["id"])
+
+    batches = list(ds.iter_batches(2))
+    # Expect 3 batches: [0,1], [2,3], [4]
+    assert len(batches) == 3
+    assert [x["id"] for x in batches[0]] == [0, 1]
+    assert [x["id"] for x in batches[1]] == [2, 3]
+    assert [x["id"] for x in batches[2]] == [4]

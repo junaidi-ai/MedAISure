@@ -64,3 +64,20 @@ class DatasetConnector(ABC):
             if limit is not None and c >= limit:
                 break
         return c
+
+    def iter_batches(self, batch_size: int) -> Iterator[List[Dict[str, Any]]]:
+        """
+        Iterate validated items in batches of size `batch_size`.
+
+        This utility helps downstream tasks to process large datasets efficiently.
+        """
+        if batch_size <= 0:
+            raise ValueError("batch_size must be > 0")
+        batch: List[Dict[str, Any]] = []
+        for item in self.iter_validated():
+            batch.append(item)
+            if len(batch) >= batch_size:
+                yield batch
+                batch = []
+        if batch:
+            yield batch

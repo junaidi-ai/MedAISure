@@ -633,7 +633,7 @@
               "8.1"
             ],
             "details": "Extend the JSONDataset and CSVDataset classes with:\n- Robust error handling for file operations\n- Support for compressed files (gzip, zip)\n- Batch loading capabilities\n- Data validation methods\n- Integration with the SecureDataHandler for encrypted files\n- Comprehensive unit tests with sample datasets",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
