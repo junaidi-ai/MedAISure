@@ -586,7 +586,7 @@
               "7.5"
             ],
             "details": "Create unit tests covering:\n- Initialization with various parameters\n- Prediction functionality with sample inputs\n- Error handling scenarios\n- Edge cases (empty inputs, large inputs)\n- Metadata property validation\n- Mock testing for external dependencies\n- Performance benchmarking tests",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -598,7 +598,7 @@
               "7.6"
             ],
             "details": "Implement integration tests that:\n- Test model registration and retrieval through the registry\n- Verify consistent output format across different model types\n- Test with real-world medical examples\n- Validate error propagation and handling\n- Test model switching and fallback mechanisms\n- Verify compatibility with the broader evaluation framework",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
