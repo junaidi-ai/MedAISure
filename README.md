@@ -96,12 +96,24 @@ Examples you can run:
 
 - HF text classification: [bench/examples/run_hf_text_classification.py](bench/examples/run_hf_text_classification.py)
 - HF summarization: [bench/examples/run_hf_summarization.py](bench/examples/run_hf_summarization.py)
+- HF summarization (with generation params): [bench/examples/run_hf_summarization_gen.py](bench/examples/run_hf_summarization_gen.py)
+- HF text-generation (with generation params): [bench/examples/run_hf_text_generation_gen.py](bench/examples/run_hf_text_generation_gen.py)
 - Local model: [bench/examples/run_local_model.py](bench/examples/run_local_model.py)
 - LocalModel (pickle): [bench/examples/run_localmodel_pickle.py](bench/examples/run_localmodel_pickle.py)
 - LocalModel (joblib): [bench/examples/run_localmodel_joblib.py](bench/examples/run_localmodel_joblib.py)
 - LocalModel (torch): [bench/examples/run_localmodel_torch.py](bench/examples/run_localmodel_torch.py)
 - API model: [bench/examples/run_api_model.py](bench/examples/run_api_model.py)
 - Custom metric: [bench/examples/register_custom_metric.py](bench/examples/register_custom_metric.py)
+
+### HuggingFace advanced options (brief)
+
+When using `ModelRunner.load_model(..., model_type="huggingface", ...)`, you can pass:
+
+- `hf_task`: `text-classification | summarization | text-generation`
+- `generation_kwargs`: forwarded during inference for generative tasks (e.g., `max_new_tokens`, `temperature`, `do_sample`, `top_p`, `top_k`)
+- `device`, and advanced loading: `device_map`, `torch_dtype`, `low_cpu_mem_usage`, `revision`, `trust_remote_code`
+
+See API details in [docs/api_reference.md](docs/api_reference.md) and the generation examples above.
 
 
 ## 👋 Overview

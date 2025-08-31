@@ -183,6 +183,7 @@ class ModelRunner(Generic[M, T, R]):
             model_identifier = model_path if model_path else model_name
             model_kwargs = kwargs.get("model_kwargs", {})
             tokenizer_kwargs = kwargs.get("tokenizer_kwargs", {})
+            generation_kwargs = kwargs.get("generation_kwargs", {})
             num_labels = kwargs.get("num_labels")
             hf_task = kwargs.get("hf_task", kwargs.get("task", "text-classification"))
             # Normalize common aliases
@@ -194,6 +195,14 @@ class ModelRunner(Generic[M, T, R]):
             # Select appropriate AutoModel depending on task
             AutoModel = None
             tokenizer = None
+            loaded_model = None
+            # Optional advanced settings
+            trust_remote_code = bool(kwargs.get("trust_remote_code", False))
+            device = kwargs.get("device", -1)
+            device_map = kwargs.get("device_map")
+            torch_dtype = kwargs.get("torch_dtype")  # e.g., "auto", "float16"
+            low_cpu_mem_usage = kwargs.get("low_cpu_mem_usage")
+            revision = kwargs.get("revision")
             if hf_task == "text-classification":
                 from transformers import (
                     AutoModelForSequenceClassification as _AutoModel,
@@ -217,38 +226,113 @@ class ModelRunner(Generic[M, T, R]):
 
             # Load model/tokenizer if available; otherwise rely on pipeline to resolve by id
             if AutoModel is not None:
-                model = AutoModel.from_pretrained(
-                    model_identifier,
+                # Prepare from_pretrained kwargs
+                fp_kwargs = {
                     **({"num_labels": num_labels} if num_labels is not None else {}),
                     **model_kwargs,
+                }
+                if trust_remote_code:
+                    fp_kwargs["trust_remote_code"] = True
+                if device_map is not None:
+                    fp_kwargs["device_map"] = device_map
+                if torch_dtype is not None:
+                    fp_kwargs["torch_dtype"] = torch_dtype
+                if low_cpu_mem_usage is not None:
+                    fp_kwargs["low_cpu_mem_usage"] = low_cpu_mem_usage
+                if revision is not None:
+                    fp_kwargs["revision"] = revision
+
+                loaded_model = AutoModel.from_pretrained(
+                    model_identifier,
+                    **fp_kwargs,
                 )
+                try:
+                    # Disable gradients and set eval mode to reduce overhead
+                    import torch  # type: ignore
+
+                    torch.set_grad_enabled(False)
+                except Exception:
+                    pass
+                try:
+                    loaded_model.eval()  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+
                 tokenizer = AutoTokenizer.from_pretrained(
                     model_identifier, **tokenizer_kwargs
                 )
                 pipe = pipeline(
                     hf_task,
-                    model=model,
+                    model=loaded_model,
                     tokenizer=tokenizer,
-                    device=kwargs.get("device", -1),
+                    device=device,
                     **kwargs.get("pipeline_kwargs", {}),
                 )
             else:
                 pipe = pipeline(
                     hf_task,
                     model=model_identifier,
-                    device=kwargs.get("device", -1),
+                    device=device,
                     **kwargs.get("pipeline_kwargs", {}),
                 )
 
             # Store the pipeline and its components
             self._models[model_name] = pipe
             self._tokenizers[model_name] = tokenizer
-            self._model_configs[model_name] = {
+
+            # Build metadata/config snapshot
+            meta: Dict[str, Any] = {
                 "type": model_type,
                 "path": model_identifier,
                 "hf_task": hf_task,
+                "generation_kwargs": generation_kwargs,
+                "device": device,
+                "device_map": device_map,
+                "torch_dtype": str(torch_dtype) if torch_dtype is not None else None,
+                "trust_remote_code": trust_remote_code,
                 **kwargs,
             }
+            try:
+                model_ref = getattr(pipe, "model", None)
+                if model_ref is not None and hasattr(model_ref, "config"):
+                    cfg = model_ref.config
+                    meta.update(
+                        {
+                            "model_type_name": getattr(cfg, "model_type", None),
+                            "vocab_size": getattr(cfg, "vocab_size", None),
+                            "max_position_embeddings": getattr(
+                                cfg, "max_position_embeddings", None
+                            ),
+                            "num_hidden_layers": getattr(
+                                cfg, "num_hidden_layers", None
+                            ),
+                            "hidden_size": getattr(cfg, "hidden_size", None),
+                            "id2label": getattr(cfg, "id2label", None),
+                            "label2id": getattr(cfg, "label2id", None),
+                        }
+                    )
+                # Number of parameters
+                if loaded_model is None:
+                    loaded_model = getattr(pipe, "model", None)
+                if loaded_model is not None:
+                    try:
+                        total_params = sum(p.numel() for p in loaded_model.parameters())  # type: ignore[attr-defined]
+                        meta["num_parameters"] = int(total_params)
+                        meta["dtype"] = str(next(loaded_model.parameters()).dtype)  # type: ignore[attr-defined]
+                        # Device best-effort
+                        try:
+                            meta["model_device"] = str(
+                                next(loaded_model.parameters()).device
+                            )  # type: ignore[attr-defined]
+                        except Exception:
+                            pass
+                    except Exception:
+                        pass
+            except Exception:
+                # Best-effort metadata extraction
+                pass
+
+            self._model_configs[model_name] = meta
 
             logger.info(
                 f"Successfully loaded {model_type} model: {model_name} "
@@ -283,6 +367,22 @@ class ModelRunner(Generic[M, T, R]):
             >>> # No exception means success
         """
         if model_name in self._models:
+            # Best-effort cleanup of torch resources
+            try:
+                model = self._models.get(model_name)
+                model_ref = getattr(model, "model", None)
+                if model_ref is not None and hasattr(model_ref, "cpu"):
+                    model_ref.cpu()
+                # Empty CUDA cache if available
+                try:
+                    import torch  # type: ignore
+
+                    if torch.cuda.is_available():  # pragma: no cover - env-dependent
+                        torch.cuda.empty_cache()
+                except Exception:
+                    pass
+            except Exception:
+                pass
             del self._models[model_name]
         if model_name in self._model_configs:
             del self._model_configs[model_name]
@@ -512,6 +612,9 @@ class ModelRunner(Generic[M, T, R]):
                     hf_task = self._model_configs.get(model_id, {}).get(
                         "hf_task", "text-classification"
                     )
+                    gen_kwargs = self._model_configs.get(model_id, {}).get(
+                        "generation_kwargs", {}
+                    )
                     # Select input text field based on task type
                     if hf_task == "summarization":
                         # Prefer common clinical note fields
@@ -527,7 +630,13 @@ class ModelRunner(Generic[M, T, R]):
                     else:
                         texts = [item.get("text", "") for item in batch]
 
-                    batch_results = model(texts)
+                    # Pass generation kwargs for generative tasks
+                    call_kwargs: Dict[str, Any] = {}
+                    if hf_task in {"summarization", "text-generation"} and isinstance(
+                        gen_kwargs, dict
+                    ):
+                        call_kwargs = gen_kwargs
+                    batch_results = model(texts, **call_kwargs)
                     if not isinstance(batch_results, list):
                         batch_results = [batch_results]
 

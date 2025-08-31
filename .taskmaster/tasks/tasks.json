@@ -547,7 +547,7 @@
               "7.1"
             ],
             "details": "Complete the HuggingFaceModel implementation with:\n- Support for different model architectures (causal LM, seq2seq, etc.)\n- Efficient tokenization and generation parameters\n- Batching support for multiple inputs\n- Proper resource management (GPU allocation, memory efficiency)\n- Comprehensive metadata extraction from model config",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {

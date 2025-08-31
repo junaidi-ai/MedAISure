@@ -50,7 +50,11 @@ all_tasks = tl.list_available_tasks()
 ## ModelRunner (`bench/evaluation/model_runner.py`)
 - `load_model(model_name, model_type="local", model_path=None, **kwargs)`
   - `model_type in {"huggingface", "local", "api"}`
-  - HF: supports `hf_task`, `model_kwargs`, `tokenizer_kwargs`, `pipeline_kwargs`, `device`, `num_labels`
+  - HuggingFace options:
+    - `hf_task`: `text-classification | summarization | text-generation`
+    - `model_kwargs`, `tokenizer_kwargs`, `pipeline_kwargs`, `device`, `num_labels`
+    - Generation: `generation_kwargs` (used in `run_model()` for summarization/text-generation)
+    - Advanced loading: `device_map`, `torch_dtype`, `low_cpu_mem_usage`, `revision`, `trust_remote_code`
   - Local: requires `module_path`, optional `load_func` (default `load_model`)
   - API: requires `endpoint`, `api_key`, optional `timeout`, `max_retries`, `backoff_factor`, `headers`
 - `run_model(model_id, inputs, batch_size=8, **kwargs) -> List[dict]`
@@ -60,8 +64,15 @@ Examples:
 ```python
 from bench.evaluation.model_runner import ModelRunner
 mr = ModelRunner()
-# HF
-mr.load_model("sshleifer/distilbart-cnn-12-6", model_type="huggingface", hf_task="summarization")
+# HF summarization with generation params
+mr.load_model(
+    "sshleifer/distilbart-cnn-12-6",
+    model_type="huggingface",
+    hf_task="summarization",
+    generation_kwargs={"max_new_tokens": 128, "temperature": 0.7, "do_sample": True},
+    device_map="auto",
+    torch_dtype="auto",
+)
 preds = mr.run_model("sshleifer/distilbart-cnn-12-6", inputs=[{"text": "note"}], batch_size=1)
 
 # Local
@@ -70,6 +81,10 @@ preds = mr.run_model("my_local", inputs=[{"text": "x"}], batch_size=2)
 ```
 
 Returned prediction dicts typically include `{"label", "score"}` for classification or `{"summary"|"text"|"prediction"}` for generative tasks.
+
+See runnable examples:
+- `bench/examples/run_hf_summarization_gen.py`
+- `bench/examples/run_hf_text_generation_gen.py`
 
 ## LocalModel (`bench/evaluation/model_interface.py`)
 
