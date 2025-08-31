@@ -586,7 +586,7 @@
               "7.5"
             ],
             "details": "Create unit tests covering:\n- Initialization with various parameters\n- Prediction functionality with sample inputs\n- Error handling scenarios\n- Edge cases (empty inputs, large inputs)\n- Metadata property validation\n- Mock testing for external dependencies\n- Performance benchmarking tests",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
