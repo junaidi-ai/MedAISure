@@ -6,6 +6,9 @@ pydantic>=2.0.0
 pyyaml>=6.0
 requests>=2.31.0
 
+# Async HTTP client for APIModel.async_predict
+httpx>=0.24.0
+
 # Text metrics
 rouge-score>=0.1.2
 scikit-learn>=1.0.0

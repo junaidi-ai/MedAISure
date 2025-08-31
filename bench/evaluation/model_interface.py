@@ -10,10 +10,13 @@ and standardized metadata across model types.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 import os
 import pickle
 from pathlib import Path
+import time
+import threading
+import asyncio
 
 try:  # optional dependency via scikit-learn
     import joblib  # type: ignore
@@ -397,35 +400,254 @@ class APIModel(ModelInterface):
         model_id: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
         timeout: float = 30.0,
+        # Auth configuration
+        auth_mode: str = "bearer",  # bearer|header|query|basic|none
+        auth_header: str = "Authorization",
+        auth_prefix: str = "Bearer ",
+        query_key: str = "api_key",
+        basic_auth: Optional[Tuple[str, str]] = None,  # (username, password)
+        # Retry configuration
+        max_retries: int = 3,
+        backoff_factor: float = 0.5,
+        retry_statuses: Tuple[int, ...] = (429, 500, 502, 503, 504),
+        # Simple rate limiting (requests per second)
+        rate_limit_rps: Optional[float] = None,
     ) -> None:
         self.api_url = api_url
         self.api_key = api_key
         self._model_id = model_id or f"api-{api_url.rstrip('/').split('/')[-1]}"
         self._headers = headers or {}
         self._timeout = float(timeout)
+        self._auth_mode = auth_mode
+        self._auth_header = auth_header
+        self._auth_prefix = auth_prefix
+        self._query_key = query_key
+        self._basic_auth = basic_auth
+        self._max_retries = int(max_retries)
+        self._backoff_factor = float(backoff_factor)
+        self._retry_statuses = set(retry_statuses)
+        self._rate_limit_rps = rate_limit_rps
+
+        # Pre-create a requests session with retry-enabled adapters
+        self._session = None  # lazy init
+
+        # Rate limiter state (simple time-based limiter per POST)
+        self._rl_lock = threading.Lock()
+        self._last_request_ts: float = 0.0
 
     def predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         try:
             import requests  # local import to keep optional
 
             headers = {"Content-Type": "application/json", **self._headers}
-            if self.api_key:
-                headers["Authorization"] = f"Bearer {self.api_key}"
+            params: Dict[str, Any] = {}
+            auth = None
 
-            resp = requests.post(
-                self.api_url, json=inputs, headers=headers, timeout=self._timeout
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            if not isinstance(data, list):
-                data = [data]
-            return data
+            # Apply authentication
+            headers, params, auth = self._apply_auth(headers, params)
+
+            # Rate limit (one POST per predict call)
+            self._apply_rate_limit()
+
+            attempts = max(1, self._max_retries)
+            backoff = self._backoff_factor
+
+            for i in range(attempts):
+                try:
+                    resp = requests.post(
+                        self.api_url,
+                        json=inputs,
+                        headers=headers,
+                        params=params,
+                        timeout=self._timeout,
+                        auth=auth,
+                    )
+                    # Retry on specific HTTP statuses
+                    if (
+                        getattr(resp, "status_code", None) in self._retry_statuses
+                        and i < attempts - 1
+                    ):
+                        time.sleep(backoff * (2**i))
+                        continue
+                    data = self._parse_response(resp)
+                    return self._normalize_outputs(inputs, data)
+                except Exception:
+                    if i < attempts - 1:
+                        time.sleep(backoff * (2**i))
+                        continue
+                    break
         except Exception:
-            return [{} for _ in inputs]
+            pass
+        # Best-effort error containment per item
+        return [{} for _ in inputs]
 
     @property
     def model_id(self) -> str:
         return self._model_id
+
+    # ---- Async support ----
+    async def async_predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        try:
+            import httpx  # type: ignore
+
+            headers = {"Content-Type": "application/json", **self._headers}
+            params: Dict[str, Any] = {}
+            auth = None
+
+            headers, params, auth = self._apply_auth(headers, params)
+
+            # httpx auth can be tuple for basic; otherwise we pass headers/params
+            attempts = max(1, self._max_retries)
+            backoff = self._backoff_factor
+
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
+                for i in range(attempts):
+                    # Simple async rate limit between attempts as well
+                    await self._async_rate_limit()
+                    try:
+                        resp = await client.post(
+                            self.api_url,
+                            json=inputs,
+                            headers=headers,
+                            params=params,
+                            auth=auth,
+                        )
+                        data = self._parse_httpx_response(resp)
+                        return self._normalize_outputs(inputs, data)
+                    except Exception as e:
+                        # Retry on configured statuses or connectivity
+                        status = getattr(e, "response", None)
+                        code = getattr(status, "status_code", None)
+                        if code in self._retry_statuses and i < attempts - 1:
+                            await asyncio.sleep(backoff * (2**i))
+                            continue
+                        # Otherwise, fall through to failure
+                        break
+        except Exception:
+            pass
+        return [{} for _ in inputs]
+
+    # ---- Internal helpers ----
+    def _ensure_session(self):
+        if self._session is not None:
+            return self._session
+        import requests  # local import to keep optional
+        from requests.adapters import HTTPAdapter  # type: ignore
+
+        try:
+            from urllib3.util.retry import Retry  # type: ignore
+        except Exception:  # pragma: no cover - fallback if urllib3 Retry API changes
+            Retry = None  # type: ignore
+
+        session = requests.Session()
+        if Retry is not None:
+            retry = Retry(
+                total=self._max_retries,
+                connect=self._max_retries,
+                read=self._max_retries,
+                status=self._max_retries,
+                backoff_factor=self._backoff_factor,
+                status_forcelist=tuple(self._retry_statuses),
+                allowed_methods=(
+                    frozenset(["GET", "POST", "PUT", "DELETE", "PATCH"])  # type: ignore[arg-type]
+                ),
+                raise_on_status=False,
+                respect_retry_after_header=True,
+            )
+            adapter = HTTPAdapter(max_retries=retry)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
+        self._session = session
+        return session
+
+    def _apply_auth(
+        self, headers: Dict[str, str], params: Dict[str, Any]
+    ) -> Tuple[Dict[str, str], Dict[str, Any], Optional[Any]]:
+        auth_obj = None
+        mode = (self._auth_mode or "bearer").lower()
+        if mode == "bearer" and self.api_key:
+            headers[self._auth_header] = f"{self._auth_prefix}{self.api_key}"
+        elif mode == "header" and self.api_key:
+            headers[self._auth_header] = f"{self.api_key}"
+        elif mode == "query" and self.api_key:
+            params[self._query_key] = self.api_key
+        elif mode == "basic" and self._basic_auth:
+            # requests/httpx accept (username, password)
+            auth_obj = self._basic_auth
+        return headers, params, auth_obj
+
+    def _apply_rate_limit(self) -> None:
+        if not self._rate_limit_rps or self._rate_limit_rps <= 0:
+            return
+        with self._rl_lock:
+            now = time.time()
+            min_interval = 1.0 / self._rate_limit_rps
+            wait = (self._last_request_ts + min_interval) - now
+            if wait > 0:
+                time.sleep(wait)
+            self._last_request_ts = time.time()
+
+    async def _async_rate_limit(self) -> None:
+        if not self._rate_limit_rps or self._rate_limit_rps <= 0:
+            return
+        # Use the same timestamp but avoid blocking loop with sync sleep
+        now = time.time()
+        min_interval = 1.0 / self._rate_limit_rps
+        # Optimistic check outside lock
+        wait = (self._last_request_ts + min_interval) - now
+        if wait > 0:
+            await asyncio.sleep(wait)
+        # Update timestamp inside lock to avoid races with sync path
+        with self._rl_lock:
+            self._last_request_ts = time.time()
+
+    def _parse_response(self, resp):
+        try:
+            # Raise for HTTP errors; let Retry handle via adapter, but still handle here
+            if hasattr(resp, "raise_for_status"):
+                resp.raise_for_status()
+            data = resp.json()
+        except Exception:
+            try:
+                # Fallback to text
+                data = resp.text  # type: ignore[attr-defined]
+            except Exception:
+                data = None
+        return data
+
+    def _parse_httpx_response(self, resp):
+        try:
+            resp.raise_for_status()
+            return resp.json()
+        except Exception:
+            try:
+                return resp.text
+            except Exception:
+                return None
+
+    def _normalize_outputs(
+        self, inputs: List[Dict[str, Any]], data: Any
+    ) -> List[Dict[str, Any]]:
+        # Ensure list
+        if isinstance(data, list):
+            norm_list = []
+            for item in data:
+                if isinstance(item, dict):
+                    norm_list.append(item)
+                else:
+                    norm_list.append({"prediction": item})
+            # If API returned fewer/more items, best-effort alignment by trunc/pad
+            if len(norm_list) < len(inputs):
+                norm_list.extend([{} for _ in range(len(inputs) - len(norm_list))])
+            elif len(norm_list) > len(inputs):
+                norm_list = norm_list[: len(inputs)]
+            return norm_list
+        # Single object/primitive
+        if isinstance(data, dict):
+            return [data for _ in inputs]
+        if data is None:
+            return [{} for _ in inputs]
+        return [{"prediction": data} for _ in inputs]
 
 
 class ModelRegistry:

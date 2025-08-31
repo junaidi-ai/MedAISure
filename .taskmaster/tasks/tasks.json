@@ -547,7 +547,7 @@
               "7.1"
             ],
             "details": "Complete the HuggingFaceModel implementation with:\n- Support for different model architectures (causal LM, seq2seq, etc.)\n- Efficient tokenization and generation parameters\n- Batching support for multiple inputs\n- Proper resource management (GPU allocation, memory efficiency)\n- Comprehensive metadata extraction from model config",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -558,7 +558,7 @@
               "7.1"
             ],
             "details": "Complete the APIModel implementation with:\n- Robust HTTP request handling with timeouts and retries\n- Authentication support for different API providers\n- Rate limiting and throttling mechanisms\n- Error handling for API-specific responses\n- Response parsing and standardization\n- Support for async requests for performance optimization",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
