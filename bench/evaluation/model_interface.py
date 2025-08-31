@@ -654,13 +654,140 @@ class ModelRegistry:
     """In-memory registry for `ModelInterface` implementations."""
 
     def __init__(self) -> None:
+        # Backward-compat flat map to the "default" or latest version
         self._models: Dict[str, ModelInterface] = {}
+        # Versioned storage: {model_id: {version: model}}
+        self._versions: Dict[str, Dict[str, ModelInterface]] = {}
+        # Track last registered version per model for default resolution
+        self._latest_version: Dict[str, str] = {}
+        # Optional default per-model configuration (arbitrary dict)
+        self._default_config: Dict[str, Dict[str, Any]] = {}
 
-    def register_model(self, model: ModelInterface) -> None:
-        self._models[model.model_id] = model
+    def register_model(
+        self,
+        model: ModelInterface,
+        *,
+        version: Optional[str] = None,
+        validate: bool = True,
+    ) -> None:
+        """Register a model (optionally versioned).
 
-    def get_model(self, model_id: str) -> Optional[ModelInterface]:
-        return self._models.get(model_id)
+        Args:
+            model: Model to register. Must implement ModelInterface.
+            version: Optional version string (e.g., "v1", "1.0.0"). If omitted,
+                     the model is treated as the default/current version.
+            validate: If True, perform lightweight interface validation.
+        """
+        if validate:
+            self._validate_model(model)
 
-    def list_models(self) -> List[str]:
-        return list(self._models.keys())
+        mid = model.model_id
+        if not mid:
+            raise ValueError("Model must have a non-empty model_id")
+
+        # Maintain flat map for backward-compatible retrieval
+        self._models[mid] = model
+
+        # Maintain version map
+        if version:
+            self._versions.setdefault(mid, {})[version] = model
+            self._latest_version[mid] = version
+        else:
+            # Use a sentinel version name for default when not provided
+            v = "default"
+            self._versions.setdefault(mid, {})[v] = model
+            self._latest_version[mid] = v
+
+    def get_model(
+        self, model_id: str, *, version: Optional[str] = None
+    ) -> Optional[ModelInterface]:
+        """Retrieve a model by id (and optional version)."""
+        if version is None:
+            # Backward-compatible behavior: return the flat entry if present
+            m = self._models.get(model_id)
+            if m is not None:
+                return m
+            # Fallback to latest version map
+            latest = self._latest_version.get(model_id)
+            if latest is None:
+                return None
+            return self._versions.get(model_id, {}).get(latest)
+        # Version-specific
+        return self._versions.get(model_id, {}).get(version)
+
+    def list_models(self, *, include_versions: bool = False) -> Any:
+        """List registered models.
+
+        Args:
+            include_versions: If True, returns {id: [versions...]}. Otherwise
+                              returns a list of model ids.
+        """
+        if not include_versions:
+            return list(self._models.keys())
+        return {mid: sorted(list(vers.keys())) for mid, vers in self._versions.items()}
+
+    # ---- Validation ----
+    def _validate_model(self, model: ModelInterface) -> None:
+        # Ensure required interface parts exist
+        if not hasattr(model, "predict") or not callable(getattr(model, "predict")):
+            raise TypeError("Model must define a callable predict(inputs) method")
+        if not hasattr(model, "model_id"):
+            raise TypeError("Model must define a model_id property")
+        # metadata is optional by interface; don't enforce content
+
+    # ---- Metadata helpers ----
+    def get_metadata(
+        self, model_id: str, *, version: Optional[str] = None
+    ) -> Dict[str, Any]:
+        m = self.get_model(model_id, version=version)
+        return m.metadata if m is not None else {}
+
+    # ---- Default configuration ----
+    def set_default_config(self, model_id: str, config: Dict[str, Any]) -> None:
+        self._default_config[model_id] = dict(config)
+
+    def get_default_config(self, model_id: str) -> Dict[str, Any]:
+        return dict(self._default_config.get(model_id, {}))
+
+    # ---- Persistence (lightweight; no model object serialization) ----
+    def save_registry(self, path: str) -> None:
+        """Persist registry topology and configs to a JSON file.
+
+        Note: Model objects are NOT serialized. This captures
+        - model ids
+        - versions present
+        - latest version mapping
+        - default configs
+        """
+        import json
+
+        state = {
+            "models": sorted(list(self._versions.keys())),
+            "versions": {
+                mid: sorted(list(vers.keys())) for mid, vers in self._versions.items()
+            },
+            "latest": dict(self._latest_version),
+            "default_config": self._default_config,
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2, sort_keys=True)
+
+    def load_registry(self, path: str) -> None:
+        """Load registry topology and configs from a JSON file.
+
+        Note: This does not reconstruct model objects; it only restores
+        ids/versions/defaults/configs. Models must be re-registered.
+        """
+        import json
+
+        with open(path, "r", encoding="utf-8") as f:
+            state = json.load(f)
+        # Reset structures but keep current models (ephemeral)
+        self._versions = {mid: {} for mid in state.get("models", [])}
+        for mid, version_list in state.get("versions", {}).items():
+            self._versions.setdefault(mid, {})
+            for v in version_list:
+                # placeholder None would be type-incompatible; keep mapping empty until re-register
+                pass
+        self._latest_version = dict(state.get("latest", {}))
+        self._default_config = dict(state.get("default_config", {}))
