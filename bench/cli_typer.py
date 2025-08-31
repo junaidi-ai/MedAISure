@@ -28,6 +28,12 @@ import yaml
 
 from .evaluation.harness import EvaluationHarness
 from .models.benchmark_report import BenchmarkReport
+from .data import (
+    JSONDataset,
+    CSVDataset,
+    MIMICConnector,
+    PubMedConnector,
+)
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
@@ -792,6 +798,109 @@ def generate_report(
     with _status("Writing file..."):
         output_file.write_text(content)
     _print(f"Generated report: {output_file}")
+
+
+# -----------------------------
+# Data connector preview helper
+# -----------------------------
+
+
+@app.command("preview-data")
+def preview_data(
+    connector: str = typer.Option(..., help="Connector type: json|csv|mimic|pubmed"),
+    file: Optional[Path] = typer.Option(None, help="[json|csv] Path to data file"),
+    encryption_key: Optional[str] = typer.Option(
+        None, help="[json|csv] Optional encryption key"
+    ),
+    n: int = typer.Option(5, help="Number of samples to display"),
+    conn: Optional[str] = typer.Option(None, help="[mimic] Connection string"),
+    query: Optional[str] = typer.Option(None, help="[mimic] SQL query"),
+    terms: Optional[List[str]] = typer.Option(
+        None,
+        help="[pubmed] Search terms (multiple allowed)",
+    ),
+    max_results: int = typer.Option(100, help="[pubmed] Max results to request"),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit machine-readable JSON"
+    ),
+):
+    """Preview a dataset connector's metadata and the first N samples (when supported)."""
+    _configure_console_if_needed()
+    ctype = (connector or "").strip().lower()
+
+    # Build connector instance
+    ds = None
+    if ctype == "json":
+        if not file:
+            raise typer.BadParameter("--file is required for json connector")
+        _ensure_exists(file, kind="data file")
+        ds = JSONDataset(file, encryption_key=encryption_key)
+    elif ctype == "csv":
+        if not file:
+            raise typer.BadParameter("--file is required for csv connector")
+        _ensure_exists(file, kind="data file")
+        ds = CSVDataset(file, encryption_key=encryption_key)
+    elif ctype == "mimic":
+        if not conn or not query:
+            raise typer.BadParameter(
+                "--conn and --query are required for mimic connector"
+            )
+        ds = MIMICConnector(conn, query)
+    elif ctype == "pubmed":
+        if not terms:
+            raise typer.BadParameter("--terms is required for pubmed connector")
+        ds = PubMedConnector(list(terms), max_results=max_results)
+    else:
+        raise typer.BadParameter("Unsupported connector. Use json|csv|mimic|pubmed")
+
+    # Always show metadata
+    meta: Dict[str, Any] = {}
+    try:
+        meta = ds.get_metadata()  # type: ignore[assignment]
+    except Exception as e:
+        meta = {"error": f"failed to get metadata: {e}"}
+
+    samples: List[Dict[str, Any]] = []
+    data_supported = True
+    try:
+        # Not all connectors implement load_data yet (e.g., stubs)
+        samples = getattr(ds, "take")(max(0, int(n)))  # type: ignore[misc]
+    except NotImplementedError:
+        data_supported = False
+    except Exception:
+        # Best-effort: ignore data errors in preview
+        data_supported = False
+
+    if json_output:
+        out = {
+            "connector": ctype,
+            "metadata": meta,
+            "samples": samples if data_supported else [],
+            "data_supported": data_supported,
+        }
+        _print_json(json.dumps(out))
+        return
+
+    # Human-friendly output
+    _print("Metadata:")
+    try:
+        _print_json(json.dumps(meta))
+    except Exception:
+        _print(str(meta))
+
+    if data_supported:
+        _print("")
+        _print(f"First {len(samples)} sample(s):")
+        for i, s in enumerate(samples, 1):
+            try:
+                _print_json(json.dumps({"index": i, "item": s}))
+            except Exception:
+                _print(f"{i}. {s}")
+    else:
+        _print("")
+        _print(
+            "Data preview not supported for this connector (or not yet implemented)."
+        )
 
 
 # --- Snake_case aliases for commands (to match task wording) ---

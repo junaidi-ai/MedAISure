@@ -517,7 +517,7 @@
           1,
           2
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -614,7 +614,7 @@
           1,
           2
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -622,7 +622,7 @@
             "description": "Finalize and implement the base DatasetConnector abstract class with all required methods and documentation.",
             "dependencies": [],
             "details": "Enhance the existing DatasetConnector ABC with:\n- Additional utility methods for data validation\n- Error handling mechanisms\n- Documentation for extending the interface\n- Type hints and docstrings\n- Unit tests for implementations",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
