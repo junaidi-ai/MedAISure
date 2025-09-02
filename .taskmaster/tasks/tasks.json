@@ -614,7 +614,7 @@
           1,
           2
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -683,7 +683,7 @@
               "8.5"
             ],
             "details": "Build a testing suite with:\n- Unit tests for each connector class\n- Integration tests with sample datasets\n- Security tests for data handling\n- Performance benchmarks\n- Mock services for external APIs and databases\n- Test fixtures and factories\n- CI/CD integration\n- Documentation for testing procedures\n- Coverage reporting",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]

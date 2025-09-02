@@ -4,6 +4,9 @@ from pathlib import Path
 
 import pytest
 import yaml
+import json
+
+from bench.data.security import SecureDataHandler
 
 
 @pytest.fixture(scope="session")
@@ -71,3 +74,61 @@ def temp_tasks_dir(tmp_path, example_task_definition):
         yaml.dump(example_task_definition, f)
 
     return temp_dir
+
+
+# -----------------------------
+# Connector test data fixtures
+# -----------------------------
+
+
+@pytest.fixture
+def sample_json_file(tmp_path: Path) -> Path:
+    """Create a simple JSON dataset file (list of objects)."""
+    data = [{"id": 1, "text": "a"}, {"id": 2, "text": "b"}]
+    f = tmp_path / "data.json"
+    f.write_text(json.dumps(data), encoding="utf-8")
+    return f
+
+
+@pytest.fixture
+def sample_csv_file(tmp_path: Path) -> Path:
+    """Create a simple CSV dataset file (with header)."""
+    import csv
+
+    rows = [{"id": "1", "text": "a"}, {"id": "2", "text": "b"}]
+    f = tmp_path / "data.csv"
+    with f.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=["id", "text"])
+        writer.writeheader()
+        writer.writerows(rows)
+    return f
+
+
+@pytest.fixture
+def encrypted_json_file(tmp_path: Path) -> Path:
+    """Create a JSON dataset whose string fields are encrypted using SecureDataHandler.
+
+    This is useful to ensure connector + handler integration works end-to-end.
+    """
+    handler = SecureDataHandler("test-pass")
+    raw = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+    enc = [handler.encrypt_data(x) for x in raw]
+    f = tmp_path / "enc.json"
+    f.write_text(json.dumps(enc), encoding="utf-8")
+    return f
+
+
+@pytest.fixture
+def encrypted_csv_file(tmp_path: Path) -> Path:
+    """Create a CSV dataset whose string fields are encrypted using SecureDataHandler."""
+    import csv
+
+    handler = SecureDataHandler("test-pass")
+    raw = [{"id": "1", "name": "Alice"}, {"id": "2", "name": "Bob"}]
+    enc = [handler.encrypt_data(x) for x in raw]
+    f = tmp_path / "enc.csv"
+    with f.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=["id", "name"])
+        writer.writeheader()
+        writer.writerows(enc)
+    return f

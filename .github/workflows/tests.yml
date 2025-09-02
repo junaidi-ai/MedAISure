@@ -35,9 +35,17 @@ jobs:
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
           pip install -e .[dev]
 
-      - name: Run tests
+      - name: Run unit tests (exclude integration)
         run: |
-          pytest -q --maxfail=1 --disable-warnings
+          pytest -q --maxfail=1 --disable-warnings -m "not integration"
+
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov
+          if-no-files-found: warn
 
   build-gpu-image:
     runs-on: ubuntu-latest
@@ -52,6 +60,46 @@ jobs:
       - name: Build GPU Docker image (no run)
         run: |
           docker build -t medaisure/gpu:ci -f Dockerfile.gpu .
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MEDAISURE_NO_RICH: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Upgrade pip/setuptools/wheel
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          pip install -e .[dev]
+
+      - name: Run integration tests only
+        run: |
+          pytest -q -m integration --maxfail=1 --disable-warnings
+
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-integration
+          path: htmlcov
+          if-no-files-found: warn
 
   gpu-smoke-ci:
     runs-on: ubuntu-latest
