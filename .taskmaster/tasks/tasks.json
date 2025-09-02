@@ -717,7 +717,7 @@
             "description": "Expand the visualization capabilities by adding more chart types and visualization options to the VisualizationGenerator class.",
             "dependencies": [],
             "details": "Enhance the `VisualizationGenerator` class with:\n1. Add radar charts for comparing multiple metrics across tasks\n2. Implement heatmap visualization for task performance\n3. Create time-series plots for model performance over multiple runs\n4. Add export options for different image formats (PNG, SVG, PDF)\n5. Implement interactive visualization options using libraries like Plotly",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
