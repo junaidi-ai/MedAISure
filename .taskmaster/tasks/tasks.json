@@ -657,7 +657,7 @@
               "8.3"
             ],
             "details": "Improve the DataPreprocessor with:\n- Medical text normalization functions\n- Entity recognition preprocessing\n- Missing data handling strategies\n- Data augmentation capabilities\n- Parallel processing support\n- Pipeline serialization/deserialization\n- Preprocessing metrics and logging\n- Unit tests for each preprocessing step",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
