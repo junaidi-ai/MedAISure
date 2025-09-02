@@ -119,6 +119,8 @@ class EvaluationHarness:
         use_cache: bool = True,
         save_results: bool = True,
         strict_validation: bool = False,
+        report_formats: Optional[List[str]] = None,
+        report_dir: Optional[str] = None,
         **model_kwargs: Any,
     ) -> BenchmarkReport:
         """Run evaluation on the specified model and tasks.
@@ -389,6 +391,37 @@ class EvaluationHarness:
                 output_file = self.results_dir / f"{run_id}.json"
                 report.save(output_file)
                 logger.info(f"Saved evaluation results to {output_file}")
+                # Optionally export additional report formats via report generators
+                if report_formats:
+                    from ..reports import ReportFactory  # lazy import
+
+                    out_dir = Path(report_dir) if report_dir else self.results_dir
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    for fmt in report_formats:
+                        fmt_norm = str(fmt).lower().strip()
+                        try:
+                            gen = ReportFactory.create_generator(fmt_norm)
+                        except Exception as e:
+                            logger.warning(
+                                "Skipping unknown report format '%s': %s",
+                                fmt_norm,
+                                e,
+                            )
+                            continue
+                        content = gen.generate(report)
+                        # Choose extension
+                        ext = "md" if fmt_norm in {"md", "markdown"} else fmt_norm
+                        target = out_dir / f"{run_id}.{ext}"
+                        try:
+                            gen.save(content, target)
+                            logger.info("Exported %s report to %s", fmt_norm, target)
+                        except Exception as e:
+                            logger.warning(
+                                "Failed to export %s report to %s: %s",
+                                fmt_norm,
+                                target,
+                                e,
+                            )
             return report
         finally:
             # Always attempt cleanup

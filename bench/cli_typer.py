@@ -140,6 +140,12 @@ class BenchmarkConfig(BaseModel):
     batch_size: int = 8
     use_cache: bool = True
     save_results: bool = True
+    # New: default extra reports and report directory
+    extra_reports: Optional[List[str]] = None
+    report_dir: Optional[str] = None
+    # New: HTML rendering preferences (optional)
+    html_open_metadata: Optional[bool] = None
+    html_preview_limit: Optional[int] = None
 
     @classmethod
     def from_file(cls, file_path: Path) -> "BenchmarkConfig":
@@ -553,6 +559,19 @@ def evaluate(
     format: str = typer.Option(
         "json", help="Output format for saved report (json|yaml|md|csv)"
     ),
+    extra_report: Optional[List[str]] = typer.Option(
+        None,
+        help="Additional report formats to export (repeatable). E.g., --extra-report html --extra-report md",
+    ),
+    report_dir: Optional[Path] = typer.Option(
+        None, help="Directory to write extra reports (defaults to output_dir)"
+    ),
+    html_open_metadata: Optional[bool] = typer.Option(
+        None, help="[html] Open metadata sections by default (true/false)"
+    ),
+    html_preview_limit: Optional[int] = typer.Option(
+        None, help="[html] Max items to show in list previews (e.g., inputs/outputs)"
+    ),
     tasks_dir: Path = typer.Option(
         Path("bench/tasks"), help="Directory with task YAML/JSON files"
     ),
@@ -621,6 +640,43 @@ def evaluate(
         if reg_entry.get("backoff_factor") is not None:
             model_kwargs["backoff_factor"] = reg_entry["backoff_factor"]
 
+    # Resolve config if provided
+    resolved_extra_reports = extra_report
+    resolved_report_dir: Optional[Path] = report_dir
+    # HTML prefs (CLI > config)
+    resolved_html_open_metadata: Optional[bool] = html_open_metadata
+    resolved_html_preview_limit: Optional[int] = html_preview_limit
+
+    if cfg and resolved_extra_reports is None:
+        resolved_extra_reports = cfg.extra_reports
+    if cfg and resolved_report_dir is None and cfg.report_dir:
+        resolved_report_dir = Path(cfg.report_dir)
+    if (
+        cfg
+        and resolved_html_open_metadata is None
+        and cfg.html_open_metadata is not None
+    ):
+        resolved_html_open_metadata = bool(cfg.html_open_metadata)
+    if (
+        cfg
+        and resolved_html_preview_limit is None
+        and cfg.html_preview_limit is not None
+    ):
+        try:
+            resolved_html_preview_limit = int(cfg.html_preview_limit)
+        except Exception:
+            resolved_html_preview_limit = None
+
+    # Apply environment variables so generators respect settings
+    if resolved_html_open_metadata is not None:
+        os.environ["MEDAISURE_HTML_OPEN_METADATA"] = (
+            "1" if resolved_html_open_metadata else "0"
+        )
+    if resolved_html_preview_limit is not None:
+        os.environ["MEDAISURE_HTML_PREVIEW_LIMIT"] = str(
+            max(1, int(resolved_html_preview_limit))
+        )
+
     if _rich_enabled():
         # Progress feedback via callbacks
         with Progress() as progress:
@@ -645,6 +701,8 @@ def evaluate(
                 batch_size=cfg.batch_size if cfg else batch_size,
                 use_cache=cfg.use_cache if cfg else use_cache,
                 save_results=cfg.save_results if cfg else save_results,
+                report_formats=resolved_extra_reports,
+                report_dir=str(resolved_report_dir) if resolved_report_dir else None,
                 **model_kwargs,
             )
     else:
@@ -658,6 +716,8 @@ def evaluate(
             batch_size=cfg.batch_size if cfg else batch_size,
             use_cache=cfg.use_cache if cfg else use_cache,
             save_results=cfg.save_results if cfg else save_results,
+            report_formats=resolved_extra_reports,
+            report_dir=str(resolved_report_dir) if resolved_report_dir else None,
             **model_kwargs,
         )
 
@@ -667,7 +727,7 @@ def evaluate(
     try:
         if fmt in {"json", "yaml", "yml"}:
             default_out = (
-                out_dir / f"{run_id}.{('yaml' if fmt in {'yaml','yml'} else 'json')}"
+                out_dir / f"{run_id}.{('yaml' if fmt in {'yaml', 'yml'} else 'json')}"
             )
             with _status("Saving report..."):
                 report.save(default_out, format=fmt)
@@ -709,6 +769,32 @@ def evaluate(
             raise typer.BadParameter("Unsupported format. Use json|yaml|md|csv")
     except Exception as e:
         _print(f"Failed to save report: {e}")
+
+    # Export any extra reports at CLI level as well (useful in tests with mocked harness)
+    if resolved_extra_reports:
+        try:
+            from .reports import ReportFactory
+
+            out_dir2 = resolved_report_dir if resolved_report_dir else out_dir
+            rid = str(report.metadata.get("run_id", "results"))
+            out_dir2.mkdir(parents=True, exist_ok=True)
+            for fmt2 in resolved_extra_reports:
+                fmtn = str(fmt2).lower().strip()
+                try:
+                    gen = ReportFactory.create_generator(fmtn)
+                except Exception:
+                    _print(f"Skipping unknown extra report format: {fmtn}")
+                    continue
+                content = gen.generate(report)
+                ext = "md" if fmtn in {"md", "markdown"} else fmtn
+                target = out_dir2 / f"{rid}.{ext}"
+                try:
+                    gen.save(content, target)
+                    _print(f"Saved extra report: {target}")
+                except Exception as e:
+                    _print(f"Failed to save extra report {fmtn}: {e}")
+        except Exception as e:
+            _print(f"Failed to export extra reports: {e}")
 
     # Print a concise JSON summary to stdout (use JSON string to handle datetimes)
     if _rich_enabled():

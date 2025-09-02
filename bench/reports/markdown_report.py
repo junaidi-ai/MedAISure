@@ -1,0 +1,45 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from bench.models.benchmark_report import BenchmarkReport
+from .base import ReportGenerator
+
+
+class MarkdownReportGenerator(ReportGenerator):
+    def generate(self, benchmark_report: BenchmarkReport) -> str:
+        br = benchmark_report
+        lines: list[str] = []
+        lines.append(f"# Benchmark Report: {br.model_id}")
+        lines.append(f"Generated at: {br.timestamp}\n")
+
+        lines.append("## Overall Scores")
+        for metric, score in (br.overall_scores or {}).items():
+            lines.append(f"- **{metric}**: {float(score):.4f}")
+        lines.append("")
+
+        lines.append("## Task Scores")
+        for task_id, scores in (br.task_scores or {}).items():
+            lines.append(f"### {task_id}")
+            for metric, score in (scores or {}).items():
+                lines.append(f"- **{metric}**: {float(score):.4f}")
+            lines.append("")
+
+        lines.append("## Detailed Results")
+        for result in br.detailed_results or []:
+            lines.append(f"### Task: {result.task_id}")
+            lines.append("#### Metrics")
+            for metric, score in (result.metrics_results or {}).items():
+                try:
+                    sval = f"{float(score):.4f}"
+                except Exception:
+                    sval = str(score)
+                lines.append(f"- **{metric}**: {sval}")
+            lines.append("")
+
+        return "\n".join(lines)
+
+    def save(self, report: str, output_path: Path) -> None:
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(report)

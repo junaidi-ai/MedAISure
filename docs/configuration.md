@@ -17,6 +17,8 @@ Key parameters and where they apply.
 
 ## Environment Variables
 - `MEDAISURE_NO_RICH`: Disable Rich live console rendering during tests/CI, and force plain stdout output for both text and JSON from the Typer CLI in `bench/cli_typer.py`.
+- `MEDAISURE_HTML_OPEN_METADATA`: When set to `"1"`, HTML reports open the Metadata section by default; otherwise collapsed.
+- `MEDAISURE_HTML_PREVIEW_LIMIT`: Integer. Max number of list items to show in HTML previews for `inputs`/`model_outputs` before truncation. Default `5`.
 
 ## EvaluationHarness
 - `tasks_dir`: where task YAML/JSON files are discovered
@@ -53,3 +55,55 @@ Key parameters and where they apply.
 - `aggregate_statistics(run_id, metrics=None, percentiles=None, tasks=None)`
 - `filter_and_sort_tasks(run_id, tasks=None, metrics=None, sort_by=None, descending=True)`
 - `compare_runs(run_a, run_b, metrics=None, relative=False)`
+
+## BenchmarkConfig (CLI config file)
+
+You can provide defaults for CLI runs via a JSON/YAML config file and pass it with `--config-file` to the Typer CLI `evaluate` command.
+
+Fields (subset):
+
+- `model_id`: string
+- `tasks`: list of task IDs
+- `output_dir`: path for results
+- `output_format`: `json|yaml|md|csv`
+- `model_type`: `huggingface|local|api`
+- `batch_size`: int
+- `use_cache`: bool
+- `save_results`: bool
+- `extra_reports`: optional list of extra export formats, e.g. `["html", "md"]`
+- `report_dir`: optional path where extra reports are written (defaults to `output_dir`)
+ - `html_open_metadata`: optional bool; if true, open Metadata sections by default in HTML reports
+ - `html_preview_limit`: optional int; controls truncation length for inputs/outputs previews in HTML
+
+Example YAML:
+
+```yaml
+model_id: textattack/bert-base-uncased-MNLI
+tasks: [clinical_icd10_classification]
+output_dir: results
+output_format: json
+model_type: huggingface
+batch_size: 4
+use_cache: true
+save_results: true
+extra_reports: [html, md]
+report_dir: reports
+html_open_metadata: true
+html_preview_limit: 10
+```
+
+### Supported formats (extra reports)
+
+- json
+- md (markdown)
+- html
+
+Reference: extra reports are generated via `ReportFactory` in `bench/reports/factory.py`.
+
+CLI usage with config file:
+
+```bash
+MEDAISURE_NO_RICH=1 python -m bench.cli_typer evaluate textattack/bert-base-uncased-MNLI \
+  --tasks clinical_icd10_classification \
+  --config-file config.yaml
+```

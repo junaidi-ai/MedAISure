@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![codecov](https://codecov.io/gh/medaisure/medaisure-benchmark/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/medaisure/medaisure-benchmark)
 
 A comprehensive framework for evaluating Large Language Models (LLMs) in healthcare applications. The MedAISure Benchmark provides a standardized way to assess model performance on various medical NLP tasks.

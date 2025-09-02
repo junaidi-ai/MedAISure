@@ -700,7 +700,7 @@
           2,
           4
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -708,7 +708,7 @@
             "description": "Implement the HTML Report Generator class that was only partially defined in the initial code. This should include proper HTML formatting with CSS styling for readability.",
             "dependencies": [],
             "details": "Complete the `HTMLReportGenerator` class implementation:\n1. Implement the `generate` method to create HTML reports with proper structure\n2. Include CSS styling for better readability\n3. Add tables for metrics and results\n4. Implement collapsible sections for detailed results\n5. Ensure the implementation handles all data from the BenchmarkReport object",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {

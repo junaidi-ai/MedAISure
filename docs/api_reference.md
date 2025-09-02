@@ -4,7 +4,7 @@ References for primary public classes. Read the code for full details.
 
 ## EvaluationHarness (`bench/evaluation/harness.py`)
 - `__init__(tasks_dir, results_dir, cache_dir=None, log_level="INFO", callbacks...)`
-- `evaluate(model_id, task_ids, model_type="huggingface", batch_size=8, use_cache=True, save_results=True, **model_kwargs) -> BenchmarkReport`
+- `evaluate(model_id, task_ids, model_type="huggingface", batch_size=8, use_cache=True, save_results=True, report_formats: Optional[List[str]] = None, report_dir: Optional[str] = None, **model_kwargs) -> BenchmarkReport`
 - `list_available_tasks() -> List[dict]`
 - `get_task_info(task_id) -> dict`
 
@@ -12,6 +12,7 @@ Notes:
 - `evaluate()` loads the model via `ModelRunner.load_model()` then iterates tasks.
 - Metrics are computed via `MetricCalculator.calculate_metrics()`.
 - Results aggregated via `ResultAggregator.add_evaluation_result()` and returned as `BenchmarkReport`.
+- When `report_formats` is provided (e.g. `["html", "md"]`), extra reports are generated and saved to `report_dir` (defaults to `results_dir`).
 
 Example – basic run:
 ```python
@@ -23,6 +24,8 @@ report = h.evaluate(
     task_ids=[tasks[0]["task_id"]],
     model_type="huggingface",
     batch_size=4,
+    report_formats=["html", "md"],
+    report_dir="bench/reports",
 )
 print(report.overall_scores)
 ```
@@ -222,4 +225,43 @@ res2 = EvaluationResult.from_file("res.yaml")
 # CSV exports
 csv_inputs = res2.inputs_to_csv()
 csv_overall = report.overall_scores_to_csv()
+
+## CLI (Typer) – Evaluate
+
+File: `bench/cli_typer.py`
+
+- `--tasks <id>`: select tasks (repeatable)
+- `--output-dir <path>`: base report directory
+- `--format <fmt>`: base report format (`json|yaml|md|csv`)
+- `--extra-report <fmt>`: extra report export (repeatable). Example: `--extra-report html --extra-report md`
+- `--report-dir <path>`: directory for extra reports (defaults to `--output-dir`)
+- `--config-file <path>`: JSON/YAML config (see `docs/configuration.md`)
+ - `--html-open-metadata [true|false]`: open Metadata sections by default in generated HTML reports
+ - `--html-preview-limit <int>`: max items to show in inputs/outputs previews in HTML before truncation
+
+Example:
+
+```bash
+# Base JSON report + extra HTML/MD exports into custom directory
+MEDAISURE_NO_RICH=1 python -m bench.cli_typer evaluate textattack/bert-base-uncased-MNLI \
+  --tasks clinical_icd10_classification \
+  --output-dir results \
+  --format json \
+  --extra-report html --extra-report md \
+  --report-dir reports \
+  --html-open-metadata true \
+  --html-preview-limit 10
 ```
+
+### Supported formats (extra reports)
+
+- json
+- md (markdown)
+- html
+
+Reference implementation: `ReportFactory` in `bench/reports/factory.py`.
+
+Environment variables affecting HTML rendering:
+
+- `MEDAISURE_HTML_OPEN_METADATA` = `"1"` to open Metadata sections by default
+- `MEDAISURE_HTML_PREVIEW_LIMIT` = integer truncation limit for list previews (default 5)
