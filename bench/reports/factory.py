@@ -4,6 +4,7 @@ from .base import ReportGenerator
 from .json_report import JSONReportGenerator
 from .markdown_report import MarkdownReportGenerator
 from .html_report import HTMLReportGenerator
+from .csv_report import CSVReportGenerator
 
 
 class ReportFactory:
@@ -16,4 +17,6 @@ class ReportFactory:
             return MarkdownReportGenerator()
         if f == "html":
             return HTMLReportGenerator()
+        if f == "csv":
+            return CSVReportGenerator()
         raise ValueError(f"Unsupported format: {fmt}")

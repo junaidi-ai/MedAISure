@@ -28,6 +28,7 @@ import yaml
 
 from .evaluation.harness import EvaluationHarness
 from .models.benchmark_report import BenchmarkReport
+from .reports import ReportFactory
 from .data import (
     JSONDataset,
     CSVDataset,
@@ -754,16 +755,12 @@ def evaluate(
                 default_out.write_text(content)
             _print(f"Saved report: {default_out}")
         elif fmt == "csv":
-            # Write a single file containing two CSV sections
-            content = (
-                "# Overall\n"
-                + report.overall_scores_to_csv()
-                + "\n# Tasks\n"
-                + report.task_scores_to_csv()
-            )
+            # Use CSVReportGenerator to save primary CSV (task_scores) to a single .csv file
             default_out = out_dir / f"{run_id}.csv"
             with _status("Saving report (csv)..."):
-                default_out.write_text(content)
+                gen = ReportFactory.create_generator("csv")
+                data = gen.generate(report)
+                gen.save(data, default_out)
             _print(f"Saved report: {default_out}")
         else:
             raise typer.BadParameter("Unsupported format. Use json|yaml|md|csv")
@@ -773,8 +770,6 @@ def evaluate(
     # Export any extra reports at CLI level as well (useful in tests with mocked harness)
     if resolved_extra_reports:
         try:
-            from .reports import ReportFactory
-
             out_dir2 = resolved_report_dir if resolved_report_dir else out_dir
             rid = str(report.metadata.get("run_id", "results"))
             out_dir2.mkdir(parents=True, exist_ok=True)
@@ -846,13 +841,19 @@ def generate_report(
     elif fmt in {"yaml", "yml"}:
         content = report.to_yaml()
     elif fmt == "csv":
-        # Combine overall + task CSVs into one markdown-friendly block
-        content = (
-            "# Overall\n"
-            + report.overall_scores_to_csv()
-            + "\n# Tasks\n"
-            + report.task_scores_to_csv()
-        )
+        # Use CSVReportGenerator: if output_file ends with .csv, save single file; if it's a directory, save all CSVs
+        gen = ReportFactory.create_generator("csv")
+        data = gen.generate(report)
+        if output_file is None:
+            output_file = results_file.with_suffix(".csv")
+        # If user passed a path with a trailing slash or an existing directory, treat as directory
+        target = output_file
+        if str(target).endswith(os.sep) or (target.exists() and target.is_dir()):
+            target = target
+        with _status("Writing CSV report(s)..."):
+            gen.save(data, target)
+        _print(f"Generated report: {target}")
+        return
     elif fmt == "html":
         with _status("Rendering HTML..."):
             content = _report_to_html(report)
