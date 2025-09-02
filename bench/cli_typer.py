@@ -815,11 +815,17 @@ def preview_data(
     n: int = typer.Option(5, help="Number of samples to display"),
     conn: Optional[str] = typer.Option(None, help="[mimic] Connection string"),
     query: Optional[str] = typer.Option(None, help="[mimic] SQL query"),
+    mimic_cache: bool = typer.Option(True, help="[mimic] Enable in-memory cache"),
+    mimic_cache_size: int = typer.Option(128, help="[mimic] In-memory cache size"),
+    mimic_cache_dir: Optional[str] = typer.Option(
+        None, help="[mimic] Persistent cache directory"
+    ),
     terms: Optional[List[str]] = typer.Option(
         None,
         help="[pubmed] Search terms (multiple allowed)",
     ),
     max_results: int = typer.Option(100, help="[pubmed] Max results to request"),
+    api_key: Optional[str] = typer.Option(None, help="[pubmed] NCBI eutils API key"),
     json_output: bool = typer.Option(
         False, "--json", help="Emit machine-readable JSON"
     ),
@@ -845,11 +851,17 @@ def preview_data(
             raise typer.BadParameter(
                 "--conn and --query are required for mimic connector"
             )
-        ds = MIMICConnector(conn, query)
+        ds = MIMICConnector(
+            conn,
+            query,
+            use_cache=mimic_cache,
+            cache_size=mimic_cache_size,
+            persistent_cache_dir=mimic_cache_dir,
+        )
     elif ctype == "pubmed":
         if not terms:
             raise typer.BadParameter("--terms is required for pubmed connector")
-        ds = PubMedConnector(list(terms), max_results=max_results)
+        ds = PubMedConnector(list(terms), max_results=max_results, api_key=api_key)
     else:
         raise typer.BadParameter("Unsupported connector. Use json|csv|mimic|pubmed")
 

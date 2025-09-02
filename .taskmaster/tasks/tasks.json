@@ -644,7 +644,7 @@
               "8.1"
             ],
             "details": "Finalize the MIMICConnector and PubMedConnector implementations with:\n- Secure database connection handling\n- API rate limiting and error handling\n- Caching mechanisms for performance\n- PHI (Protected Health Information) safeguards\n- Query builders and filters\n- Authentication handling\n- Unit and integration tests with mock databases/APIs",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
