@@ -194,10 +194,26 @@ class BenchmarkReport(BaseModel):
 
     # Backwards-compatible alias used in docs
     def to_file(self, file_path: Union[str, Path]) -> None:
+        """Alias for `save()` that infers format from extension.
+
+        Args:
+            file_path: Target path ending with .json/.yaml/.yml.
+        """
         self.save(file_path)
 
     @classmethod
     def from_file(cls, file_path: Union[str, Path]) -> "BenchmarkReport":
+        """Load a report from a JSON or YAML file.
+
+        Args:
+            file_path: Path to a .json, .yaml, or .yml file.
+
+        Returns:
+            Parsed `BenchmarkReport` instance.
+
+        Raises:
+            ValueError: If the file type is unsupported.
+        """
         path = Path(file_path)
         text = path.read_text()
         suf = path.suffix.lower()
@@ -247,6 +263,10 @@ class BenchmarkReport(BaseModel):
 
     @classmethod
     def from_yaml(cls, data: str) -> "BenchmarkReport":
+        """Create a `BenchmarkReport` from a YAML string with validation.
+
+        Ensures a default `schema_version` when absent.
+        """
         payload = yaml.safe_load(data) or {}
         if "schema_version" not in payload:
             payload["schema_version"] = 1
@@ -274,6 +294,17 @@ class BenchmarkReport(BaseModel):
 
     # --- Conversion helper ---
     def convert(self, to: str) -> str:
+        """Convert the report to a textual format.
+
+        Args:
+            to: One of {"json", "yaml", "yml"}.
+
+        Returns:
+            String in the requested format.
+
+        Raises:
+            ValueError: If target format is unsupported.
+        """
         to = to.lower()
         if to == "json":
             return self.to_json(indent=2)

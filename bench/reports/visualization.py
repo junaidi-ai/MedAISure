@@ -7,10 +7,26 @@ from bench.models.benchmark_report import BenchmarkReport
 
 
 class VisualizationGenerator:
+    """Generate visualizations from a `BenchmarkReport`.
+
+    Provides static images (matplotlib/seaborn) and interactive (Plotly) charts
+    for comparing model performance across tasks and metrics.
+    """
+
     def __init__(self, benchmark_report: BenchmarkReport):
+        """Initialize the generator.
+
+        Args:
+            benchmark_report: Aggregated benchmark results to visualize.
+        """
         self.report = benchmark_report
 
     def generate_metric_comparison(self, output_path: Path) -> None:
+        """Create a bar chart comparing metrics across tasks.
+
+        Args:
+            output_path: Destination image path (suffix determines format).
+        """
         try:
             import matplotlib.pyplot as plt  # type: ignore
             import pandas as pd  # type: ignore
@@ -102,7 +118,13 @@ class VisualizationGenerator:
         fig.savefig(output_path)
 
     def generate_heatmap(self, output_path: Union[str, Path]) -> None:
-        """Create a heatmap of task (rows) x metric (cols) scores.
+        """Create a heatmap of per-task metric scores.
+
+        Args:
+            output_path: Destination image path.
+        """
+        """
+        Create a heatmap of task (rows) x metric (cols) scores.
 
         Tries seaborn first (nicer), falls back to matplotlib if seaborn isn't available.
         """
@@ -214,7 +236,11 @@ class VisualizationGenerator:
     def generate_metric_comparison_interactive(
         self, output_html: Union[str, Path]
     ) -> None:
-        """Interactive bar chart using Plotly; writes an HTML file."""
+        """Interactive bar chart using Plotly; writes an HTML file.
+
+        Args:
+            output_html: Destination HTML path.
+        """
         try:
             import pandas as pd  # type: ignore
             import plotly.express as px  # type: ignore
@@ -244,6 +270,11 @@ class VisualizationGenerator:
         fig.write_html(str(output_html), include_plotlyjs="cdn")
 
     def generate_heatmap_interactive(self, output_html: Union[str, Path]) -> None:
+        """Interactive heatmap using Plotly; writes an HTML file.
+
+        Args:
+            output_html: Destination HTML path.
+        """
         try:
             import pandas as pd  # type: ignore
             import plotly.express as px  # type: ignore
@@ -273,6 +304,12 @@ class VisualizationGenerator:
     def generate_radar_chart_interactive(
         self, output_html: Union[str, Path], *, max_tasks: Optional[int] = 6
     ) -> None:
+        """Interactive radar chart using Plotly; writes an HTML file.
+
+        Args:
+            output_html: Destination HTML path.
+            max_tasks: Optional limit to number of tasks displayed.
+        """
         try:
             import pandas as pd  # type: ignore
             import plotly.express as px  # type: ignore
@@ -326,6 +363,13 @@ class VisualizationGenerator:
         metric: str,
         history: Optional[Sequence[Tuple[Union[str, float, int], float]]] = None,
     ) -> None:
+        """Interactive time series line plot using Plotly.
+
+        Args:
+            output_html: Destination HTML path.
+            metric: Metric name to plot.
+            history: Optional sequence of (x, value) points.
+        """
         try:
             import pandas as pd  # type: ignore
             import plotly.express as px  # type: ignore

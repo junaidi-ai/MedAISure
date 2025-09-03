@@ -25,6 +25,14 @@ class CSVReportGenerator(ReportGenerator):
     """
 
     def generate(self, benchmark_report: BenchmarkReport) -> Dict[str, str]:
+        """Create CSV tables from a benchmark report.
+
+        Args:
+            benchmark_report: The aggregated results to serialize.
+
+        Returns:
+            Mapping of filename -> CSV content (as text).
+        """
         br = benchmark_report
         outputs: Dict[str, str] = {}
 
@@ -54,6 +62,16 @@ class CSVReportGenerator(ReportGenerator):
         return outputs
 
     def save(self, report: Dict[str, str], output_path: Path) -> None:
+        """Persist generated CSV files.
+
+        If ``output_path`` ends with ``.csv``, writes only the primary table
+        (task_scores). Otherwise treats ``output_path`` as a directory and writes
+        all generated CSV files.
+
+        Args:
+            report: Mapping of filename -> CSV text.
+            output_path: File path (single CSV) or directory for multiple files.
+        """
         output_path = Path(output_path)
         if output_path.suffix.lower() == ".csv":
             # If a single CSV file was requested, write the primary table (task_scores)
@@ -69,6 +87,17 @@ class CSVReportGenerator(ReportGenerator):
             (output_dir / name).write_text(text)
 
     def validate(self, report: Dict[str, str]) -> None:
+        """Validate structure and headers of the generated CSV mapping.
+
+        Ensures required files exist and that fixed-schema files contain the
+        expected headers.
+
+        Args:
+            report: Mapping of filename -> CSV text to validate.
+
+        Raises:
+            ValueError: If structure or headers are invalid.
+        """
         if not isinstance(report, dict):
             raise ValueError("CSV report must be a dict of filename -> CSV string")
         expected = {

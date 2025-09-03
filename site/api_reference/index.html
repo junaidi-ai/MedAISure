@@ -1,0 +1,1564 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="Medical AI Evaluation Benchmark">
+
+
+
+
+        <link rel="prev" href="../extensions/">
+
+
+
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+
+
+
+        <title>API Reference (Full) - MedAISure</title>
+
+
+
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+
+
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#api-reference-concise" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MedAISure" class="md-header__button md-logo" aria-label="MedAISure" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MedAISure
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              API Reference (Full)
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+      <div class="md-header__source">
+        <a href="https://github.com/junaidi-ai/MedAISure" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    junaidi-ai/MedAISure
+  </div>
+</a>
+      </div>
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MedAISure" class="md-nav__button md-logo" aria-label="MedAISure" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MedAISure
+  </label>
+
+    <div class="md-nav__source">
+      <a href="https://github.com/junaidi-ai/MedAISure" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    junaidi-ai/MedAISure
+  </div>
+</a>
+    </div>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Getting Started
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Architecture
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Usage
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Quick Start
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Configuration
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../data_models/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Data Models
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+
+
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    Metrics
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Metrics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../metrics/overview/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Overview
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../metrics_guidelines/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Guidelines
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../metrics_testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Testing
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+
+
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    Models
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Models
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../models/model_interface/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Model Interface
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../models/local_models/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Local Models
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../models/api_models/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    API Models
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../tasks/overview/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Tasks
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+
+
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    API Reference
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../api/overview/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Overview
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../api/reference/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Python API
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Docker
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+
+
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    Testing
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Overview
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Guide
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../testing_integration_coverage/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Integration Coverage
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Performance
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Security
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Troubleshooting
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Contributing
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../extensions/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Extensions
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+    API Reference (Full)
+
+  </span>
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
+
+
+
+  <span class="md-ellipsis">
+    API Reference (Full)
+
+  </span>
+
+
+      </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#evaluationharness-benchevaluationharnesspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      EvaluationHarness (bench/evaluation/harness.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#taskloader-benchevaluationtask_loaderpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      TaskLoader (bench/evaluation/task_loader.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#modelrunner-benchevaluationmodel_runnerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ModelRunner (bench/evaluation/model_runner.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#localmodel-benchevaluationmodel_interfacepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      LocalModel (bench/evaluation/model_interface.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#metriccalculator-benchevaluationmetric_calculatorpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      MetricCalculator (bench/evaluation/metric_calculator.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#resultaggregator-benchevaluationresult_aggregatorpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ResultAggregator (bench/evaluation/result_aggregator.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#data-models-benchmodels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Models (bench/models/)
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Data Models (bench/models/)">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#advanced-serialization-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Serialization (Models)
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#supported-formats-extra-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported formats (extra reports)
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+    </ul>
+
+</nav>
+
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#evaluationharness-benchevaluationharnesspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      EvaluationHarness (bench/evaluation/harness.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#taskloader-benchevaluationtask_loaderpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      TaskLoader (bench/evaluation/task_loader.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#modelrunner-benchevaluationmodel_runnerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ModelRunner (bench/evaluation/model_runner.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#localmodel-benchevaluationmodel_interfacepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      LocalModel (bench/evaluation/model_interface.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#metriccalculator-benchevaluationmetric_calculatorpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      MetricCalculator (bench/evaluation/metric_calculator.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#resultaggregator-benchevaluationresult_aggregatorpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ResultAggregator (bench/evaluation/result_aggregator.py)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#data-models-benchmodels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Models (bench/models/)
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Data Models (bench/models/)">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#advanced-serialization-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Serialization (Models)
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#supported-formats-extra-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported formats (extra reports)
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+
+
+
+<h1 id="api-reference-concise">API Reference (concise)<a class="headerlink" href="#api-reference-concise" title="Permanent link">&para;</a></h1>
+<p>References for primary public classes. Read the code for full details.</p>
+<h2 id="evaluationharness-benchevaluationharnesspy">EvaluationHarness (<code>bench/evaluation/harness.py</code>)<a class="headerlink" href="#evaluationharness-benchevaluationharnesspy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>__init__(tasks_dir, results_dir, cache_dir=None, log_level="INFO", callbacks...)</code></li>
+<li><code>evaluate(model_id, task_ids, model_type="huggingface", batch_size=8, use_cache=True, save_results=True, report_formats: Optional[List[str]] = None, report_dir: Optional[str] = None, **model_kwargs) -&gt; BenchmarkReport</code></li>
+<li><code>list_available_tasks() -&gt; List[dict]</code></li>
+<li><code>get_task_info(task_id) -&gt; dict</code></li>
+</ul>
+<p>Notes:
+- <code>evaluate()</code> loads the model via <code>ModelRunner.load_model()</code> then iterates tasks.
+- Metrics are computed via <code>MetricCalculator.calculate_metrics()</code>.
+- Results aggregated via <code>ResultAggregator.add_evaluation_result()</code> and returned as <code>BenchmarkReport</code>.
+- When <code>report_formats</code> is provided (e.g. <code>["html", "md"]</code>), extra reports are generated and saved to <code>report_dir</code> (defaults to <code>results_dir</code>).</p>
+<p>Example – basic run:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationHarness</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">EvaluationHarness</span><span class="p">(</span><span class="n">tasks_dir</span><span class="o">=</span><span class="s2">&quot;bench/tasks&quot;</span><span class="p">,</span> <span class="n">results_dir</span><span class="o">=</span><span class="s2">&quot;bench/results&quot;</span><span class="p">)</span>
+<span class="n">tasks</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">list_available_tasks</span><span class="p">()</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;textattack/bert-base-uncased-MNLI&quot;</span><span class="p">,</span>
+    <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">]],</span>
+    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;huggingface&quot;</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">report_formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;html&quot;</span><span class="p">,</span> <span class="s2">&quot;md&quot;</span><span class="p">],</span>
+    <span class="n">report_dir</span><span class="o">=</span><span class="s2">&quot;bench/reports&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">overall_scores</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Example – get task info:
+<div class="highlight"><pre><span></span><code><span class="n">info</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">get_task_info</span><span class="p">(</span><span class="n">tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;task_id&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metrics&quot;</span><span class="p">))</span>
+</code></pre></div></p>
+<h2 id="taskloader-benchevaluationtask_loaderpy">TaskLoader (<code>bench/evaluation/task_loader.py</code>)<a class="headerlink" href="#taskloader-benchevaluationtask_loaderpy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>load_task(task_id: str) -&gt; MedicalTask</code> (task_id can be id, local file path, or HTTP(S) URL)</li>
+<li><code>load_tasks(task_ids: List[str]) -&gt; Dict[str, MedicalTask&gt;</code></li>
+<li><code>discover_tasks() -&gt; Dict[str, str]</code></li>
+<li><code>list_available_tasks() -&gt; List[dict]</code></li>
+</ul>
+<p>Examples:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.task_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskLoader</span>
+<span class="n">tl</span> <span class="o">=</span> <span class="n">TaskLoader</span><span class="p">(</span><span class="n">tasks_dir</span><span class="o">=</span><span class="s2">&quot;bench/tasks&quot;</span><span class="p">)</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">load_task</span><span class="p">(</span><span class="s2">&quot;clinical_summarization_discharge&quot;</span><span class="p">)</span>
+<span class="n">all_tasks</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">list_available_tasks</span><span class="p">()</span>
+</code></pre></div></p>
+<h2 id="modelrunner-benchevaluationmodel_runnerpy">ModelRunner (<code>bench/evaluation/model_runner.py</code>)<a class="headerlink" href="#modelrunner-benchevaluationmodel_runnerpy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>load_model(model_name, model_type="local", model_path=None, **kwargs)</code></li>
+<li><code>model_type in {"huggingface", "local", "api"}</code></li>
+<li>HuggingFace options:<ul>
+<li><code>hf_task</code>: <code>text-classification | summarization | text-generation</code></li>
+<li><code>model_kwargs</code>, <code>tokenizer_kwargs</code>, <code>pipeline_kwargs</code>, <code>device</code>, <code>num_labels</code></li>
+<li>Generation: <code>generation_kwargs</code> (used in <code>run_model()</code> for summarization/text-generation)</li>
+<li>Advanced loading: <code>device_map</code>, <code>torch_dtype</code>, <code>low_cpu_mem_usage</code>, <code>revision</code>, <code>trust_remote_code</code></li>
+</ul>
+</li>
+<li>Local: requires <code>module_path</code>, optional <code>load_func</code> (default <code>load_model</code>)</li>
+<li>API: requires <code>endpoint</code>, <code>api_key</code>, optional <code>timeout</code>, <code>max_retries</code>, <code>backoff_factor</code>, <code>headers</code></li>
+<li><code>run_model(model_id, inputs, batch_size=8, **kwargs) -&gt; List[dict]</code></li>
+<li><code>unload_model(model_name)</code></li>
+</ul>
+<p>Examples:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.model_runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelRunner</span>
+<span class="n">mr</span> <span class="o">=</span> <span class="n">ModelRunner</span><span class="p">()</span>
+<span class="c1"># HF summarization with generation params</span>
+<span class="n">mr</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span>
+    <span class="s2">&quot;sshleifer/distilbart-cnn-12-6&quot;</span><span class="p">,</span>
+    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;huggingface&quot;</span><span class="p">,</span>
+    <span class="n">hf_task</span><span class="o">=</span><span class="s2">&quot;summarization&quot;</span><span class="p">,</span>
+    <span class="n">generation_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;max_new_tokens&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span> <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span> <span class="s2">&quot;do_sample&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">preds</span> <span class="o">=</span> <span class="n">mr</span><span class="o">.</span><span class="n">run_model</span><span class="p">(</span><span class="s2">&quot;sshleifer/distilbart-cnn-12-6&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;note&quot;</span><span class="p">}],</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Local</span>
+<span class="n">mr</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;my_local&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="n">module_path</span><span class="o">=</span><span class="s2">&quot;bench.examples.mypkg.mylocal&quot;</span><span class="p">)</span>
+<span class="n">preds</span> <span class="o">=</span> <span class="n">mr</span><span class="o">.</span><span class="n">run_model</span><span class="p">(</span><span class="s2">&quot;my_local&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">}],</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Returned prediction dicts typically include <code>{"label", "score"}</code> for classification or <code>{"summary"|"text"|"prediction"}</code> for generative tasks.</p>
+<p>See runnable examples:
+- <code>bench/examples/run_hf_summarization_gen.py</code>
+- <code>bench/examples/run_hf_text_generation_gen.py</code></p>
+<h2 id="localmodel-benchevaluationmodel_interfacepy">LocalModel (<code>bench/evaluation/model_interface.py</code>)<a class="headerlink" href="#localmodel-benchevaluationmodel_interfacepy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>LocalModel(predict_fn: Optional[Callable]=None, model_path: Optional[str]=None, loader: Optional[Callable]=None, model_id: Optional[str]=None)</code></li>
+<li>Load local models directly from files or wrap a Python callable.</li>
+<li>Auto-loaders by extension:<ul>
+<li><code>.pkl</code>/<code>.pickle</code> → <code>pickle.load</code></li>
+<li><code>.joblib</code> → <code>joblib.load</code> (optional dependency)</li>
+<li><code>.pt</code>/<code>.pth</code> → <code>torch.load</code> (optional dependency)</li>
+</ul>
+</li>
+<li>Prediction: calls the model object (if callable) or its <code>.predict()</code> method; otherwise uses <code>predict_fn</code>.</li>
+<li><code>metadata</code> includes <code>file_path</code>, <code>ext</code>, <code>file_size</code>, <code>file_mtime</code>, <code>object_class</code>, <code>object_module</code>, and inferred <code>framework</code>.</li>
+</ul>
+<p>Examples (runnable scripts):</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>bench/examples/run_localmodel_pickle.py
+python<span class="w"> </span>bench/examples/run_localmodel_joblib.py<span class="w">   </span><span class="c1"># requires joblib</span>
+python<span class="w"> </span>bench/examples/run_localmodel_torch.py<span class="w">    </span><span class="c1"># requires torch</span>
+</code></pre></div>
+<p>Inline usage – Pickle:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.model_interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalModel</span>
+<span class="n">lm</span> <span class="o">=</span> <span class="n">LocalModel</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;.local_models/echo.pkl&quot;</span><span class="p">)</span>
+<span class="n">preds</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">predict</span><span class="p">([{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;hello&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;world&quot;</span><span class="p">}])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">lm</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Inline usage – Joblib:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.model_interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalModel</span>
+<span class="n">lm</span> <span class="o">=</span> <span class="n">LocalModel</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;.local_models/echo.joblib&quot;</span><span class="p">)</span>
+<span class="n">preds</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">predict</span><span class="p">([{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;bbb&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">preds</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Inline usage – Torch:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.model_interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalModel</span>
+<span class="n">lm</span> <span class="o">=</span> <span class="n">LocalModel</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;.local_models/echo.pt&quot;</span><span class="p">)</span>
+<span class="n">preds</span> <span class="o">=</span> <span class="n">lm</span><span class="o">.</span><span class="n">predict</span><span class="p">([{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">}])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">preds</span><span class="p">)</span>
+</code></pre></div></p>
+<h2 id="metriccalculator-benchevaluationmetric_calculatorpy">MetricCalculator (<code>bench/evaluation/metric_calculator.py</code>)<a class="headerlink" href="#metriccalculator-benchevaluationmetric_calculatorpy" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Built-ins: <code>accuracy</code>, <code>precision</code>, <code>recall</code>, <code>f1</code>, <code>roc_auc</code>, <code>average_precision</code>, <code>mse</code>, <code>mae</code>, <code>r2</code></li>
+<li>Medical: <code>diagnostic_accuracy</code>, <code>clinical_correctness</code>, <code>reasoning_quality</code>, <code>rouge_l</code>, <code>clinical_relevance</code>, <code>factual_consistency</code></li>
+<li><code>register_metric(name, fn, **default_kwargs)</code></li>
+<li><code>calculate_metrics(task_id, predictions, references, metric_names=None, **metric_kwargs) -&gt; Dict[str, MetricResult]</code></li>
+<li><code>aggregate_metrics(metric_results, aggregation="mean") -&gt; Dict[str, MetricResult]</code></li>
+</ul>
+<p>Examples:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.metric_calculator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
+<span class="n">mc</span> <span class="o">=</span> <span class="n">MetricCalculator</span><span class="p">()</span>
+
+<span class="n">preds</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;yes&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;no&quot;</span><span class="p">}]</span>
+<span class="n">refs</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;yes&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;no&quot;</span><span class="p">}]</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">(</span><span class="s2">&quot;demo&quot;</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">refs</span><span class="p">,</span> <span class="n">metric_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">])</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">exact_match</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span> <span class="o">==</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_true</span><span class="p">))</span>
+<span class="n">mc</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;exact_match&quot;</span><span class="p">,</span> <span class="n">exact_match</span><span class="p">)</span>
+<span class="n">res2</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">calculate_metrics</span><span class="p">(</span><span class="s2">&quot;demo&quot;</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">refs</span><span class="p">,</span> <span class="n">metric_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;exact_match&quot;</span><span class="p">])</span>
+</code></pre></div></p>
+<h2 id="resultaggregator-benchevaluationresult_aggregatorpy">ResultAggregator (<code>bench/evaluation/result_aggregator.py</code>)<a class="headerlink" href="#resultaggregator-benchevaluationresult_aggregatorpy" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>add_evaluation_result(EvaluationResult, run_id=None)</code></li>
+<li><code>get_report(run_id) -&gt; BenchmarkReport</code></li>
+<li><code>export_report_json|csv|markdown|html(run_id, output)</code></li>
+<li><code>aggregate_statistics(run_id, metrics=None, percentiles=None, tasks=None)</code></li>
+<li><code>filter_and_sort_tasks(run_id, tasks=None, metrics=None, sort_by=None, descending=True)</code></li>
+<li><code>compare_runs(run_a, run_b, metrics=None, relative=False)</code></li>
+</ul>
+<p>Examples:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.result_aggregator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResultAggregator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationResult</span>
+
+<span class="n">ra</span> <span class="o">=</span> <span class="n">ResultAggregator</span><span class="p">(</span><span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;bench/results&quot;</span><span class="p">)</span>
+<span class="n">er</span> <span class="o">=</span> <span class="n">EvaluationResult</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;demo&quot;</span><span class="p">,</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;task1&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">}],</span>
+    <span class="n">model_outputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;y&quot;</span><span class="p">}],</span>
+    <span class="n">metrics_results</span><span class="o">=</span><span class="p">{},</span>
+<span class="p">)</span>
+<span class="n">ra</span><span class="o">.</span><span class="n">add_evaluation_result</span><span class="p">(</span><span class="n">er</span><span class="p">,</span> <span class="n">run_id</span><span class="o">=</span><span class="s2">&quot;run-1&quot;</span><span class="p">)</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">get_report</span><span class="p">(</span><span class="s2">&quot;run-1&quot;</span><span class="p">)</span>
+<span class="n">ra</span><span class="o">.</span><span class="n">export_report_json</span><span class="p">(</span><span class="s2">&quot;run-1&quot;</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;bench/results/run-1.json&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<h2 id="data-models-benchmodels">Data Models (<code>bench/models/</code>)<a class="headerlink" href="#data-models-benchmodels" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>MedicalTask</code>: fields include <code>task_id</code>, <code>task_type</code>, <code>name</code>, <code>description</code>, <code>inputs</code>, <code>expected_outputs</code>, <code>metrics</code>, <code>input_schema</code>, <code>output_schema</code>, <code>dataset</code></li>
+<li><code>EvaluationResult</code>: <code>model_id</code>, <code>task_id</code>, <code>inputs</code>, <code>model_outputs</code>, <code>metrics_results</code>, <code>metadata</code>, <code>timestamp</code></li>
+<li><code>BenchmarkReport</code>: overall/task scores + <code>detailed_results</code>, JSON save/load helpers</li>
+</ul>
+<h3 id="advanced-serialization-models">Advanced Serialization (Models)<a class="headerlink" href="#advanced-serialization-models" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><code>schema_version</code>: int, default <code>1</code> on all models for forward compatibility</p>
+</li>
+<li>
+<p>Partial serialization (all models):</p>
+</li>
+<li><code>to_dict(include=None, exclude=None)</code></li>
+<li>
+<p><code>to_json(indent=None, include=None, exclude=None)</code></p>
+</li>
+<li>
+<p>YAML support (all models):</p>
+</li>
+<li><code>to_yaml()</code> → YAML string</li>
+<li>
+<p><code>from_yaml(text: str)</code> → instance</p>
+</li>
+<li>
+<p>File I/O and conversion (all models):</p>
+</li>
+<li><code>save(path, format=None)</code> → format inferred from extension (<code>.json</code>, <code>.yaml</code>, <code>.yml</code>) or by <code>format</code></li>
+<li><code>from_file(path)</code> → loads JSON/YAML by extension</li>
+<li>
+<p><code>convert(to)</code> → returns string in <code>json</code> or <code>yaml</code></p>
+</li>
+<li>
+<p>CSV helpers:</p>
+</li>
+<li><code>EvaluationResult</code>: <code>inputs_to_csv()</code>, <code>outputs_to_csv()</code>, <code>from_inputs_csv(model_id, task_id, csv_text)</code>, <code>from_outputs_csv(model_id, task_id, csv_text)</code></li>
+<li><code>MedicalTask</code>: <code>dataset_to_csv()</code></li>
+<li><code>BenchmarkReport</code>: <code>overall_scores_to_csv()</code>, <code>task_scores_to_csv()</code></li>
+</ul>
+<p>Examples:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedicalTask</span><span class="p">,</span> <span class="n">EvaluationResult</span><span class="p">,</span> <span class="n">BenchmarkReport</span>
+
+<span class="c1"># YAML round-trip</span>
+<span class="n">task_yaml</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">to_yaml</span><span class="p">()</span>
+<span class="n">task2</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="o">.</span><span class="n">from_yaml</span><span class="p">(</span><span class="n">task_yaml</span><span class="p">)</span>
+
+<span class="c1"># Partial JSON (only overall_scores)</span>
+<span class="n">report_json</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;overall_scores&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+
+<span class="c1"># Save/Load</span>
+<span class="n">result</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;res.yaml&quot;</span><span class="p">)</span>
+<span class="n">res2</span> <span class="o">=</span> <span class="n">EvaluationResult</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;res.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># CSV exports</span>
+<span class="n">csv_inputs</span> <span class="o">=</span> <span class="n">res2</span><span class="o">.</span><span class="n">inputs_to_csv</span><span class="p">()</span>
+<span class="n">csv_overall</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">overall_scores_to_csv</span><span class="p">()</span>
+
+<span class="c1">## CLI (Typer) – Evaluate</span>
+
+<span class="n">File</span><span class="p">:</span> <span class="err">`</span><span class="n">bench</span><span class="o">/</span><span class="n">cli_typer</span><span class="o">.</span><span class="n">py</span><span class="err">`</span>
+
+<span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">tasks</span> <span class="o">&lt;</span><span class="nb">id</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="n">select</span> <span class="n">tasks</span> <span class="p">(</span><span class="n">repeatable</span><span class="p">)</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">dir</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="n">base</span> <span class="n">report</span> <span class="n">directory</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="nb">format</span> <span class="o">&lt;</span><span class="n">fmt</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="n">base</span> <span class="n">report</span> <span class="nb">format</span> <span class="p">(</span><span class="err">`</span><span class="n">json</span><span class="o">|</span><span class="n">yaml</span><span class="o">|</span><span class="n">md</span><span class="o">|</span><span class="n">csv</span><span class="err">`</span><span class="p">)</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">extra</span><span class="o">-</span><span class="n">report</span> <span class="o">&lt;</span><span class="n">fmt</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="n">extra</span> <span class="n">report</span> <span class="n">export</span> <span class="p">(</span><span class="n">repeatable</span><span class="p">)</span><span class="o">.</span> <span class="n">Example</span><span class="p">:</span> <span class="err">`</span><span class="o">--</span><span class="n">extra</span><span class="o">-</span><span class="n">report</span> <span class="n">html</span> <span class="o">--</span><span class="n">extra</span><span class="o">-</span><span class="n">report</span> <span class="n">md</span><span class="err">`</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">report</span><span class="o">-</span><span class="nb">dir</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="n">directory</span> <span class="k">for</span> <span class="n">extra</span> <span class="n">reports</span> <span class="p">(</span><span class="n">defaults</span> <span class="n">to</span> <span class="err">`</span><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">dir</span><span class="err">`</span><span class="p">)</span>
+<span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">config</span><span class="o">-</span><span class="n">file</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="n">JSON</span><span class="o">/</span><span class="n">YAML</span> <span class="n">config</span> <span class="p">(</span><span class="n">see</span> <span class="err">`</span><span class="n">docs</span><span class="o">/</span><span class="n">configuration</span><span class="o">.</span><span class="n">md</span><span class="err">`</span><span class="p">)</span>
+ <span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">html</span><span class="o">-</span><span class="nb">open</span><span class="o">-</span><span class="n">metadata</span> <span class="p">[</span><span class="n">true</span><span class="o">|</span><span class="n">false</span><span class="p">]</span><span class="err">`</span><span class="p">:</span> <span class="nb">open</span> <span class="n">Metadata</span> <span class="n">sections</span> <span class="n">by</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">generated</span> <span class="n">HTML</span> <span class="n">reports</span>
+ <span class="o">-</span> <span class="err">`</span><span class="o">--</span><span class="n">html</span><span class="o">-</span><span class="n">preview</span><span class="o">-</span><span class="n">limit</span> <span class="o">&lt;</span><span class="nb">int</span><span class="o">&gt;</span><span class="err">`</span><span class="p">:</span> <span class="nb">max</span> <span class="n">items</span> <span class="n">to</span> <span class="n">show</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">/</span><span class="n">outputs</span> <span class="n">previews</span> <span class="ow">in</span> <span class="n">HTML</span> <span class="n">before</span> <span class="n">truncation</span>
+
+<span class="n">Example</span><span class="p">:</span>
+
+<span class="err">```</span><span class="n">bash</span>
+<span class="c1"># Base JSON report + extra HTML/MD exports into custom directory</span>
+<span class="n">MEDAISURE_NO_RICH</span><span class="o">=</span><span class="mi">1</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">bench</span><span class="o">.</span><span class="n">cli_typer</span> <span class="n">evaluate</span> <span class="n">textattack</span><span class="o">/</span><span class="n">bert</span><span class="o">-</span><span class="n">base</span><span class="o">-</span><span class="n">uncased</span><span class="o">-</span><span class="n">MNLI</span> \
+  <span class="o">--</span><span class="n">tasks</span> <span class="n">clinical_icd10_classification</span> \
+  <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">dir</span> <span class="n">results</span> \
+  <span class="o">--</span><span class="nb">format</span> <span class="n">json</span> \
+  <span class="o">--</span><span class="n">extra</span><span class="o">-</span><span class="n">report</span> <span class="n">html</span> <span class="o">--</span><span class="n">extra</span><span class="o">-</span><span class="n">report</span> <span class="n">md</span> \
+  <span class="o">--</span><span class="n">report</span><span class="o">-</span><span class="nb">dir</span> <span class="n">reports</span> \
+  <span class="o">--</span><span class="n">html</span><span class="o">-</span><span class="nb">open</span><span class="o">-</span><span class="n">metadata</span> <span class="n">true</span> \
+  <span class="o">--</span><span class="n">html</span><span class="o">-</span><span class="n">preview</span><span class="o">-</span><span class="n">limit</span> <span class="mi">10</span>
+</code></pre></div></p>
+<h3 id="supported-formats-extra-reports">Supported formats (extra reports)<a class="headerlink" href="#supported-formats-extra-reports" title="Permanent link">&para;</a></h3>
+<ul>
+<li>json</li>
+<li>md (markdown)</li>
+<li>html</li>
+</ul>
+<p>Reference implementation: <code>ReportFactory</code> in <code>bench/reports/factory.py</code>.</p>
+<p>Environment variables affecting HTML rendering:</p>
+<ul>
+<li><code>MEDAISURE_HTML_OPEN_METADATA</code> = <code>"1"</code> to open Metadata sections by default</li>
+<li><code>MEDAISURE_HTML_PREVIEW_LIMIT</code> = integer truncation limit for list previews (default 5)</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+
+
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+
+
+  </body>
+</html>

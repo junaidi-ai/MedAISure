@@ -41,3 +41,11 @@ jobs:
       - name: Ruff (lint)
         run: |
           ruff check .
+
+      - name: Ruff (docstrings for bench/)
+        run: |
+          # Enforce presence of class/method/function docstrings in bench/
+          # D101: Missing docstring in public class
+          # D102: Missing docstring in public method
+          # D103: Missing docstring in public function
+          ruff check bench --select D101,D102,D103

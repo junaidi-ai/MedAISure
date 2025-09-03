@@ -24,7 +24,17 @@ summary { cursor: pointer; font-weight: 600; }
 
 
 class HTMLReportGenerator(ReportGenerator):
+    """Generate an HTML report for a benchmark run."""
+
     def generate(self, benchmark_report: BenchmarkReport) -> str:
+        """Render the provided benchmark report as an HTML string.
+
+        Args:
+            benchmark_report: Aggregated benchmark results to render.
+
+        Returns:
+            HTML document as a string.
+        """
         br = benchmark_report
 
         def render_overall():
@@ -160,11 +170,25 @@ class HTMLReportGenerator(ReportGenerator):
         return html
 
     def save(self, report: str, output_path: Path) -> None:
+        """Write the HTML report to disk.
+
+        Args:
+            report: HTML text content.
+            output_path: Destination file path.
+        """
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(report)
 
     def validate(self, report: str) -> None:
+        """Perform minimal structure checks on the HTML payload.
+
+        Args:
+            report: HTML text to validate.
+
+        Raises:
+            ValueError: If required elements are missing.
+        """
         if not isinstance(report, str):
             raise ValueError("HTML report must be a string")
         required_snippets = [

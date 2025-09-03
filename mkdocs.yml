@@ -1,0 +1,71 @@
+site_name: MedAISure
+site_description: Medical AI Evaluation Benchmark
+repo_url: https://github.com/junaidi-ai/MedAISure
+repo_name: junaidi-ai/MedAISure
+site_dir: site
+
+nav:
+  - Getting Started: getting_started.md
+  - Architecture: architecture.md
+  - Usage: usage.md
+  - Quick Start: quick_start.md
+  - Configuration: configuration.md
+  - Data Models: data_models.md
+  - Metrics:
+      - Overview: metrics/overview.md
+      - Guidelines: metrics_guidelines.md
+      - Testing: metrics_testing.md
+  - Models:
+      - Model Interface: models/model_interface.md
+      - Local Models: models/local_models.md
+      - API Models: models/api_models.md
+  - Tasks: tasks/overview.md
+  - API Reference:
+      - Overview: api/overview.md
+      - Python API: api/reference.md
+  - Docker: docker.md
+  - Testing:
+      - Overview: testing.md
+      - Guide: testing_guide.md
+      - Integration Coverage: testing_integration_coverage.md
+  - Performance: performance.md
+  - Security: security.md
+  - Troubleshooting: troubleshooting.md
+  - Contributing: contributing.md
+  - Extensions: extensions.md
+  - API Reference (Full): api_reference.md
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+  features:
+    - navigation.instant
+    - navigation.expand
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.emoji
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            heading_level: 2

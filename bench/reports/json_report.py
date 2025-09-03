@@ -9,15 +9,39 @@ from .base import ReportGenerator
 
 
 class JSONReportGenerator(ReportGenerator):
+    """Generate JSON representation of a BenchmarkReport."""
+
     def generate(self, benchmark_report: BenchmarkReport) -> Dict:
+        """Serialize the benchmark report to a JSON-compatible dict.
+
+        Args:
+            benchmark_report: Aggregated benchmark results.
+
+        Returns:
+            A JSON-serializable dictionary.
+        """
         return benchmark_report.to_dict()
 
     def save(self, report: Dict, output_path: Path) -> None:
+        """Write the JSON report to a file.
+
+        Args:
+            report: JSON-serializable dictionary.
+            output_path: Destination file path.
+        """
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(report, indent=2, default=str))
 
     def validate(self, report: Dict) -> None:
+        """Validate basic structure and required keys of the JSON payload.
+
+        Args:
+            report: JSON dictionary to validate.
+
+        Raises:
+            ValueError: If structure or required keys are invalid.
+        """
         if not isinstance(report, dict):
             raise ValueError("JSON report must be a dict")
         # Required top-level keys

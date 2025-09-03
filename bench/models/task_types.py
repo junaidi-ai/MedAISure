@@ -154,6 +154,11 @@ class DiagnosticReasoningTask(MedicalTask):
         )
 
     def load_data(self, data_path: str | Path) -> None:
+        """Load dataset from JSON/CSV; map to canonical fields.
+
+        Args:
+            data_path: Path to .json list or .csv with columns.
+        """
         rows = _read_json_or_csv(data_path)
         dataset: List[Dict[str, Any]] = []
         for r in rows:
@@ -227,6 +232,11 @@ class ClinicalSummarizationTask(MedicalTask):
         )
 
     def load_data(self, data_path: str | Path) -> None:
+        """Load dataset from JSON/CSV; supports aliases for document text.
+
+        Args:
+            data_path: Path to .json list or .csv with columns.
+        """
         rows = _read_json_or_csv(data_path)
         dataset: List[Dict[str, Any]] = []
         for r in rows:

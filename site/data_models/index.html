@@ -1,0 +1,2065 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="Medical AI Evaluation Benchmark">
+
+
+
+
+        <link rel="prev" href="../configuration/">
+
+
+        <link rel="next" href="../metrics/overview/">
+
+
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+
+
+
+        <title>Data Models - MedAISure</title>
+
+
+
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+
+
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#medaisure-benchmark-data-models" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MedAISure" class="md-header__button md-logo" aria-label="MedAISure" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MedAISure
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              Data Models
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+      <div class="md-header__source">
+        <a href="https://github.com/junaidi-ai/MedAISure" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    junaidi-ai/MedAISure
+  </div>
+</a>
+      </div>
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MedAISure" class="md-nav__button md-logo" aria-label="MedAISure" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MedAISure
+  </label>
+
+    <div class="md-nav__source">
+      <a href="https://github.com/junaidi-ai/MedAISure" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    junaidi-ai/MedAISure
+  </div>
+</a>
+    </div>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Getting Started
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Architecture
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Usage
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Quick Start
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Configuration
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+    Data Models
+
+  </span>
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
+
+
+
+  <span class="md-ellipsis">
+    Data Models
+
+  </span>
+
+
+      </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#medicaltask" class="md-nav__link">
+    <span class="md-ellipsis">
+      MedicalTask
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="MedicalTask">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#evaluationresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      EvaluationResult
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="EvaluationResult">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#benchmarkreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      BenchmarkReport
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="BenchmarkReport">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#fields_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage Examples
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#creating-a-medical-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Medical Task
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#running-an-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running an Evaluation
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serialization
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-type-schema-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task-Type Schema Requirements
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-type-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task-Type Examples
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Task-Type Examples">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#qa" class="md-nav__link">
+    <span class="md-ellipsis">
+      QA
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#diagnostic-reasoning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Diagnostic Reasoning
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#summarization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summarization
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#creating-custom-task-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating Custom Task Instances
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Creating Custom Task Instances">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#minimal-yaml-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimal YAML Example
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#load-and-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load and Validate
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-specific-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task-Specific Metrics
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#end-to-end-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-End Usage
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task Registry
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+
+
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    Metrics
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Metrics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../metrics/overview/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Overview
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../metrics_guidelines/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Guidelines
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../metrics_testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Testing
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+
+
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    Models
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Models
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../models/model_interface/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Model Interface
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../models/local_models/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Local Models
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../models/api_models/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    API Models
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../tasks/overview/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Tasks
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+
+
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    API Reference
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../api/overview/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Overview
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../api/reference/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Python API
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Docker
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--nested">
+
+
+
+
+
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+
+
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+
+
+
+  <span class="md-ellipsis">
+    Testing
+
+  </span>
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Overview
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../testing_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Guide
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../testing_integration_coverage/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Integration Coverage
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Performance
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Security
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Troubleshooting
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Contributing
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../extensions/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    Extensions
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+    API Reference (Full)
+
+  </span>
+
+
+      </a>
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#medicaltask" class="md-nav__link">
+    <span class="md-ellipsis">
+      MedicalTask
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="MedicalTask">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#evaluationresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      EvaluationResult
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="EvaluationResult">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#benchmarkreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      BenchmarkReport
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="BenchmarkReport">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#fields_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage Examples
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#creating-a-medical-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Medical Task
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#running-an-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running an Evaluation
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serialization
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-type-schema-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task-Type Schema Requirements
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-type-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task-Type Examples
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Task-Type Examples">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#qa" class="md-nav__link">
+    <span class="md-ellipsis">
+      QA
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#diagnostic-reasoning" class="md-nav__link">
+    <span class="md-ellipsis">
+      Diagnostic Reasoning
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#summarization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summarization
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#creating-custom-task-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating Custom Task Instances
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Creating Custom Task Instances">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#minimal-yaml-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimal YAML Example
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#load-and-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load and Validate
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-specific-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task-Specific Metrics
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#end-to-end-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      End-to-End Usage
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#task-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task Registry
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+
+
+
+<h1 id="medaisure-benchmark-data-models">MedAISure Benchmark Data Models<a class="headerlink" href="#medaisure-benchmark-data-models" title="Permanent link">&para;</a></h1>
+<p>This document provides detailed documentation for the core data models used in the MedAISure Benchmark system.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#medicaltask">MedicalTask</a></li>
+<li><a href="#evaluationresult">EvaluationResult</a></li>
+<li><a href="#benchmarkreport">BenchmarkReport</a></li>
+<li><a href="#usage-examples">Usage Examples</a></li>
+<li><a href="#serialization">Serialization</a></li>
+</ul>
+<h2 id="medicaltask">MedicalTask<a class="headerlink" href="#medicaltask" title="Permanent link">&para;</a></h2>
+<p>Represents a medical task that a model needs to perform.</p>
+<h3 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>task_id</code> (str): Unique identifier for the task</li>
+<li><code>task_type</code> (TaskType): Type of the task (e.g., "diagnostic_reasoning", "qa")</li>
+<li><code>description</code> (str): Human-readable description of the task</li>
+<li><code>inputs</code> (List[Dict]): List of input examples for the task</li>
+<li><code>expected_outputs</code> (List[Dict]): List of expected outputs corresponding to inputs</li>
+<li><code>metrics</code> (List[str]): List of metric names to evaluate the task</li>
+</ul>
+<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedicalTask</span><span class="p">,</span> <span class="n">TaskType</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="p">(</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;task_123&quot;</span><span class="p">,</span>
+    <span class="n">task_type</span><span class="o">=</span><span class="n">TaskType</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Answer medical questions&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;question&quot;</span><span class="p">:</span> <span class="s2">&quot;What are the symptoms of COVID-19?&quot;</span><span class="p">}],</span>
+    <span class="n">expected_outputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;Common symptoms include fever, cough, and fatigue.&quot;</span><span class="p">}],</span>
+    <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;f1_score&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="evaluationresult">EvaluationResult<a class="headerlink" href="#evaluationresult" title="Permanent link">&para;</a></h2>
+<p>Represents the result of evaluating a model on a specific task.</p>
+<h3 id="fields_1">Fields<a class="headerlink" href="#fields_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>model_id</code> (str): Identifier for the evaluated model</li>
+<li><code>task_id</code> (str): Identifier of the task being evaluated</li>
+<li><code>inputs</code> (List[Dict]): Inputs used for evaluation</li>
+<li><code>model_outputs</code> (List[Dict]): Model's outputs for the given inputs</li>
+<li><code>metrics_results</code> (Dict[str, float]): Evaluation metrics and their values</li>
+<li><code>metadata</code> (Dict[str, Any]): Additional metadata about the evaluation</li>
+<li><code>timestamp</code> (datetime): When the evaluation was performed (auto-generated)</li>
+</ul>
+<h3 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationResult</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">EvaluationResult</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">,</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;task_123&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;question&quot;</span><span class="p">:</span> <span class="s2">&quot;What are the symptoms of COVID-19?&quot;</span><span class="p">}],</span>
+    <span class="n">model_outputs</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;Symptoms include fever, cough, and fatigue.&quot;</span><span class="p">}],</span>
+    <span class="n">metrics_results</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span> <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">},</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">},</span>
+    <span class="n">timestamp</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="benchmarkreport">BenchmarkReport<a class="headerlink" href="#benchmarkreport" title="Permanent link">&para;</a></h2>
+<p>Aggregates evaluation results across multiple tasks for a model.</p>
+<h3 id="fields_2">Fields<a class="headerlink" href="#fields_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>model_id</code> (str): Identifier for the evaluated model</li>
+<li><code>timestamp</code> (datetime): When the benchmark was run (auto-generated)</li>
+<li><code>overall_scores</code> (Dict[str, float]): Aggregated scores across all tasks</li>
+<li><code>task_scores</code> (Dict[str, Dict[str, float]]): Scores for each task</li>
+<li><code>detailed_results</code> (List[EvaluationResult]): Individual evaluation results</li>
+<li><code>metadata</code> (Dict[str, Any]): Additional metadata about the benchmark</li>
+</ul>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>add_evaluation_result(result: EvaluationResult)</code>: Add a new evaluation result</li>
+<li><code>to_file(file_path: Union[str, Path])</code>: Save the report to a JSON file</li>
+<li><code>from_file(file_path: Union[str, Path]) -&gt; 'BenchmarkReport'</code>: Load a report from a JSON file</li>
+</ul>
+<h3 id="example_2">Example<a class="headerlink" href="#example_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkReport</span>
+
+<span class="c1"># Create a new report</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">BenchmarkReport</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">,</span>
+    <span class="n">overall_scores</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span> <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+    <span class="n">task_scores</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;task_1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span> <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">},</span>
+        <span class="s2">&quot;task_2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">}</span>
+    <span class="p">},</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;run_id&quot;</span><span class="p">:</span> <span class="s2">&quot;run_123&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Add evaluation results</span>
+<span class="n">report</span><span class="o">.</span><span class="n">add_evaluation_result</span><span class="p">(</span><span class="n">result1</span><span class="p">)</span>
+<span class="n">report</span><span class="o">.</span><span class="n">add_evaluation_result</span><span class="p">(</span><span class="n">result2</span><span class="p">)</span>
+
+<span class="c1"># Save to file</span>
+<span class="n">report</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="s2">&quot;benchmark_results.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load from file</span>
+<span class="n">loaded_report</span> <span class="o">=</span> <span class="n">BenchmarkReport</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;benchmark_results.json&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<h3 id="creating-a-medical-task">Creating a Medical Task<a class="headerlink" href="#creating-a-medical-task" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedicalTask</span><span class="p">,</span> <span class="n">TaskType</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="p">(</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;diagnosis_001&quot;</span><span class="p">,</span>
+    <span class="n">task_type</span><span class="o">=</span><span class="n">TaskType</span><span class="o">.</span><span class="n">DIAGNOSTIC_REASONING</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Diagnose the most likely condition based on symptoms&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;symptoms&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;fever&quot;</span><span class="p">,</span> <span class="s2">&quot;cough&quot;</span><span class="p">,</span> <span class="s2">&quot;shortness of breath&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+            <span class="s2">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;M&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="n">expected_outputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;diagnosis&quot;</span><span class="p">:</span> <span class="s2">&quot;pneumonia&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">,</span>
+            <span class="s2">&quot;differential_diagnosis&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;influenza&quot;</span><span class="p">,</span> <span class="s2">&quot;bronchitis&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;precision&quot;</span><span class="p">,</span> <span class="s2">&quot;recall&quot;</span><span class="p">,</span> <span class="s2">&quot;f1_score&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="running-an-evaluation">Running an Evaluation<a class="headerlink" href="#running-an-evaluation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationResult</span>
+
+<span class="c1"># After running the model on the task</span>
+<span class="n">model_outputs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;diagnosis&quot;</span><span class="p">:</span> <span class="s2">&quot;pneumonia&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">0.89</span><span class="p">,</span>
+        <span class="s2">&quot;differential_diagnosis&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;influenza&quot;</span><span class="p">,</span> <span class="s2">&quot;bronchitis&quot;</span><span class="p">,</span> <span class="s2">&quot;asthma&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+
+<span class="c1"># Calculate metrics (simplified example)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># Correct diagnosis</span>
+    <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+    <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+    <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="mf">0.87</span>
+<span class="p">}</span>
+
+<span class="c1"># Create evaluation result</span>
+<span class="n">eval_result</span> <span class="o">=</span> <span class="n">EvaluationResult</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;our-model-1.0&quot;</span><span class="p">,</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">task_id</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
+    <span class="n">model_outputs</span><span class="o">=</span><span class="n">model_outputs</span><span class="p">,</span>
+    <span class="n">metrics_results</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;model_version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;evaluation_time_seconds&quot;</span><span class="p">:</span> <span class="mf">2.5</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h2>
+<p>All models support JSON serialization and deserialization:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># To JSON string</span>
+<span class="n">json_str</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># From JSON string</span>
+<span class="n">loaded_task</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+
+<span class="c1"># To dictionary</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+
+<span class="c1"># From dictionary</span>
+<span class="n">loaded_task</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<p>Models include built-in validation:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">invalid_task</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>  <span class="c1"># Empty string not allowed</span>
+        <span class="n">task_type</span><span class="o">=</span><span class="s2">&quot;invalid_type&quot;</span><span class="p">,</span>  <span class="c1"># Not a valid TaskType</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="p">[],</span>  <span class="c1"># Cannot be empty</span>
+        <span class="n">expected_outputs</span><span class="o">=</span><span class="p">[{}],</span>
+        <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>  <span class="c1"># Empty metric name not allowed</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Always use the provided model classes instead of raw dictionaries</li>
+<li>Take advantage of built-in validation</li>
+<li>Use type hints for better IDE support and code clarity</li>
+<li>Store and share evaluation results using the serialization methods</li>
+<li>Include relevant metadata for traceability</li>
+</ol>
+<h2 id="task-type-schema-requirements">Task-Type Schema Requirements<a class="headerlink" href="#task-type-schema-requirements" title="Permanent link">&para;</a></h2>
+<p>The evaluation framework applies minimal default schemas per <code>TaskType</code> when tasks do not provide explicit <code>input_schema</code>/<code>output_schema</code>. These defaults are enforced during task load and evaluation. Required keys are:</p>
+<ul>
+<li><strong>QA</strong></li>
+<li>Inputs require: <code>question</code></li>
+<li>
+<p>Outputs require: <code>answer</code></p>
+</li>
+<li>
+<p><strong>Summarization</strong></p>
+</li>
+<li>Inputs require: <code>document</code></li>
+<li>
+<p>Outputs require: <code>summary</code></p>
+</li>
+<li>
+<p><strong>Diagnostic Reasoning</strong></p>
+</li>
+<li>Inputs require: <code>symptoms</code></li>
+<li>
+<p>Outputs require: <code>diagnosis</code></p>
+</li>
+<li>
+<p><strong>Communication</strong></p>
+</li>
+<li>Inputs require: <code>prompt</code></li>
+<li>Outputs require: <code>response</code></li>
+</ul>
+<p>Notes:
+- These defaults are defined in <code>bench/evaluation/validators.py</code> under <code>DEFAULT_SCHEMAS</code> and are used by <code>ensure_task_schemas()</code>.
+- Inline datasets may use either flat rows or nested form <code>{ "input": { ... }, "output": { ... } }</code>. See <code>validate_task_dataset()</code> for details.
+- Strict validation mode in the harness will raise on schema violations; non-strict mode attaches validation errors to result metadata.</p>
+<h2 id="task-type-examples">Task-Type Examples<a class="headerlink" href="#task-type-examples" title="Permanent link">&para;</a></h2>
+<p>Below are concise, runnable examples for each built-in task type.</p>
+<h3 id="qa">QA<a class="headerlink" href="#qa" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models.task_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedicalQATask</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">MedicalQATask</span><span class="p">(</span><span class="s2">&quot;qa-demo&quot;</span><span class="p">)</span>
+<span class="n">task</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;question&quot;</span><span class="p">:</span> <span class="s2">&quot;What is BP?&quot;</span><span class="p">},</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;blood pressure&quot;</span><span class="p">}}</span>
+<span class="p">]</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">evaluate</span><span class="p">([{</span> <span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;blood pressure&quot;</span> <span class="p">}])</span>  <span class="c1"># {&quot;accuracy&quot;: 1.0, &quot;clinical_correctness&quot;: 1.0}</span>
+</code></pre></div>
+<h3 id="diagnostic-reasoning">Diagnostic Reasoning<a class="headerlink" href="#diagnostic-reasoning" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models.task_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiagnosticReasoningTask</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">DiagnosticReasoningTask</span><span class="p">(</span><span class="s2">&quot;dx-demo&quot;</span><span class="p">)</span>
+<span class="n">task</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;case&quot;</span><span class="p">:</span> <span class="s2">&quot;60M chest pain&quot;</span><span class="p">},</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;diagnosis&quot;</span><span class="p">:</span> <span class="s2">&quot;ACS&quot;</span><span class="p">}}</span>
+<span class="p">]</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">evaluate</span><span class="p">([{</span> <span class="s2">&quot;diagnosis&quot;</span><span class="p">:</span> <span class="s2">&quot;ACS&quot;</span><span class="p">,</span> <span class="s2">&quot;explanation&quot;</span><span class="p">:</span> <span class="s2">&quot;because ECG shows ST elevation&quot;</span> <span class="p">}])</span>
+</code></pre></div>
+<h3 id="summarization">Summarization<a class="headerlink" href="#summarization" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models.task_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClinicalSummarizationTask</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">ClinicalSummarizationTask</span><span class="p">(</span><span class="s2">&quot;sum-demo&quot;</span><span class="p">)</span>
+<span class="n">task</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;document&quot;</span><span class="p">:</span> <span class="s2">&quot;Patient with HTN and DM.&quot;</span><span class="p">},</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;HTN, DM.&quot;</span><span class="p">}}</span>
+<span class="p">]</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">evaluate</span><span class="p">([{</span> <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;HTN, DM.&quot;</span> <span class="p">}])</span>
+</code></pre></div>
+<h2 id="creating-custom-task-instances">Creating Custom Task Instances<a class="headerlink" href="#creating-custom-task-instances" title="Permanent link">&para;</a></h2>
+<p>You can define your own tasks using <code>MedicalTask</code> (YAML/JSON) and validate/load them via the loader/validators.</p>
+<h3 id="minimal-yaml-example">Minimal YAML Example<a class="headerlink" href="#minimal-yaml-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">task_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qa-custom</span>
+<span class="nt">task_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qa</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Answer short questions</span>
+<span class="nt">inputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> question</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;What</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">HR?&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="nt">expected_outputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> answer</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;heart</span><span class="nv"> </span><span class="s">rate&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="nt">metrics</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">accuracy</span><span class="p p-Indicator">]</span>
+<span class="nt">input_schema</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">question</span><span class="p p-Indicator">]</span>
+<span class="nt">output_schema</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">answer</span><span class="p p-Indicator">]</span>
+<span class="nt">dataset</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">input</span><span class="p">:</span><span class="w">  </span><span class="p p-Indicator">{</span><span class="nt"> question</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;What</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">BP?&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">    </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> answer</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blood</span><span class="nv"> </span><span class="s">pressure&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</code></pre></div>
+<h3 id="load-and-validate">Load and Validate<a class="headerlink" href="#load-and-validate" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.models.medical_task</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedicalTask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.validators</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_task_dataset</span>
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">MedicalTask</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;qa-custom.yaml&quot;</span><span class="p">)</span>
+<span class="n">validate_task_dataset</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>  <span class="c1"># raises if required keys missing</span>
+</code></pre></div>
+<p>See also:
+- <code>bench/evaluation/task_loader.py</code> for loading tasks from files/URLs
+- <code>bench/evaluation/model_runner.py</code> for running models on tasks</p>
+<h2 id="task-specific-metrics">Task-Specific Metrics<a class="headerlink" href="#task-specific-metrics" title="Permanent link">&para;</a></h2>
+<p>This framework ships with lightweight, task-specific metrics implemented in the task classes under <code>bench/models/task_types.py</code>. These are intentionally simple placeholders and should be replaced or extended for production use.</p>
+<ul>
+<li><strong>QA (<code>MedicalQATask</code>)</strong></li>
+<li><code>accuracy</code>: case-insensitive exact match of <code>answer</code></li>
+<li>
+<p><code>clinical_correctness</code>: proxy equal to <code>accuracy</code></p>
+</li>
+<li>
+<p><strong>Diagnostic Reasoning (<code>DiagnosticReasoningTask</code>)</strong></p>
+</li>
+<li><code>diagnostic_accuracy</code>: case-insensitive exact match of <code>diagnosis</code></li>
+<li>
+<p><code>reasoning_quality</code>: heuristic based on presence of explanation cues (e.g., "because", "due to") in <code>explanation</code>/<code>rationale</code></p>
+</li>
+<li>
+<p><strong>Summarization (<code>ClinicalSummarizationTask</code>)</strong></p>
+</li>
+<li><code>rouge_l</code>: unigram-overlap proxy (not true ROUGE-L)</li>
+<li><code>clinical_relevance</code>: overlap ratio with a small set of medical keywords</li>
+<li><code>factual_consistency</code>: penalizes hallucinated numbers not present in the reference</li>
+</ul>
+<p>For full implementations, consider integrating standard NLP metrics (e.g., official ROUGE, BERTScore) and clinical factuality checks.</p>
+<h2 id="end-to-end-usage">End-to-End Usage<a class="headerlink" href="#end-to-end-usage" title="Permanent link">&para;</a></h2>
+<p>To see how tasks are loaded and models are executed over them, refer to:</p>
+<ul>
+<li><code>bench/evaluation/task_loader.py</code></li>
+<li>Key methods: <code>TaskLoader.load_task()</code>, <code>TaskLoader.load_tasks()</code>, <code>TaskLoader.list_available_tasks()</code></li>
+<li>
+<p>Supports loading by ID, local path, or HTTP(S) URL with validation</p>
+</li>
+<li>
+<p><code>bench/evaluation/model_runner.py</code></p>
+</li>
+<li>Key methods: <code>ModelRunner.load_model()</code>, <code>ModelRunner.run_model()</code> / <code>run_model_async()</code>, <code>ModelRunner.unload_model()</code></li>
+<li>Supports HuggingFace pipelines, local Python module models, and API-based models</li>
+</ul>
+<p>You can combine these to evaluate a model end-to-end:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.task_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskLoader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.model_runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelRunner</span>
+
+<span class="n">loader</span> <span class="o">=</span> <span class="n">TaskLoader</span><span class="p">()</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_task</span><span class="p">(</span><span class="s2">&quot;bench/tasks/clinical_summarization_basic.yaml&quot;</span><span class="p">)</span>
+
+<span class="n">runner</span> <span class="o">=</span> <span class="n">ModelRunner</span><span class="p">()</span>
+<span class="n">runner</span><span class="o">.</span><span class="n">load_model</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;tests/fixtures/simple_local_model.py&quot;</span><span class="p">,</span> <span class="s2">&quot;callable&quot;</span><span class="p">:</span> <span class="s2">&quot;predict&quot;</span><span class="p">})</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run_model</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="task-registry">Task Registry<a class="headerlink" href="#task-registry" title="Permanent link">&para;</a></h2>
+<p>For dynamic registration, discovery, and filtered listing of tasks, use <code>bench/evaluation/task_registry.py</code>.</p>
+<ul>
+<li><code>TaskRegistry.register()</code> / <code>register_from_file()</code> / <code>register_from_url()</code></li>
+<li><code>TaskRegistry.get()</code> to retrieve by ID</li>
+<li><code>TaskRegistry.discover()</code> to scan a tasks directory</li>
+<li><code>TaskRegistry.list_available(task_type=..., min_examples=..., has_metrics=...)</code> for simple filtering</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.task_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskRegistry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bench.models.medical_task</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskType</span>
+
+<span class="n">reg</span> <span class="o">=</span> <span class="n">TaskRegistry</span><span class="p">(</span><span class="n">tasks_dir</span><span class="o">=</span><span class="s2">&quot;bench/tasks&quot;</span><span class="p">)</span>
+<span class="n">reg</span><span class="o">.</span><span class="n">discover</span><span class="p">()</span>
+
+<span class="c1"># Filter to QA tasks that declare metrics and have &gt;= 1 example</span>
+<span class="n">rows</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">list_available</span><span class="p">(</span><span class="n">task_type</span><span class="o">=</span><span class="n">TaskType</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span> <span class="n">min_examples</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">has_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Load a specific task (from discovery or previously registered)</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">task_id</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+
+
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+
+
+  </body>
+</html>

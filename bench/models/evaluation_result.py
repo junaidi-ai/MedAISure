@@ -268,6 +268,17 @@ class EvaluationResult(BaseModel):
 
     @classmethod
     def from_file(cls, file_path: str | Path) -> "EvaluationResult":
+        """Load an EvaluationResult from a JSON or YAML file.
+
+        Args:
+            file_path: Path to a .json, .yaml, or .yml file.
+
+        Returns:
+            Parsed `EvaluationResult` instance.
+
+        Raises:
+            ValueError: If the file extension is unsupported.
+        """
         path = Path(file_path)
         suffix = path.suffix.lower()
         text = path.read_text()
