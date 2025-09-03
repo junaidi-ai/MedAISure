@@ -15,14 +15,22 @@ nav:
       - Overview: metrics/overview.md
       - Guidelines: metrics_guidelines.md
       - Testing: metrics_testing.md
+      - Clinical Accuracy: metrics/clinical_accuracy.md
+      - Reasoning Quality: metrics/reasoning_quality.md
   - Models:
       - Model Interface: models/model_interface.md
       - Local Models: models/local_models.md
       - API Models: models/api_models.md
-  - Tasks: tasks/overview.md
+  - Tasks:
+      - Overview: tasks/overview.md
+      - Medical QA: tasks/medical_qa.md
+      - Diagnostic Reasoning: tasks/diagnostic_reasoning.md
+      - Clinical Summarization: tasks/clinical_summarization.md
   - API Reference:
       - Overview: api/overview.md
       - Python API: api/reference.md
+      - Core API: api/core_api.md
+      - CLI: api/cli.md
   - Docker: docker.md
   - Testing:
       - Overview: testing.md

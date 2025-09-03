@@ -1,9 +1,33 @@
 # Metrics Overview
 
-This section describes supported metric categories and how they are computed within MedAISure.
+This section summarizes metric categories and how scores are computed and aggregated.
 
-- Clinical accuracy
-- Reasoning quality
-- Domain-specific metrics
+## Categories
+- Clinical Accuracy: correctness and safety of medical content
+- Reasoning Quality: structure, plausibility, and evidence use in reasoning
+- Domain-specific: task- or specialty-specific checks
 
-See also: [metrics_guidelines.md](../metrics_guidelines.md), [metrics_testing.md](../metrics_testing.md).
+## Methodology (flow)
+1. Normalize inputs/outputs
+   - Lowercasing, whitespace, common medical synonym normalization
+2. Extract features
+   - Clinical entities by category (e.g., dx, meds) or structural markers (steps, evidence)
+3. Score per-sample
+   - Clinical Accuracy: weighted Jaccard over extracted entities; fallback to normalized string compare
+   - Reasoning Quality: composite of overlap F1, structure, evidence, factual consistency minus fallacy penalty
+4. Aggregate
+   - Per-task: mean of per-sample scores (with optional weighting per component)
+   - Overall: average across tasks (reported in `BenchmarkReport`)
+
+## Weighting & breakdowns
+- Component weights are defined in metric implementations (see API links below).
+- Per-sample breakdowns are accessible via metric APIs (e.g., `get_last_breakdown()`), and are surfaced in evaluation metadata when available.
+
+## Deep links (API)
+- Python API → Metrics (clinical): api/reference.md#metrics-clinical
+  - `ClinicalAccuracyMetric.calculate`
+  - `ReasoningQualityMetric.calculate`
+
+## References
+- [metrics_guidelines.md](../metrics_guidelines.md)
+- [metrics_testing.md](../metrics_testing.md)

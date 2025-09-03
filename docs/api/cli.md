@@ -1,0 +1,67 @@
+# CLI
+
+Command-line usage for running evaluations and utilities. MedAISure does not ship a standalone CLI binary; use Python module invocations or short scripts.
+
+## Common invocations
+
+- GPU smoke test
+```bash
+python scripts/gpu_smoke.py
+```
+
+- Run unit tests
+```bash
+pytest -q
+```
+
+- Evaluate via a short Python one-liner
+```bash
+python - <<'PY'
+from bench.evaluation.harness import EvaluationHarness
+
+h = EvaluationHarness(tasks_dir="tasks", results_dir="results", log_level="INFO")
+report = h.evaluate(
+    model_id="hf-sum",
+    task_ids=["medical_qa"],
+    model_type="huggingface",
+    batch_size=8,
+    use_cache=True,
+    save_results=True,
+    strict_validation=False,
+    report_formats=["json"],
+    model_path="sshleifer/tiny-t5",
+    hf_task="summarization",
+    generation_kwargs={"max_new_tokens": 64},
+)
+print(report.overall_scores)
+PY
+```
+
+## Key parameters (map to EvaluationHarness.evaluate)
+
+- `model_id` (str): identifier used to register/load the model in `ModelRunner`.
+- `task_ids` (list[str]): tasks to evaluate.
+- `model_type` (str): `huggingface`, `local`, or `api`.
+- `batch_size` (int): batch size for inference.
+- `use_cache` (bool): use cached results if available.
+- `save_results` (bool): write results to `results_dir`.
+- `strict_validation` (bool): raise on schema validation errors.
+- `report_formats` (list[str]): optional extra outputs (e.g., `json`, `md`).
+- `report_dir` (str): optional output directory for extra formats.
+- `**model_kwargs`: forwarded to `ModelRunner.load_model(...)` (e.g., `model_path`, `hf_task`, `generation_kwargs`, `endpoint`, `api_key`).
+
+## Environment variables
+
+- `MEDAISURE_NO_RICH=1` disables the tqdm progress bar/animations during evaluation.
+
+## Troubleshooting
+
+- Missing dependencies: ensure requirements are installed
+  ```bash
+  pip install -r requirements.txt
+  ```
+- HF model fails to load: verify `model_path`/`revision`/`trust_remote_code`; check GPU availability and `device_map`.
+- Unexpected HF text output: set appropriate `hf_task` and `generation_kwargs` (e.g., `max_new_tokens`, `do_sample=False`).
+- API model errors: verify `endpoint`, auth (`api_key`/`headers`), and response shape `{ "outputs": [ ... ] }`.
+- Validation errors: use `strict_validation=True` to fail fast and inspect schemas in [docs/tasks/overview.md](docs/tasks/overview.md) and [API → Task schema](api/reference.md#task-schema).
+- Empty metrics: confirm the task defines metrics; see [Metrics overview](docs/metrics/overview.md) and [API → Metrics (clinical)](api/reference.md#metrics-clinical).
