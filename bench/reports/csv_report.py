@@ -68,6 +68,44 @@ class CSVReportGenerator(ReportGenerator):
         for name, text in (report or {}).items():
             (output_dir / name).write_text(text)
 
+    def validate(self, report: Dict[str, str]) -> None:
+        if not isinstance(report, dict):
+            raise ValueError("CSV report must be a dict of filename -> CSV string")
+        expected = {
+            "overall_scores.csv": ["metric", "score"],
+            "task_scores.csv": ["task_id", "metric", "score"],
+            "detailed_metrics.csv": [
+                "model_id",
+                "task_id",
+                "timestamp",
+                "metric",
+                "score",
+            ],
+            "detailed_inputs.csv": ["task_id", "index"],  # dynamic fields follow
+            "detailed_outputs.csv": ["task_id", "index"],  # dynamic fields follow
+        }
+        missing = [k for k in expected.keys() if k not in report]
+        if missing:
+            raise ValueError(f"CSV report missing files: {missing}")
+
+        # Validate headers for the fixed schemas; inputs/outputs allow dynamic extra columns
+        for name, required_headers in expected.items():
+            csv_text = report.get(name, "")
+            if not isinstance(csv_text, str):
+                raise ValueError(f"CSV content for {name} must be a string")
+            # Read header line
+            sio = StringIO(csv_text)
+            reader = csv.reader(sio)
+            try:
+                headers = next(reader)
+            except StopIteration:
+                headers = []
+            missing_headers = [h for h in required_headers if h not in headers]
+            if missing_headers:
+                raise ValueError(
+                    f"{name} missing required headers: {missing_headers}; found: {headers}"
+                )
+
     # --- Helpers ---
     @staticmethod
     def _detailed_metrics_to_csv(results: List[EvaluationResult]) -> str:

@@ -43,3 +43,17 @@ class MarkdownReportGenerator(ReportGenerator):
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(report)
+
+    def validate(self, report: str) -> None:
+        if not isinstance(report, str):
+            raise ValueError("Markdown report must be a string")
+        # Minimal structure checks
+        required_markers = [
+            "# Benchmark Report:",
+            "## Overall Scores",
+            "## Task Scores",
+            "## Detailed Results",
+        ]
+        missing = [m for m in required_markers if m not in report]
+        if missing:
+            raise ValueError(f"Markdown report is missing sections: {missing}")

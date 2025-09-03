@@ -23,3 +23,10 @@ class ReportGenerator(ABC):
     ) -> None:  # pragma: no cover - interface
         """Persist a generated report to a file."""
         raise NotImplementedError
+
+    def validate(self, report: Any) -> None:  # pragma: no cover - interface
+        """Validate a generated report payload.
+
+        Subclasses should raise ValueError with a descriptive message when validation fails.
+        """
+        raise NotImplementedError

@@ -163,3 +163,22 @@ class HTMLReportGenerator(ReportGenerator):
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(report)
+
+    def validate(self, report: str) -> None:
+        if not isinstance(report, str):
+            raise ValueError("HTML report must be a string")
+        required_snippets = [
+            "<!doctype html>",
+            "<html",
+            "</html>",
+            "<head>",
+            "</head>",
+            "<body>",
+            "</body>",
+            "Overall Scores",
+            "Task Scores",
+            "Detailed Results",
+        ]
+        missing = [s for s in required_snippets if s not in report]
+        if missing:
+            raise ValueError(f"HTML report missing required elements: {missing}")
