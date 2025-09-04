@@ -33,10 +33,15 @@ jobs:
       - name: Link check (Lychee)
         uses: lycheeverse/lychee-action@v2
         with:
-          args: |
-            --verbose --no-progress \
-            README.md README-DEV.md README_id.md README_ja.md README_zh.md \
-            docs/**/*.md
+          # Use folded scalar to provide a single-line args string to the action
+          args: >
+            --verbose --no-progress
+            --accept 200,206,429
+            --exclude-mail
+            --exclude-path "site"
+            --retry-wait-time 2 --max-retries 2
+            "README.md" "README-DEV.md" "README_id.md" "README_ja.md" "README_zh.md" "docs/**/*.md"
+          fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
