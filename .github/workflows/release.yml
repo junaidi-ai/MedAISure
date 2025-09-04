@@ -21,6 +21,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install mkdocs-material mkdocstrings[python]
+          # Ensure pytest-cov is present for pytest.ini addopts
+          pip install pytest-cov
+
+      - name: Show pytest version and plugins
+        run: |
+          python -c "import sys,pytest; print('pytest', pytest.__version__); import pkgutil; print('plugins:', [m.name for m in pkgutil.iter_modules() if m.name.startswith('pytest')])"
 
       - name: Run linters (ruff) and type checks (mypy)
         run: |
