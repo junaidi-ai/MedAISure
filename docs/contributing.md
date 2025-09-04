@@ -3,6 +3,9 @@
 See the repository's CONTRIBUTING guide:
 https://github.com/junaidi-ai/MedAISure/blob/master/CONTRIBUTING.md
 
+Related policy documents:
+- [Code of Conduct](../CODE_OF_CONDUCT.md)
+
 Quick checklist:
 - Open an issue first for major changes
 - Follow PEP 8, add type hints and docstrings

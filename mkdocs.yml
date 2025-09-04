@@ -39,6 +39,9 @@ nav:
       - Integration Coverage: testing_integration_coverage.md
   - Performance: performance.md
   - Performance Tips: 04c_performance_tips.md
+  - Contributing: contributing.md
+  - Code of Conduct: CODE_OF_CONDUCT.md
+  - Release Process: release_process.md
   - Security: security.md
   - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md
