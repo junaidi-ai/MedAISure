@@ -228,7 +228,13 @@ class MedicalTask(BaseModel):
     ) -> Dict[str, Any]:
         """Return a plain-Python dict representation of the model.
 
-        Supports partial serialization via include/exclude.
+        Supports partial serialization via inclusion or exclusion filters.
+
+        Args:
+            include: Optional set/dict specifying which fields to include.
+                See Pydantic's ``model_dump`` for accepted structure.
+            exclude: Optional set/dict specifying which fields to exclude.
+                See Pydantic's ``model_dump`` for accepted structure.
         """
         return self.model_dump(include=include, exclude=exclude)
 
@@ -243,7 +249,10 @@ class MedicalTask(BaseModel):
 
         Args:
             indent: Optional indentation for pretty printing.
-            include/exclude: Optional fields to include/exclude.
+            include: Optional set/dict specifying which fields to include.
+                See Pydantic's ``model_dump_json`` for accepted structure.
+            exclude: Optional set/dict specifying which fields to exclude.
+                See Pydantic's ``model_dump_json`` for accepted structure.
         """
         return self.model_dump_json(indent=indent, include=include, exclude=exclude)
 

@@ -37,7 +37,7 @@ class ModelRunner(Generic[M, T, R]):
     Supports three model sources: HuggingFace pipelines, local Python modules,
     and simple HTTP API-backed models. Caches loaded models and their configs.
 
-    Args:
+    Type variables:
         M: Type variable for the model class
         T: Type variable for input data
         R: Type variable for result data

@@ -63,5 +63,5 @@ PY
 - HF model fails to load: verify `model_path`/`revision`/`trust_remote_code`; check GPU availability and `device_map`.
 - Unexpected HF text output: set appropriate `hf_task` and `generation_kwargs` (e.g., `max_new_tokens`, `do_sample=False`).
 - API model errors: verify `endpoint`, auth (`api_key`/`headers`), and response shape `{ "outputs": [ ... ] }`.
-- Validation errors: use `strict_validation=True` to fail fast and inspect schemas in [docs/tasks/overview.md](docs/tasks/overview.md) and [API → Task schema](api/reference.md#task-schema).
-- Empty metrics: confirm the task defines metrics; see [Metrics overview](docs/metrics/overview.md) and [API → Metrics (clinical)](api/reference.md#metrics-clinical).
+- Validation errors: use `strict_validation=True` to fail fast and inspect schemas in [Tasks overview](../tasks/overview.md) and [API → Task schema](../api/reference.md#task-schema).
+- Empty metrics: confirm the task defines metrics; see [Metrics overview](../metrics/overview.md) and [API → Metrics (clinical)](../api/reference.md#metrics-clinical).

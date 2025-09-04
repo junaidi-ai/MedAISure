@@ -11,10 +11,10 @@
 
 
 
-        <link rel="prev" href="../contributing/">
+        <link rel="prev" href="../performance/">
 
 
-        <link rel="next" href="../api_reference/">
+        <link rel="next" href="../contributing/">
 
 
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
 
 
 
-        <title>Extensions - MedAISure</title>
+        <title>Performance Tips - MedAISure</title>
 
 
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
 
 
-        <a href="#extension-guide" class="md-skip">
+        <a href="#performance-tips" class="md-skip">
           Skip to content
         </a>
 
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
 
-              Extensions
+              Performance Tips
 
           </span>
         </div>
@@ -1113,8 +1113,30 @@
 
 
 
-    <li class="md-nav__item">
-      <a href="../04c_performance_tips/" class="md-nav__link">
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+    Performance Tips
+
+  </span>
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
 
 
 
@@ -1125,6 +1147,80 @@
 
 
       </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#batching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batching
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#huggingface-dtypedevice" class="md-nav__link">
+    <span class="md-ellipsis">
+      HuggingFace dtype/device
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#dataset-sizing-and-sampling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dataset sizing and sampling
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#logging-and-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging and reporting
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#troubleshooting-common-performance-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting common performance issues
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+
     </li>
 
 
@@ -1289,30 +1385,8 @@
 
 
 
-
-
-    <li class="md-nav__item md-nav__item--active">
-
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-
-
-
-
-
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-
-
-
-  <span class="md-ellipsis">
-    Extensions
-
-  </span>
-
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../extensions/" class="md-nav__link">
 
 
 
@@ -1323,62 +1397,6 @@
 
 
       </a>
-
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-
-
-
-
-
-
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-
-        <li class="md-nav__item">
-  <a href="#add-a-custom-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      Add a Custom Task
-    </span>
-  </a>
-
-</li>
-
-        <li class="md-nav__item">
-  <a href="#register-a-custom-metric" class="md-nav__link">
-    <span class="md-ellipsis">
-      Register a Custom Metric
-    </span>
-  </a>
-
-</li>
-
-        <li class="md-nav__item">
-  <a href="#use-a-local-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      Use a Local Model
-    </span>
-  </a>
-
-</li>
-
-        <li class="md-nav__item">
-  <a href="#use-an-api-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      Use an API Model
-    </span>
-  </a>
-
-</li>
-
-    </ul>
-
-</nav>
-
     </li>
 
 
@@ -1432,36 +1450,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
 
         <li class="md-nav__item">
-  <a href="#add-a-custom-task" class="md-nav__link">
+  <a href="#batching" class="md-nav__link">
     <span class="md-ellipsis">
-      Add a Custom Task
+      Batching
     </span>
   </a>
 
 </li>
 
         <li class="md-nav__item">
-  <a href="#register-a-custom-metric" class="md-nav__link">
+  <a href="#caching" class="md-nav__link">
     <span class="md-ellipsis">
-      Register a Custom Metric
+      Caching
     </span>
   </a>
 
 </li>
 
         <li class="md-nav__item">
-  <a href="#use-a-local-model" class="md-nav__link">
+  <a href="#huggingface-dtypedevice" class="md-nav__link">
     <span class="md-ellipsis">
-      Use a Local Model
+      HuggingFace dtype/device
     </span>
   </a>
 
 </li>
 
         <li class="md-nav__item">
-  <a href="#use-an-api-model" class="md-nav__link">
+  <a href="#dataset-sizing-and-sampling" class="md-nav__link">
     <span class="md-ellipsis">
-      Use an API Model
+      Dataset sizing and sampling
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#logging-and-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging and reporting
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#troubleshooting-common-performance-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting common performance issues
     </span>
   </a>
 
@@ -1486,66 +1522,87 @@
 
 
 
-<h1 id="extension-guide">Extension Guide<a class="headerlink" href="#extension-guide" title="Permanent link">&para;</a></h1>
-<p>How to extend MedAISure with custom tasks, metrics, and models.</p>
-<h2 id="add-a-custom-task">Add a Custom Task<a class="headerlink" href="#add-a-custom-task" title="Permanent link">&para;</a></h2>
-<p>1) Create <code>your_task.yaml</code> in your <code>tasks_dir</code> with fields used by <code>MedicalTask</code>:
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;My</span><span class="nv"> </span><span class="s">Clinical</span><span class="nv"> </span><span class="s">NLI&quot;</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;NLI</span><span class="nv"> </span><span class="s">over</span><span class="nv"> </span><span class="s">clinical</span><span class="nv"> </span><span class="s">text&quot;</span>
-<span class="nt">task_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qa</span>
-<span class="nt">metrics</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">accuracy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">clinical_correctness</span><span class="p p-Indicator">]</span>
-<span class="nt">dataset</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">text</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Patient</span><span class="nv"> </span><span class="s">denies</span><span class="nv"> </span><span class="s">chest</span><span class="nv"> </span><span class="s">pain.&quot;</span>
-<span class="w">    </span><span class="nt">hypothesis</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;The</span><span class="nv"> </span><span class="s">patient</span><span class="nv"> </span><span class="s">has</span><span class="nv"> </span><span class="s">chest</span><span class="nv"> </span><span class="s">pain.&quot;</span>
-<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">contradiction</span>
-</code></pre></div>
-2) Load by id (file stem) or path:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationHarness</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">EvaluationHarness</span><span class="p">(</span><span class="n">tasks_dir</span><span class="o">=</span><span class="s2">&quot;bench/tasks&quot;</span><span class="p">)</span>
-<span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;textattack/bert-base-uncased-MNLI&quot;</span><span class="p">,</span> <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;your_task&quot;</span><span class="p">],</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;huggingface&quot;</span><span class="p">)</span>
-</code></pre></div></p>
-<h2 id="register-a-custom-metric">Register a Custom Metric<a class="headerlink" href="#register-a-custom-metric" title="Permanent link">&para;</a></h2>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.metric_calculator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">my_metric</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c1"># return a float, or (float, metadata_dict)</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span> <span class="o">==</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_true</span><span class="p">))</span>
-
-<span class="n">mc</span> <span class="o">=</span> <span class="n">MetricCalculator</span><span class="p">()</span>
-<span class="n">mc</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;my_metric&quot;</span><span class="p">,</span> <span class="n">my_metric</span><span class="p">)</span>
-</code></pre></div>
-Use it by including <code>my_metric</code> in your task's <code>metrics:</code> or by passing <code>metric_names=[...]</code> to <code>calculate_metrics()</code> manually.</p>
-<h2 id="use-a-local-model">Use a Local Model<a class="headerlink" href="#use-a-local-model" title="Permanent link">&para;</a></h2>
-<p>Your local module should expose a loader (default name: <code>load_model</code>):
-<div class="highlight"><pre><span></span><code><span class="c1"># mypkg/mylocal.py</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># return list[dict] with keys like &quot;label&quot; or &quot;prediction&quot;</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;entailment&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">MyModel</span><span class="p">()</span>
-</code></pre></div>
-Load via <code>ModelRunner</code> (automatically used by <code>EvaluationHarness.evaluate()</code>):
-<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;my_local_model&quot;</span><span class="p">,</span>
-    <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;your_task&quot;</span><span class="p">],</span>
-    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-    <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;/path/to/artifacts&quot;</span><span class="p">,</span>
-    <span class="n">module_path</span><span class="o">=</span><span class="s2">&quot;mypkg.mylocal&quot;</span><span class="p">,</span>
+<h1 id="performance-tips">Performance Tips<a class="headerlink" href="#performance-tips" title="Permanent link">&para;</a></h1>
+<p>This page collects practical tips to make MedAISure evaluations faster and more memory‑efficient. It applies to both the example notebooks in <code>bench/examples/notebooks/</code> and your own scripts.</p>
+<ul>
+<li>Path: <code>docs/04c_performance_tips.md</code></li>
+<li>Related files: <code>bench/evaluation/harness.py</code>, <code>bench/evaluation/model_runner.py</code></li>
+</ul>
+<h2 id="batching">Batching<a class="headerlink" href="#batching" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Use smaller <code>batch_size</code> if you see OOM (out‑of‑memory) errors.</li>
+<li>For CPU or small GPUs, start at <code>batch_size=1..4</code> and increase gradually.</li>
+<li>In notebooks calling <code>EvaluationHarness.evaluate(...)</code>, pass <code>batch_size=&lt;N&gt;</code>.</li>
+<li>Keep batch sizes consistent across runs when comparing models to ensure fairness.</li>
+</ul>
+<h2 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Enable caching to avoid recomputing results when re‑running the same model+task:</li>
+<li><code>EvaluationHarness(..., cache_dir='cache')</code> and <code>evaluate(..., use_cache=True)</code>.</li>
+<li>The harness caches per‑task results. Subsequent runs will load from cache if inputs, model ID, and task ID match.</li>
+<li>Clear or change the cache directory if you want to force fresh computation.</li>
+</ul>
+<h2 id="huggingface-dtypedevice">HuggingFace dtype/device<a class="headerlink" href="#huggingface-dtypedevice" title="Permanent link">&para;</a></h2>
+<p>When using <code>model_type='huggingface'</code> with <code>ModelRunner</code>:</p>
+<ul>
+<li>Device selection:</li>
+<li>CPU: <code>device=-1</code></li>
+<li>Single GPU: <code>device=0</code></li>
+<li>Multi‑GPU or automatic placement: set <code>device_map='auto'</code> in loading kwargs.</li>
+<li>Dtype for memory/perf trade‑offs:</li>
+<li><code>torch.float16</code> (FP16) or <code>torch.bfloat16</code> often reduce memory and can speed up inference on supported GPUs.</li>
+<li>Pass as <code>torch_dtype='float16'</code> or <code>torch_dtype='bfloat16'</code> in loading kwargs.</li>
+<li>Additional loading options (forwarded by <code>ModelRunner</code>):</li>
+<li><code>low_cpu_mem_usage=True</code> reduces peak CPU RAM during loading.</li>
+<li><code>trust_remote_code=False</code> by default; set <code>True</code> only if you trust the model repo.</li>
+<li><code>revision='&lt;tag-or-commit&gt;'</code> to pin a specific model revision.</li>
+<li>Generation kwargs (for generative tasks):</li>
+<li>Use smaller <code>max_new_tokens</code> to reduce latency and cost.</li>
+<li>Disable sampling for deterministic baselines: <code>do_sample=False</code>.</li>
+</ul>
+<p>Example (see <code>04_advanced_configuration.ipynb</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">rep</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="o">=</span><span class="s1">&#39;hf-demo&#39;</span><span class="p">,</span>
+    <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;clinical_summarization_basic&#39;</span><span class="p">],</span>
+    <span class="n">model_type</span><span class="o">=</span><span class="s1">&#39;huggingface&#39;</span><span class="p">,</span>
+    <span class="n">hf_task</span><span class="o">=</span><span class="s1">&#39;summarization&#39;</span><span class="p">,</span>
+    <span class="n">model_path</span><span class="o">=</span><span class="s1">&#39;sshleifer/tiny-t5&#39;</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">generation_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;max_new_tokens&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;do_sample&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+    <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>                 <span class="c1"># GPU 0 (use -1 for CPU)</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="s1">&#39;float16&#39;</span><span class="p">,</span>    <span class="c1"># or &#39;bfloat16&#39; if supported</span>
+    <span class="n">low_cpu_mem_usage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
-</code></pre></div></p>
-<h2 id="use-an-api-model">Use an API Model<a class="headerlink" href="#use-an-api-model" title="Permanent link">&para;</a></h2>
-<p>Provide <code>endpoint</code> and <code>api_key</code>. Predictions should be a list of dicts with <code>label</code>/<code>score</code> or <code>prediction/text/summary</code>.
-<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;my_api&quot;</span><span class="p">,</span>
-    <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;your_task&quot;</span><span class="p">],</span>
-    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;api&quot;</span><span class="p">,</span>
-    <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://api.example.com/predict&quot;</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MY_API_KEY&quot;</span><span class="p">],</span>
-<span class="p">)</span>
-</code></pre></div></p>
-<p>See <code>bench/examples/</code> for runnable samples.</p>
+</code></pre></div>
+<h2 id="dataset-sizing-and-sampling">Dataset sizing and sampling<a class="headerlink" href="#dataset-sizing-and-sampling" title="Permanent link">&para;</a></h2>
+<ul>
+<li>For quick iteration, work with a small dataset subset (e.g., 20–100 examples) to validate your pipeline.</li>
+<li>Once metrics are stable, scale up to the full dataset for final results.</li>
+<li>If constructing tasks programmatically (see <code>02b_python_task_interface_and_registration.ipynb</code>), you can:</li>
+<li>Provide a small <code>dataset</code> inline for rapid tests.</li>
+<li>Store the full dataset on disk and create a second, larger task YAML for final runs.</li>
+</ul>
+<h2 id="logging-and-reporting">Logging and reporting<a class="headerlink" href="#logging-and-reporting" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Use <code>log_level='INFO'</code> (default) to monitor progress without excessive verbosity.</li>
+<li>Save reports in lightweight formats during iteration:</li>
+<li><code>report_formats=['json']</code> while prototyping</li>
+<li>Add <code>['csv','md','html']</code> only when needed for sharing/visualization.</li>
+</ul>
+<h2 id="troubleshooting-common-performance-issues">Troubleshooting common performance issues<a class="headerlink" href="#troubleshooting-common-performance-issues" title="Permanent link">&para;</a></h2>
+<ul>
+<li>GPU OOM during HF model load:</li>
+<li>Try <code>torch_dtype='float16'</code> or <code>'bfloat16'</code>, reduce <code>batch_size</code>, or set <code>device_map='auto'</code>.</li>
+<li>Slow CPU runs:</li>
+<li>Reduce <code>max_new_tokens</code>, <code>batch_size</code>, and dataset size; enable caching.</li>
+<li>Frequent re‑runs:</li>
+<li>Ensure <code>use_cache=True</code> and <code>cache_dir</code> is set; avoid modifying inputs between runs unless necessary.</li>
+</ul>
+<p>For more details, check:
+- <code>bench/evaluation/model_runner.py</code> for loading and generation kwargs
+- <code>bench/evaluation/harness.py</code> for evaluation parameters and caching
+- <code>bench/examples/notebooks/04_advanced_configuration.ipynb</code> for a concrete configuration example</p>
 
 
 

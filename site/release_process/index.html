@@ -11,10 +11,10 @@
 
 
 
-        <link rel="prev" href="../contributing/">
+        <link rel="prev" href="../changelog/">
 
 
-        <link rel="next" href="../api_reference/">
+        <link rel="next" href="../security/">
 
 
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
 
 
 
-        <title>Extensions - MedAISure</title>
+        <title>Release Process - MedAISure</title>
 
 
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
 
 
-        <a href="#extension-guide" class="md-skip">
+        <a href="#release-process" class="md-skip">
           Skip to content
         </a>
 
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
 
-              Extensions
+              Release Process
 
           </span>
         </div>
@@ -1201,8 +1201,30 @@
 
 
 
-    <li class="md-nav__item">
-      <a href="../release_process/" class="md-nav__link">
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+    Release Process
+
+  </span>
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
 
 
 
@@ -1213,6 +1235,116 @@
 
 
       </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#versioning-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Versioning Policy
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#branching-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branching Model
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#tagging-and-changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tagging and Changelog
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#release-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Release Checklist
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#ci-release-steps-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI Release Steps (Guidelines)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Artifacts
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#backporting-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backporting Policy
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#security-and-responsible-disclosure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security and Responsible Disclosure
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#roles-approvals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roles &amp; Approvals
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#communication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Communication
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+
     </li>
 
 
@@ -1289,30 +1421,8 @@
 
 
 
-
-
-    <li class="md-nav__item md-nav__item--active">
-
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-
-
-
-
-
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-
-
-
-  <span class="md-ellipsis">
-    Extensions
-
-  </span>
-
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../extensions/" class="md-nav__link">
 
 
 
@@ -1323,62 +1433,6 @@
 
 
       </a>
-
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-
-
-
-
-
-
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-
-        <li class="md-nav__item">
-  <a href="#add-a-custom-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      Add a Custom Task
-    </span>
-  </a>
-
-</li>
-
-        <li class="md-nav__item">
-  <a href="#register-a-custom-metric" class="md-nav__link">
-    <span class="md-ellipsis">
-      Register a Custom Metric
-    </span>
-  </a>
-
-</li>
-
-        <li class="md-nav__item">
-  <a href="#use-a-local-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      Use a Local Model
-    </span>
-  </a>
-
-</li>
-
-        <li class="md-nav__item">
-  <a href="#use-an-api-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      Use an API Model
-    </span>
-  </a>
-
-</li>
-
-    </ul>
-
-</nav>
-
     </li>
 
 
@@ -1432,36 +1486,90 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
 
         <li class="md-nav__item">
-  <a href="#add-a-custom-task" class="md-nav__link">
+  <a href="#versioning-policy" class="md-nav__link">
     <span class="md-ellipsis">
-      Add a Custom Task
+      Versioning Policy
     </span>
   </a>
 
 </li>
 
         <li class="md-nav__item">
-  <a href="#register-a-custom-metric" class="md-nav__link">
+  <a href="#branching-model" class="md-nav__link">
     <span class="md-ellipsis">
-      Register a Custom Metric
+      Branching Model
     </span>
   </a>
 
 </li>
 
         <li class="md-nav__item">
-  <a href="#use-a-local-model" class="md-nav__link">
+  <a href="#tagging-and-changelog" class="md-nav__link">
     <span class="md-ellipsis">
-      Use a Local Model
+      Tagging and Changelog
     </span>
   </a>
 
 </li>
 
         <li class="md-nav__item">
-  <a href="#use-an-api-model" class="md-nav__link">
+  <a href="#release-checklist" class="md-nav__link">
     <span class="md-ellipsis">
-      Use an API Model
+      Release Checklist
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#ci-release-steps-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI Release Steps (Guidelines)
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Artifacts
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#backporting-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backporting Policy
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#security-and-responsible-disclosure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security and Responsible Disclosure
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#roles-approvals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roles &amp; Approvals
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#communication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Communication
     </span>
   </a>
 
@@ -1486,66 +1594,87 @@
 
 
 
-<h1 id="extension-guide">Extension Guide<a class="headerlink" href="#extension-guide" title="Permanent link">&para;</a></h1>
-<p>How to extend MedAISure with custom tasks, metrics, and models.</p>
-<h2 id="add-a-custom-task">Add a Custom Task<a class="headerlink" href="#add-a-custom-task" title="Permanent link">&para;</a></h2>
-<p>1) Create <code>your_task.yaml</code> in your <code>tasks_dir</code> with fields used by <code>MedicalTask</code>:
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;My</span><span class="nv"> </span><span class="s">Clinical</span><span class="nv"> </span><span class="s">NLI&quot;</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;NLI</span><span class="nv"> </span><span class="s">over</span><span class="nv"> </span><span class="s">clinical</span><span class="nv"> </span><span class="s">text&quot;</span>
-<span class="nt">task_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qa</span>
-<span class="nt">metrics</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">accuracy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">clinical_correctness</span><span class="p p-Indicator">]</span>
-<span class="nt">dataset</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">text</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Patient</span><span class="nv"> </span><span class="s">denies</span><span class="nv"> </span><span class="s">chest</span><span class="nv"> </span><span class="s">pain.&quot;</span>
-<span class="w">    </span><span class="nt">hypothesis</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;The</span><span class="nv"> </span><span class="s">patient</span><span class="nv"> </span><span class="s">has</span><span class="nv"> </span><span class="s">chest</span><span class="nv"> </span><span class="s">pain.&quot;</span>
-<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">contradiction</span>
-</code></pre></div>
-2) Load by id (file stem) or path:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationHarness</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">EvaluationHarness</span><span class="p">(</span><span class="n">tasks_dir</span><span class="o">=</span><span class="s2">&quot;bench/tasks&quot;</span><span class="p">)</span>
-<span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;textattack/bert-base-uncased-MNLI&quot;</span><span class="p">,</span> <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;your_task&quot;</span><span class="p">],</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;huggingface&quot;</span><span class="p">)</span>
-</code></pre></div></p>
-<h2 id="register-a-custom-metric">Register a Custom Metric<a class="headerlink" href="#register-a-custom-metric" title="Permanent link">&para;</a></h2>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bench.evaluation.metric_calculator</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricCalculator</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">my_metric</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c1"># return a float, or (float, metadata_dict)</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span> <span class="o">==</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_true</span><span class="p">))</span>
-
-<span class="n">mc</span> <span class="o">=</span> <span class="n">MetricCalculator</span><span class="p">()</span>
-<span class="n">mc</span><span class="o">.</span><span class="n">register_metric</span><span class="p">(</span><span class="s2">&quot;my_metric&quot;</span><span class="p">,</span> <span class="n">my_metric</span><span class="p">)</span>
-</code></pre></div>
-Use it by including <code>my_metric</code> in your task's <code>metrics:</code> or by passing <code>metric_names=[...]</code> to <code>calculate_metrics()</code> manually.</p>
-<h2 id="use-a-local-model">Use a Local Model<a class="headerlink" href="#use-a-local-model" title="Permanent link">&para;</a></h2>
-<p>Your local module should expose a loader (default name: <code>load_model</code>):
-<div class="highlight"><pre><span></span><code><span class="c1"># mypkg/mylocal.py</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># return list[dict] with keys like &quot;label&quot; or &quot;prediction&quot;</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;entailment&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">]</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">MyModel</span><span class="p">()</span>
-</code></pre></div>
-Load via <code>ModelRunner</code> (automatically used by <code>EvaluationHarness.evaluate()</code>):
-<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;my_local_model&quot;</span><span class="p">,</span>
-    <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;your_task&quot;</span><span class="p">],</span>
-    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-    <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;/path/to/artifacts&quot;</span><span class="p">,</span>
-    <span class="n">module_path</span><span class="o">=</span><span class="s2">&quot;mypkg.mylocal&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-</code></pre></div></p>
-<h2 id="use-an-api-model">Use an API Model<a class="headerlink" href="#use-an-api-model" title="Permanent link">&para;</a></h2>
-<p>Provide <code>endpoint</code> and <code>api_key</code>. Predictions should be a list of dicts with <code>label</code>/<code>score</code> or <code>prediction/text/summary</code>.
-<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;my_api&quot;</span><span class="p">,</span>
-    <span class="n">task_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;your_task&quot;</span><span class="p">],</span>
-    <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;api&quot;</span><span class="p">,</span>
-    <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://api.example.com/predict&quot;</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MY_API_KEY&quot;</span><span class="p">],</span>
-<span class="p">)</span>
-</code></pre></div></p>
-<p>See <code>bench/examples/</code> for runnable samples.</p>
+<h1 id="release-process">Release Process<a class="headerlink" href="#release-process" title="Permanent link">&para;</a></h1>
+<p>This document describes MedAISure's release and versioning strategy, and provides a practical checklist for maintainers.</p>
+<h2 id="versioning-policy">Versioning Policy<a class="headerlink" href="#versioning-policy" title="Permanent link">&para;</a></h2>
+<p>We use Semantic Versioning (SemVer): <code>MAJOR.MINOR.PATCH</code>.</p>
+<ul>
+<li><code>MAJOR</code>: incompatible API or behavior changes.</li>
+<li><code>MINOR</code>: backwards-compatible functionality additions.</li>
+<li><code>PATCH</code>: backwards-compatible bug fixes and documentation updates.</li>
+</ul>
+<p>Pre-releases may use suffixes like <code>-alpha.1</code>, <code>-beta.1</code>, or <code>-rc.1</code>.</p>
+<h2 id="branching-model">Branching Model<a class="headerlink" href="#branching-model" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>main</code>: always green; accepts PRs via review + CI.</li>
+<li><code>release/*</code>: temporary branches used for preparing a tagged release if needed (optional).</li>
+<li><code>hotfix/*</code>: optional short-lived branches for emergency fixes to a released version.</li>
+<li>Feature branches follow <code>feature/&lt;short-name&gt;</code>.</li>
+</ul>
+<h2 id="tagging-and-changelog">Tagging and Changelog<a class="headerlink" href="#tagging-and-changelog" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Create annotated tags in the form <code>vX.Y.Z</code>.</li>
+<li>Maintain a human-readable <a href="https://github.com/junaidi-ai/MedAISure/blob/main/CHANGELOG.md"><code>CHANGELOG.md</code></a> with sections for Added, Changed, Fixed, Removed.</li>
+<li>For each release, summarize notable changes, breaking changes, and migration notes.</li>
+<li>For pre-releases, tag as <code>vX.Y.Z-rc.N</code> and state stability expectations.</li>
+</ul>
+<h2 id="release-checklist">Release Checklist<a class="headerlink" href="#release-checklist" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Ensure <code>main</code> is green (CI passing).</li>
+<li>Update version (if applicable):</li>
+<li><code>pyproject.toml</code> or packaging metadata (if publishing a package)</li>
+<li>Any in-code version constants</li>
+<li>Update <a href="https://github.com/junaidi-ai/MedAISure/blob/main/CHANGELOG.md"><code>CHANGELOG.md</code></a> and docs as needed.</li>
+<li>Run quality gates locally:</li>
+<li><code>pre-commit run --all-files</code></li>
+<li><code>pytest</code> (with coverage)</li>
+<li>Build docs: <code>mkdocs build</code></li>
+<li>Merge into <code>main</code> (or fast-forward) and create an annotated tag:
+   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>vX.Y.Z<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Release vX.Y.Z&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>vX.Y.Z
+</code></pre></div></li>
+<li>Validate CI artifacts and release outputs.</li>
+</ol>
+<h2 id="ci-release-steps-guidelines">CI Release Steps (Guidelines)<a class="headerlink" href="#ci-release-steps-guidelines" title="Permanent link">&para;</a></h2>
+<p>Your CI should perform at least the following on tag push:</p>
+<ul>
+<li>Run test suite and linters</li>
+<li>Build documentation (<code>mkdocs build</code>) and publish site (e.g., GitHub Pages or artifact)</li>
+<li>Optionally: Build and publish Python package to an index (if applicable)</li>
+<li>Environment secrets for tokens must be configured in CI</li>
+<li>Optionally: Attach build artifacts to GitHub Release</li>
+</ul>
+<h2 id="artifacts">Artifacts<a class="headerlink" href="#artifacts" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Documentation site (from <code>mkdocs build</code>)</li>
+<li>Python sdist/wheel (if distributing as a package)</li>
+<li>Optional: Benchmark result assets or sample datasets</li>
+</ul>
+<h2 id="backporting-policy">Backporting Policy<a class="headerlink" href="#backporting-policy" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Critical bug fixes can be backported to the most recent N minor versions (maintainers’ discretion).</li>
+<li>Process:</li>
+<li>Create a <code>backport/X.Y</code> branch from the target release tag</li>
+<li>Cherry-pick relevant fixes</li>
+<li>Bump <code>PATCH</code> version</li>
+<li>Repeat the release checklist and tag as <code>vX.Y.Z</code></li>
+</ul>
+<h2 id="security-and-responsible-disclosure">Security and Responsible Disclosure<a class="headerlink" href="#security-and-responsible-disclosure" title="Permanent link">&para;</a></h2>
+<ul>
+<li>For security issues, avoid public issues initially.</li>
+<li>Email maintainers at <code>security@medaisure.org</code> with details and reproduction steps.</li>
+<li>Maintainers will coordinate an expedited fix and release.</li>
+</ul>
+<h2 id="roles-approvals">Roles &amp; Approvals<a class="headerlink" href="#roles-approvals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>At least one maintainer review is required to cut a release.</li>
+<li>For major releases, two approvals are recommended, with a migration guide in docs.</li>
+</ul>
+<h2 id="communication">Communication<a class="headerlink" href="#communication" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Announce releases via GitHub Releases and repository README badges.</li>
+<li>Update documentation navigation if new features introduce new pages.</li>
+</ul>
 
 
 
