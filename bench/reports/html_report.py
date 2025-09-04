@@ -113,7 +113,7 @@ class HTMLReportGenerator(ReportGenerator):
                 )
                 metadata_block = (
                     f"<details{' open' if open_metadata else ''}><summary>Metadata</summary>"
-                    f"<pre class=\"code\">{_json_preview(res.metadata)}</pre>"
+                    f'<pre class="code">{_json_preview(res.metadata)}</pre>'
                     f"</details>"
                     if getattr(res, "metadata", None)
                     else ""

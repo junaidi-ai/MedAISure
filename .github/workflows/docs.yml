@@ -37,7 +37,6 @@ jobs:
           args: >
             --verbose --no-progress
             --accept 200,206,429
-            --exclude-mail
             --exclude-path "site"
             --retry-wait-time 2 --max-retries 2
             "README.md" "README-DEV.md" "README_id.md" "README_ja.md" "README_zh.md" "docs/**/*.md"
