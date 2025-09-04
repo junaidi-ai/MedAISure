@@ -1,0 +1,41 @@
+# Lychee configuration
+# See: https://github.com/lycheeverse/lychee#configuration-file
+
+# What to scan
+include = [
+  "README.md",
+  "README-DEV.md",
+  "README_id.md",
+  "README_ja.md",
+  "README_zh.md",
+  "docs/**/*.md",
+]
+
+# Exclude local build output and any generated artifacts
+exclude_path = [
+  "site",
+  "htmlcov",
+]
+
+# HTTP settings
+accept = [200, 206, 429]
+max_retries = 2
+retry_wait_time = 2
+user_agent = "Mozilla/5.0 (compatible; MedAISure-CI; +https://github.com/junaidi-ai/MedAISure)"
+
+# Don’t fail on email-only links (not checked by default)
+include_mail = false
+
+# Timeouts
+timeout = 20
+
+# Cache to speed up repeated checks in CI (best-effort; action may manage its own cache)
+cache = true
+cache_dir = ".lychee-cache"
+
+# Exclusions (domains that are flaky or block bots) – adjust as needed
+# Example entries commented out until we see flakes in CI
+# exclude = [
+#   "https://pytorch.org/*",
+#   "https://twitter.com/*",
+# ]

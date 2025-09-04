@@ -35,11 +35,7 @@ jobs:
         with:
           # Use folded scalar to provide a single-line args string to the action
           args: >
-            --verbose --no-progress
-            --accept 200,206,429
-            --exclude-path "site"
-            --retry-wait-time 2 --max-retries 2
-            "README.md" "README-DEV.md" "README_id.md" "README_ja.md" "README_zh.md" "docs/**/*.md"
+            --config .lychee.toml --verbose --no-progress
           fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

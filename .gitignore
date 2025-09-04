@@ -52,6 +52,9 @@ models/
 !docs/models/
 !docs/models/**
 
+# MkDocs build output (publish via GitHub Pages from artifact, do not track)
+site/
+
 # Test and coverage
 htmlcov/
 .tox/
