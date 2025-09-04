@@ -9,6 +9,7 @@ nav:
   - Architecture: architecture.md
   - Usage: usage.md
   - Quick Start: quick_start.md
+  - Tutorials: tutorials.md
   - Configuration: configuration.md
   - Data Models: data_models.md
   - Metrics:
@@ -37,6 +38,7 @@ nav:
       - Guide: testing_guide.md
       - Integration Coverage: testing_integration_coverage.md
   - Performance: performance.md
+  - Performance Tips: 04c_performance_tips.md
   - Security: security.md
   - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md
