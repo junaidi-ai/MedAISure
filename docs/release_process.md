@@ -22,7 +22,7 @@ Pre-releases may use suffixes like `-alpha.1`, `-beta.1`, or `-rc.1`.
 ## Tagging and Changelog
 
 - Create annotated tags in the form `vX.Y.Z`.
-- Maintain a human-readable `CHANGELOG.md` with sections for Added, Changed, Fixed, Removed.
+- Maintain a human-readable [`CHANGELOG.md`](../CHANGELOG.md) with sections for Added, Changed, Fixed, Removed.
   - For each release, summarize notable changes, breaking changes, and migration notes.
 - For pre-releases, tag as `vX.Y.Z-rc.N` and state stability expectations.
 
@@ -32,7 +32,7 @@ Pre-releases may use suffixes like `-alpha.1`, `-beta.1`, or `-rc.1`.
 2. Update version (if applicable):
    - `pyproject.toml` or packaging metadata (if publishing a package)
    - Any in-code version constants
-3. Update `CHANGELOG.md` and docs as needed.
+3. Update [`CHANGELOG.md`](../CHANGELOG.md) and docs as needed.
 4. Run quality gates locally:
    - `pre-commit run --all-files`
    - `pytest` (with coverage)
