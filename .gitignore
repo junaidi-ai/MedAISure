@@ -42,10 +42,15 @@ wheels/
 *.egg
 
 # Model files
+# Default: ignore model artifact directories anywhere
 models/
 !models/README.md
 !bench/models/
 !bench/models/**
+
+# Docs: ensure documentation under docs/models/ is tracked
+!docs/models/
+!docs/models/**
 
 # Test and coverage
 htmlcov/
