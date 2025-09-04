@@ -40,7 +40,8 @@ nav:
   - Performance: performance.md
   - Performance Tips: 04c_performance_tips.md
   - Contributing: contributing.md
-  - Code of Conduct: CODE_OF_CONDUCT.md
+  - Code of Conduct: code_of_conduct.md
+  - Changelog: changelog.md
   - Release Process: release_process.md
   - Security: security.md
   - Troubleshooting: troubleshooting.md
