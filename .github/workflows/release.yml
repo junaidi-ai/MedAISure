@@ -16,10 +16,20 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install docs dependencies
+      - name: Install project and dev dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
           pip install mkdocs-material mkdocstrings[python]
+
+      - name: Run linters (ruff) and type checks (mypy)
+        run: |
+          ruff check .
+          mypy bench || true
+
+      - name: Run tests
+        run: |
+          pytest -q
 
       - name: Build docs
         run: |
@@ -29,25 +39,44 @@ jobs:
         run: |
           zip -r site.zip site
 
-      - name: Generate release notes (fallback)
-        id: notes
+      - name: Generate release notes from CHANGELOG.md
+        id: changelog
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          TAG_TRIMMED="${TAG#v}"
+          START_LINE=$(grep -n "^## \[${TAG}\]" CHANGELOG.md || true)
+          if [ -z "$START_LINE" ]; then
+            START_LINE=$(grep -n "^## \[v${TAG_TRIMMED}\]" CHANGELOG.md || true)
+          fi
+          if [ -z "$START_LINE" ]; then
+            echo "Could not find section for $TAG in CHANGELOG.md; falling back to git log." >&2
+            echo "FALLBACK=1" >> $GITHUB_OUTPUT
+          else
+            LINE_NUM=${START_LINE%%:*}
+            tail -n +$LINE_NUM CHANGELOG.md > tmp_changelog_from_tag.md
+            # Extract until next section header starting with '## ['
+            awk 'NR==1{print; next} /^## \[/ {exit} {print}' tmp_changelog_from_tag.md > RELEASE_NOTES.md
+            echo "FALLBACK=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate fallback notes from git log
+        if: steps.changelog.outputs.FALLBACK == '1'
         run: |
           TAG="${GITHUB_REF##*/}"
           PREV_TAG=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
-            echo "changes<<EOF" >> $GITHUB_OUTPUT
-            git log --pretty=format:'- %s (%h)' ${PREV_TAG}..${TAG} >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            echo "# ${TAG}" > RELEASE_NOTES.md
+            git log --pretty=format:'- %s (%h)' ${PREV_TAG}..${TAG} >> RELEASE_NOTES.md
           else
-            echo "changes<<EOF" >> $GITHUB_OUTPUT
-            git log --pretty=format:'- %s (%h)' -n 100 >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            echo "# ${TAG}" > RELEASE_NOTES.md
+            git log --pretty=format:'- %s (%h)' -n 100 >> RELEASE_NOTES.md
           fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
           files: |
             site.zip
         env:
