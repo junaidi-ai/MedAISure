@@ -3,6 +3,8 @@ site_description: Medical AI Evaluation Benchmark
 repo_url: https://github.com/junaidi-ai/MedAISure
 repo_name: junaidi-ai/MedAISure
 site_dir: site
+site_url: https://junaidi-ai.github.io/MedAISure/
+use_directory_urls: true
 
 nav:
   - Getting Started: getting_started.md
