@@ -423,16 +423,21 @@ def list_models(
         table.add_row(mid, mtype, loc, module, hf_task)
     if _rich_enabled():
         console.print(table)
+        # Emit a simple header so stdout contains an assertable marker
+        _print("Registered Models")
     else:
-        # Plain-text fallback so tests can assert on output without Rich
+        # Plain-text fallback so tests can assert on output without Rich.
+        # Build rows directly from the registry instead of Rich internals.
         lines = [
             "Registered Models",
             "Model ID | Type | Path/Endpoint | Module | HF Task",
         ]
-        for row in table.rows:
-            # row.renderable is a tuple of cells; convert to plain strings
-            cells = [str(cell) for cell in row._cells]  # type: ignore[attr-defined]
-            lines.append(" | ".join(cells))
+        for mid, entry in reg.items():
+            mtype = str(entry.get("type", ""))
+            loc = str(entry.get("path") or entry.get("endpoint") or "")
+            module = str(entry.get("module", ""))
+            hf_task = str(entry.get("hf_task", ""))
+            lines.append(" | ".join([mid, mtype, loc, module, hf_task]))
         _print("\n".join(lines))
 
 
