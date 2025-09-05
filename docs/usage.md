@@ -81,6 +81,8 @@ See also the runnable examples:
 - Aggregation: `ResultAggregator` builds a `BenchmarkReport` and supports CSV/Markdown/HTML export
 - Save path: `<results_dir>/<run_id>.json`
 
+> Tip: You can compute a weighted combined score across categories during evaluation. From the CLI, use `--combined-weights` and optionally `--combined-metric-name`. See [CLI combined score](api/cli.md#combined-score-via-cli-typer) and [Metric Categories](metrics/metric_categories.md).
+
 ## Caching
 
 If `cache_dir` is set, predictions per task are cached to JSON (`<run_id>_<task_id>.json`). Disable with `use_cache=False`.

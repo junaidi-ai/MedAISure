@@ -56,6 +56,22 @@ report = h.evaluate(
 print(report.overall_scores)
 ```
 
+Tip: You can compute a weighted combined score across categories during evaluation. From the CLI, pass `--combined-weights` (JSON or `key=value` pairs) and optionally `--combined-metric-name`:
+
+```bash
+python -m bench.cli_typer evaluate <model-id> \
+    --tasks <task-id> \
+    --tasks-dir tasks \
+    --model-type local \
+    --output-dir results \
+    --format json \
+    --save-results \
+    --combined-weights diagnostics=0.4,safety=0.3,communication=0.2,summarization=0.1 \
+    --combined-metric-name combined_score
+```
+
+See docs: `docs/metrics/metric_categories.md` and `docs/api/cli.md#combined-score-via-cli-typer`.
+
 ### LocalModel quick examples
 
 Use LocalModel to load local models saved with pickle/joblib/torch, or wrap a callable.

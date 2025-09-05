@@ -151,6 +151,9 @@ class BenchmarkConfig(BaseModel):
     # New: HTML rendering preferences (optional)
     html_open_metadata: Optional[bool] = None
     html_preview_limit: Optional[int] = None
+    # New: combined score configuration
+    combined_weights: Optional[Dict[str, float]] = None
+    combined_metric_name: Optional[str] = None
 
     @classmethod
     def from_file(cls, file_path: Path) -> "BenchmarkConfig":
@@ -338,8 +341,75 @@ def _report_to_html(report: BenchmarkReport) -> str:
       {rows_tasks_html}
     </ul>
   </body>
-  </html>
+    </html>
     """
+
+
+# ----------------------
+# Weights parse & validate
+# ----------------------
+
+
+def _parse_weights(s: Optional[str]) -> Optional[Dict[str, float]]:
+    """Parse a weights string provided via CLI.
+
+    Accepts either a JSON object string (e.g., '{"diagnostics":0.4,...}') or
+    a comma-separated list of key=value pairs (e.g., 'diagnostics=0.4,safety=0.3').
+    Returns None if s is falsy.
+    """
+    if not s:
+        return None
+    s = s.strip()
+    # Try JSON first
+    try:
+        payload = json.loads(s)
+        if isinstance(payload, dict):
+            return {str(k): float(v) for k, v in payload.items()}
+    except Exception:
+        pass
+    # Fallback to key=value parsing
+    out: Dict[str, float] = {}
+    for part in s.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "=" not in part:
+            raise typer.BadParameter(
+                f"Invalid weight token '{part}'. Expected key=value pairs."
+            )
+        k, v = part.split("=", 1)
+        try:
+            out[k.strip()] = float(v.strip())
+        except Exception:
+            raise typer.BadParameter(
+                f"Invalid numeric value for '{k.strip()}': '{v.strip()}'"
+            )
+    return out
+
+
+def _validate_weights(
+    weights: Dict[str, float], *, require_sum_one: bool = True
+) -> Dict[str, float]:
+    """Validate weights are non-negative and (optionally) sum to ~1.0.
+
+    Returns a normalized copy (unchanged values) and raises BadParameter on errors.
+    """
+    if not weights:
+        raise typer.BadParameter("combined_weights must not be empty")
+    for k, v in weights.items():
+        try:
+            fv = float(v)
+        except Exception:
+            raise typer.BadParameter(f"Weight for '{k}' is not numeric: {v}")
+        if fv < 0:
+            raise typer.BadParameter(f"Weight for '{k}' must be non-negative")
+    if require_sum_one:
+        total = sum(float(v) for v in weights.values())
+        if not (abs(total - 1.0) <= 1e-6):
+            raise typer.BadParameter(
+                f"Weights must sum to 1.0 (±1e-6). Got: {total:.6f}"
+            )
+    return {str(k): float(v) for k, v in weights.items()}
 
 
 # ---------
@@ -606,6 +676,17 @@ def evaluate(
     batch_size: int = typer.Option(8, help="Batch size for inference"),
     use_cache: bool = typer.Option(True, help="Use cached results if available"),
     save_results: bool = typer.Option(True, help="Persist results to output_dir"),
+    combined_weights: Optional[str] = typer.Option(
+        None,
+        help=(
+            "Combined score weights as JSON or key=value list. "
+            'Example: \'{"diagnostics":0.4,"safety":0.3,"communication":0.2,"summarization":0.1}\' '
+            "or 'diagnostics=0.4,safety=0.3,communication=0.2,summarization=0.1'"
+        ),
+    ),
+    combined_metric_name: Optional[str] = typer.Option(
+        None, help="Metric name for the combined score (default: combined_score)"
+    ),
 ):
     """Run evaluation on specified model and tasks."""
     _configure_console_if_needed()
@@ -692,6 +773,30 @@ def evaluate(
         except Exception:
             resolved_html_preview_limit = None
 
+    # Resolve combined score configuration (CLI > config > defaults)
+    DEFAULT_WEIGHTS = {
+        "diagnostics": 0.4,
+        "safety": 0.3,
+        "communication": 0.2,
+        "summarization": 0.1,
+    }
+    # Parse CLI string if provided
+    parsed_cli_weights = _parse_weights(combined_weights)
+    resolved_weights: Optional[Dict[str, float]] = None
+    if parsed_cli_weights is not None:
+        resolved_weights = _validate_weights(parsed_cli_weights)
+    elif cfg and cfg.combined_weights is not None:
+        resolved_weights = _validate_weights(dict(cfg.combined_weights))
+    else:
+        # Use defaults
+        resolved_weights = dict(DEFAULT_WEIGHTS)
+
+    resolved_combined_metric_name = (
+        (combined_metric_name.strip() if combined_metric_name else None)
+        or (cfg.combined_metric_name if cfg and cfg.combined_metric_name else None)
+        or "combined_score"
+    )
+
     # Apply environment variables so generators respect settings
     if resolved_html_open_metadata is not None:
         os.environ["MEDAISURE_HTML_OPEN_METADATA"] = (
@@ -728,6 +833,8 @@ def evaluate(
                 save_results=cfg.save_results if cfg else save_results,
                 report_formats=resolved_extra_reports,
                 report_dir=str(resolved_report_dir) if resolved_report_dir else None,
+                combined_weights=resolved_weights,
+                combined_metric_name=resolved_combined_metric_name,
                 **model_kwargs,
             )
     else:
@@ -743,6 +850,8 @@ def evaluate(
             save_results=cfg.save_results if cfg else save_results,
             report_formats=resolved_extra_reports,
             report_dir=str(resolved_report_dir) if resolved_report_dir else None,
+            combined_weights=resolved_weights,
+            combined_metric_name=resolved_combined_metric_name,
             **model_kwargs,
         )
 

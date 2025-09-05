@@ -121,6 +121,8 @@ class EvaluationHarness:
         strict_validation: bool = False,
         report_formats: Optional[List[str]] = None,
         report_dir: Optional[str] = None,
+        combined_weights: Optional[Dict[str, float]] = None,
+        combined_metric_name: Optional[str] = None,
         **model_kwargs: Any,
     ) -> BenchmarkReport:
         """Run evaluation on the specified model and tasks.
@@ -132,6 +134,11 @@ class EvaluationHarness:
             batch_size: Batch size for model inference
             use_cache: Whether to use cached results if available
             save_results: Whether to save results to disk
+            strict_validation: If true, raise on validation errors
+            report_formats: Optional extra report formats to export
+            report_dir: Optional directory for extra report outputs
+            combined_weights: Optional weights mapping for combined score aggregation
+            combined_metric_name: Optional metric name to use for combined score
             **model_kwargs: Additional arguments for model loading
 
         Returns:
@@ -347,6 +354,17 @@ class EvaluationHarness:
                 detailed_results=detailed_results,
                 metadata={},
             )
+        # Compute combined score if configured
+        try:
+            if combined_weights:
+                report.add_combined_score(
+                    combined_weights,
+                    metric_name=(combined_metric_name or "combined_score"),
+                    renormalize_missing=True,
+                )
+        except Exception:
+            # Non-fatal: proceed without combined score on failure
+            pass
         # Enrich metadata
         report.metadata.update(
             {
@@ -356,6 +374,8 @@ class EvaluationHarness:
                 "num_tasks": len(task_results),
                 "batch_size": batch_size,
                 "model_type": model_type,
+                "combined_weights": combined_weights or {},
+                "combined_metric_name": combined_metric_name or "combined_score",
                 **model_kwargs,
             }
         )

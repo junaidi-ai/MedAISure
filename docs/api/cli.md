@@ -37,6 +37,40 @@ print(report.overall_scores)
 PY
 ```
 
+## Combined score via CLI (Typer)
+
+The Typer-based CLI supports computing a weighted combined score across categories using `--combined-weights` and `--combined-metric-name`. The weights can be provided as JSON or comma-separated `key=value` pairs. See `bench/cli_typer.py` for details.
+
+- JSON weights:
+```bash
+python -m bench.cli_typer evaluate <model-id> \
+  --tasks <task-id> \
+  --tasks-dir tasks \
+  --model-type local \
+  --output-dir results \
+  --format json \
+  --save-results \
+  --combined-weights '{"diagnostics": 0.4, "safety": 0.3, "communication": 0.2, "summarization": 0.1}' \
+  --combined-metric-name combined_score
+```
+
+- Comma-separated pairs:
+```bash
+python -m bench.cli_typer evaluate <model-id> \
+  --tasks <task-id> \
+  --tasks-dir tasks \
+  --model-type local \
+  --output-dir results \
+  --format json \
+  --save-results \
+  --combined-weights diagnostics=0.4,safety=0.3,communication=0.2,summarization=0.1 \
+  --combined-metric-name combined_score
+```
+
+Notes:
+- Weights must be non-negative and sum to 1.0 (±1e-6). Invalid inputs will be rejected with a clear error.
+- When a task lacks some categories, remaining present weights are re-normalized by default so scores stay comparable.
+
 ## Key parameters (map to EvaluationHarness.evaluate)
 
 - `model_id` (str): identifier used to register/load the model in `ModelRunner`.

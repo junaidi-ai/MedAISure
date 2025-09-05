@@ -6,17 +6,17 @@ MedAISure is a benchmark for evaluating Large Language Models (LLMs) in the medi
 
 Get started here:
 
-- Getting Started: getting_started.md
-- Quick Start: quick_start.md
-- Usage Guide: usage.md
-- Architecture Overview: architecture.md
+- [Getting Started](getting_started.md)
+- [Quick Start](quick_start.md)
+- [Usage Guide](usage.md)
+- [Architecture Overview](architecture.md)
 
 Key areas:
 
-- Tasks Overview: tasks/overview.md
-- Models Guide: models/model_interface.md
-- Metrics Overview: metrics/overview.md
-- API Reference: api/overview.md
+- [Tasks Overview](tasks/overview.md)
+- [Models Guide](models/model_interface.md)
+- [Metrics Overview](metrics/overview.md)
+- [API Reference](api/overview.md)
 
 Project links:
 

@@ -23,6 +23,8 @@ This section summarizes metric categories and how scores are computed and aggreg
 - Component weights are defined in metric implementations (see API links below).
 - Per-sample breakdowns are accessible via metric APIs (e.g., `get_last_breakdown()`), and are surfaced in evaluation metadata when available.
 
+For how individual metric keys map into high-level categories used by our combined score, see [Metric Categories](./metric_categories.md). To compute a weighted combined score from the CLI, see [Combined score via CLI](../api/cli.md#combined-score-via-cli-typer).
+
 ## Deep links (API)
 - Python API → Metrics (clinical): api/reference.md#metrics-clinical
   - `ClinicalAccuracyMetric.calculate`

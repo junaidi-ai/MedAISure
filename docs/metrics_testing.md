@@ -42,6 +42,8 @@ pytest -q tests/test_metrics_malformed_inputs.py \
 pytest tests/test_metrics_performance_benchmark.py --benchmark-min-time=0.1
 ```
 
+See also: category mapping and combined scoring — [metrics/metric_categories.md](metrics/metric_categories.md) and [api/cli.md#combined-score-via-cli-typer](api/cli.md#combined-score-via-cli-typer).
+
 ## Notes
 
 - `DiagnosticAccuracyMetric` now normalizes the label `"mi"` to `"myocardial infarction"` to align synonyms before comparison.

@@ -833,7 +833,7 @@
           1,
           4
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -841,7 +841,7 @@
             "description": "Introduce a config section and CLI flags to control Combined Score weights with sane defaults.",
             "dependencies": [],
             "details": "- Config schema updates\n- CLI flags: --combined-weights diagnostics=0.4,safety=0.3,communication=0.2,summarization=0.1\n- Validation of provided weights (sum to 1.0)",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "Config parsing and validation tests"
           },
           {

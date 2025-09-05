@@ -371,6 +371,71 @@ class BenchmarkReport(BaseModel):
         plt.tight_layout()
         plt.show()
 
+    # --- Combined score helpers ---
+    def add_combined_score(
+        self,
+        weights: Dict[str, float],
+        metric_name: str = "combined_score",
+        *,
+        renormalize_missing: bool = True,
+    ) -> None:
+        """Compute and add a weighted combined score to task and overall metrics.
+
+        Args:
+            weights: Mapping from metric/category name -> weight. Typically these
+                correspond to top-level metric keys in `task_scores` such as
+                'diagnostics', 'safety', 'communication', 'summarization'.
+            metric_name: Name under which to store the combined metric.
+            renormalize_missing: If True, when a task is missing some weighted
+                components, renormalize the remaining present weights to sum to 1.0.
+
+        Behavior:
+            - For each task, compute a weighted sum over the intersection of
+              provided weights and the task's available metrics. If none of the
+              weighted metrics are present, the combined score is skipped.
+            - The overall combined score is the mean of per-task combined values
+              across tasks where it was computed.
+        """
+        if not weights:
+            return
+
+        # Compute per-task combined scores
+        per_task_combined: Dict[str, float] = {}
+        for task_id, metrics in (self.task_scores or {}).items():
+            # Collect present components
+            present: Dict[str, float] = {}
+            for k, w in weights.items():
+                if k in metrics:
+                    try:
+                        present[k] = float(metrics[k])
+                    except Exception:
+                        continue
+            if not present:
+                # Nothing to combine for this task
+                continue
+
+            # Determine normalization
+            if renormalize_missing:
+                total_w = sum(float(weights[k]) for k in present.keys())
+            else:
+                total_w = sum(float(weights[k]) for k in weights.keys())
+            if total_w <= 0:
+                continue
+
+            combined_val = 0.0
+            for k, v in present.items():
+                wk = float(weights.get(k, 0.0))
+                combined_val += (wk / total_w) * float(v)
+
+            # Write per-task combined
+            self.task_scores.setdefault(task_id, {})[metric_name] = float(combined_val)
+            per_task_combined[task_id] = float(combined_val)
+
+        # Compute overall combined as mean over tasks with combined present
+        if per_task_combined:
+            overall_mean = sum(per_task_combined.values()) / len(per_task_combined)
+            self.overall_scores[metric_name] = float(overall_mean)
+
     def plot_task_scores(self, metric: str) -> None:
         """Plot a simple bar chart of per-task scores for a selected metric.
 

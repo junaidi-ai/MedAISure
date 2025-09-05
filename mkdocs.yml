@@ -7,6 +7,7 @@ site_url: https://junaidi-ai.github.io/MedAISure/
 use_directory_urls: true
 
 nav:
+  - Home: index.md
   - Getting Started: getting_started.md
   - Architecture: architecture.md
   - Usage: usage.md
@@ -16,6 +17,7 @@ nav:
   - Data Models: data_models.md
   - Metrics:
       - Overview: metrics/overview.md
+      - Metric Categories: metrics/metric_categories.md
       - Guidelines: metrics_guidelines.md
       - Testing: metrics_testing.md
       - Clinical Accuracy: metrics/clinical_accuracy.md

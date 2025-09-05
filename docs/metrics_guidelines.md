@@ -30,3 +30,8 @@
   - Avoid changing existing lexicon logic unless tests are added to cover behavior changes.
 - **Contribution tip**:
   - When proposing new synonyms, include short clinical justification or references if ambiguity is possible.
+
+> See also: category mapping and combined scoring
+>
+> - Metric Categories: [docs/metrics/metric_categories.md](metrics/metric_categories.md)
+> - CLI combined score usage: [docs/api/cli.md#combined-score-via-cli-typer](api/cli.md#combined-score-via-cli-typer)
