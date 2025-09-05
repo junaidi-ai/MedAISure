@@ -35,7 +35,7 @@ jobs:
         with:
           # Use folded scalar to provide a single-line args string to the action
           args: >
-            --config .lychee.toml --verbose --no-progress
+            --config .lychee.toml --verbose --no-progress .
           fail: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -120,6 +120,11 @@ class LocalModel(ModelInterface):
             self._populate_metadata()
 
     def predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Run prediction using the configured local model or predict function.
+
+        Returns a list of output dictionaries aligned to `inputs`. Best-effort
+        containment returns empty dicts on per-item failures.
+        """
         # Basic input validation/coercion
         if not isinstance(inputs, list):  # pragma: no cover - defensive
             inputs = [inputs]  # type: ignore[list-item]
@@ -155,10 +160,12 @@ class LocalModel(ModelInterface):
 
     @property
     def model_id(self) -> str:
+        """Return the unique identifier for this local model instance."""
         return self._model_id
 
     @property
     def metadata(self) -> Dict[str, Any]:
+        """Return merged metadata about the local model and source file."""
         # Merge base metadata with extracted
         base = {"model_id": self._model_id, "framework": "local"}
         return {**base, **(self._meta or {})}
@@ -308,6 +315,7 @@ class HuggingFaceModel(ModelInterface):
             ) from e
 
     def predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Run the HuggingFace pipeline on inputs and normalize results."""
         self._ensure_pipeline()
         assert self._pipe is not None
 
@@ -367,10 +375,12 @@ class HuggingFaceModel(ModelInterface):
 
     @property
     def model_id(self) -> str:
+        """Return the unique identifier (usually the HF model name)."""
         return self._model_id
 
     @property
     def metadata(self) -> Dict[str, Any]:
+        """Return metadata about the HF model, task, and estimated parameters."""
         params = None
         try:
             if hasattr(self._pipe, "model"):
@@ -436,6 +446,10 @@ class APIModel(ModelInterface):
         self._last_request_ts: float = 0.0
 
     def predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """POST inputs to the configured API and normalize the response.
+
+        Applies simple auth, retry, timeout and optional rate limiting.
+        """
         try:
             import requests  # local import to keep optional
 
@@ -483,10 +497,12 @@ class APIModel(ModelInterface):
 
     @property
     def model_id(self) -> str:
+        """Return the unique identifier for this API-backed model."""
         return self._model_id
 
     # ---- Async support ----
     async def async_predict(self, inputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Async variant of `predict` using httpx for non-blocking I/O."""
         try:
             import httpx  # type: ignore
 
@@ -739,14 +755,17 @@ class ModelRegistry:
     def get_metadata(
         self, model_id: str, *, version: Optional[str] = None
     ) -> Dict[str, Any]:
+        """Return metadata dict for a registered model (optionally by version)."""
         m = self.get_model(model_id, version=version)
         return m.metadata if m is not None else {}
 
     # ---- Default configuration ----
     def set_default_config(self, model_id: str, config: Dict[str, Any]) -> None:
+        """Set default configuration blob for a given model id."""
         self._default_config[model_id] = dict(config)
 
     def get_default_config(self, model_id: str) -> Dict[str, Any]:
+        """Get a copy of the default configuration for a model id."""
         return dict(self._default_config.get(model_id, {}))
 
     # ---- Persistence (lightweight; no model object serialization) ----

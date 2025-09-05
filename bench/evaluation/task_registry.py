@@ -28,6 +28,8 @@ from ..models.medical_task import MedicalTask, TaskType
 
 @dataclass
 class TaskSummary:
+    """Compact summary of a task for listings and filters."""
+
     task_id: str
     name: str
     description: str

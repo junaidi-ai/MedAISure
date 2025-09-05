@@ -40,6 +40,8 @@ app = typer.Typer(add_completion=False, no_args_is_help=True)
 
 
 class _NullConsole:
+    """Minimal console stub used when Rich output is disabled in tests."""
+
     def print(self, *args, **kwargs):
         return
 
@@ -132,6 +134,8 @@ def _rich_enabled() -> bool:
 # Config model utilities
 # ----------------------
 class BenchmarkConfig(BaseModel):
+    """Typed configuration model for running benchmark evaluations."""
+
     model_id: str
     tasks: Optional[List[str]] = None
     metrics: Optional[Dict[str, List[str]]] = None
@@ -150,6 +154,7 @@ class BenchmarkConfig(BaseModel):
 
     @classmethod
     def from_file(cls, file_path: Path) -> "BenchmarkConfig":
+        """Load a `BenchmarkConfig` from a JSON or YAML file path."""
         path = Path(file_path)
         if not path.exists():
             raise FileNotFoundError(f"Config file not found: {path}")
@@ -222,6 +227,7 @@ def _ensure_not_dir(path: Path, label: str = "output") -> None:
 
 
 def display_task_list(rows: List[Dict[str, object]]) -> None:
+    """Render a Rich table of available tasks to the console."""
     table = Table(title="Available Tasks")
     table.add_column("ID")
     table.add_column("Name")
@@ -239,6 +245,8 @@ def display_task_list(rows: List[Dict[str, object]]) -> None:
         )
     if _rich_enabled():
         console.print(table)
+        # Emit a simple header so stdout contains an assertable marker
+        _print("Available Tasks")
 
 
 def _display_evaluation_summary(report: BenchmarkReport) -> None:
@@ -415,6 +423,17 @@ def list_models(
         table.add_row(mid, mtype, loc, module, hf_task)
     if _rich_enabled():
         console.print(table)
+    else:
+        # Plain-text fallback so tests can assert on output without Rich
+        lines = [
+            "Registered Models",
+            "Model ID | Type | Path/Endpoint | Module | HF Task",
+        ]
+        for row in table.rows:
+            # row.renderable is a tuple of cells; convert to plain strings
+            cells = [str(cell) for cell in row._cells]  # type: ignore[attr-defined]
+            lines.append(" | ".join(cells))
+        _print("\n".join(lines))
 
 
 @app.command("register-model")

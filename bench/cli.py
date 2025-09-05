@@ -34,6 +34,10 @@ def _parse_task_type(val: Optional[str]) -> Optional[TaskType]:
 
 
 def cmd_list(args: argparse.Namespace) -> int:
+    """List available tasks, optionally filtered, to stdout.
+
+    Returns 0 on success.
+    """
     reg = TaskRegistry(tasks_dir=args.tasks_dir)
     reg.discover()
 
@@ -78,6 +82,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 
 def cmd_register(args: argparse.Namespace) -> int:
+    """Register a task from a local file or URL and print a compact JSON summary."""
     reg = TaskRegistry(tasks_dir=args.tasks_dir)
     # Allow either URL or local path; TaskRegistry delegates parsing
     if args.source.startswith("http://") or args.source.startswith("https://"):
@@ -105,6 +110,7 @@ def cmd_register(args: argparse.Namespace) -> int:
 
 
 def cmd_show(args: argparse.Namespace) -> int:
+    """Show the full JSON representation of a task by ID."""
     reg = TaskRegistry(tasks_dir=args.tasks_dir)
     task = reg.get(args.id)
     # Show full task dict
@@ -113,6 +119,7 @@ def cmd_show(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Create and return the top-level argparse parser for the CLI."""
     p = argparse.ArgumentParser(prog="medaisure-benchmark")
     p.add_argument(
         "--tasks-dir",
@@ -161,6 +168,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
+    """Entry point for the argparse-based CLI."""
     parser = build_parser()
     args = parser.parse_args(argv)
 

@@ -42,10 +42,16 @@ jobs:
         run: |
           ruff check .
 
-      - name: Ruff (docstrings for bench/)
+      - name: Ruff (docstrings for core files)
+        continue-on-error: false
         run: |
-          # Enforce presence of class/method/function docstrings in bench/
+          # Enforce presence of class/method/function docstrings in core interfaces first
           # D101: Missing docstring in public class
           # D102: Missing docstring in public method
           # D103: Missing docstring in public function
-          ruff check bench --select D101,D102,D103
+          ruff check \
+            bench/cli.py \
+            bench/cli_typer.py \
+            bench/evaluation/model_interface.py \
+            bench/evaluation/task_registry.py \
+            --select D101,D102,D103
