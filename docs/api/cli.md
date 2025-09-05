@@ -71,6 +71,54 @@ Notes:
 - Weights must be non-negative and sum to 1.0 (±1e-6). Invalid inputs will be rejected with a clear error.
 - When a task lacks some categories, remaining present weights are re-normalized by default so scores stay comparable.
 
+### Config file alternative
+
+You can also set combined score options in a config file that the Typer CLI consumes via `--config-file`. The config maps to `bench/cli_typer.BenchmarkConfig` and supports `combined_weights` and `combined_metric_name`.
+
+YAML:
+
+```yaml
+model_id: test-local
+tasks:
+  - medical_qa
+combined_weights:
+  diagnostics: 0.4
+  safety: 0.3
+  communication: 0.2
+  summarization: 0.1
+combined_metric_name: combined_score
+```
+
+JSON:
+
+```json
+{
+  "model_id": "test-local",
+  "tasks": ["medical_qa"],
+  "combined_weights": {
+    "diagnostics": 0.4,
+    "safety": 0.3,
+    "communication": 0.2,
+    "summarization": 0.1
+  },
+  "combined_metric_name": "combined_score"
+}
+```
+
+Invoke with the config file:
+
+```bash
+python -m bench.cli_typer evaluate test-local \
+  --config-file config.yaml \
+  --tasks-dir tasks \
+  --model-type local \
+  --output-dir results \
+  --format json \
+  --save-results
+```
+
+Resolution order: CLI flags > config file > defaults (`diagnostics=0.4`, `safety=0.3`, `communication=0.2`, `summarization=0.1`).
+
 ## Key parameters (map to EvaluationHarness.evaluate)
 
 - `model_id` (str): identifier used to register/load the model in `ModelRunner`.

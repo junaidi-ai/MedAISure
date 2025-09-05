@@ -83,6 +83,71 @@ See also the runnable examples:
 
 > Tip: You can compute a weighted combined score across categories during evaluation. From the CLI, use `--combined-weights` and optionally `--combined-metric-name`. See [CLI combined score](api/cli.md#combined-score-via-cli-typer) and [Metric Categories](metrics/metric_categories.md).
 
+### Config-based combined score (YAML/JSON)
+
+For users who prefer config files, you can set `combined_weights` and `combined_metric_name` in a YAML or JSON config and pass it to the Typer CLI via `--config-file`. These map to `bench/cli_typer.BenchmarkConfig`.
+
+YAML example:
+
+```yaml
+model_id: test-local
+tasks:
+  - medical_qa
+combined_weights:
+  diagnostics: 0.4
+  safety: 0.3
+  communication: 0.2
+  summarization: 0.1
+combined_metric_name: combined_score
+```
+
+JSON example:
+
+```json
+{
+  "model_id": "test-local",
+  "tasks": ["medical_qa"],
+  "combined_weights": {
+    "diagnostics": 0.4,
+    "safety": 0.3,
+    "communication": 0.2,
+    "summarization": 0.1
+  },
+  "combined_metric_name": "combined_score"
+}
+```
+
+Run with the config file:
+
+```bash
+python -m bench.cli_typer evaluate test-local \
+  --config-file config.yaml \
+  --tasks-dir tasks \
+  --model-type local \
+  --output-dir results \
+  --format json \
+  --save-results
+```
+
+Resolution order for combined score settings: CLI flags > config file > defaults (`diagnostics=0.4`, `safety=0.3`, `communication=0.2`, `summarization=0.1`).
+
+Programmatic (no config file): pass directly to `EvaluationHarness.evaluate(...)`:
+
+```python
+report = h.evaluate(
+    model_id="test-local",
+    task_ids=["medical_qa"],
+    model_type="local",
+    combined_weights={
+        "diagnostics": 0.4,
+        "safety": 0.3,
+        "communication": 0.2,
+        "summarization": 0.1,
+    },
+    combined_metric_name="combined_score",
+)
+```
+
 ## Caching
 
 If `cache_dir` is set, predictions per task are cached to JSON (`<run_id>_<task_id>.json`). Disable with `use_cache=False`.
