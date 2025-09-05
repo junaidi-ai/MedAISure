@@ -3,9 +3,9 @@
 [![文档](https://img.shields.io/badge/文档-阅读文档-blue)](https://medaisure.readthedocs.io/)
 [![排行榜](https://img.shields.io/badge/排行榜-查看排名-brightgreen)](https://medaisure.junaidi.ai)
 
-[English](../README.md) | [日本語](README_ja.md) | [Bahasa Indonesia](README_id.md)
+[English](README.md) | [日本語](README_ja.md) | [Bahasa Indonesia](README_id.md)
 
-> **注意**：本文档为自动翻译，请参考[英文版README](../README.md)获取最新信息。
+> **注意**：本文档为自动翻译，请参考[英文版README](README.md)获取最新信息。
 
 ## 概述
 
@@ -13,12 +13,12 @@ MedAISure 基准测试是一个用于评估医疗领域大语言模型（LLM）�
 
 ## 使用方法
 
-有关详细的使用说明和安装指南，请参阅[英文文档](../README.md)。
+有关详细的使用说明和安装指南，请参阅[英文文档](README.md)。
 
 ## 贡献
 
-如果您有兴趣为该项目做出贡献，请参阅[英文贡献指南](../README.md#-contributions)。
+如果您有兴趣为该项目做出贡献，请参阅[英文贡献指南](README.md#contributions)。
 
 ## 许可证
 
-本项目采用MIT许可证，详情请参阅[LICENSE](../LICENSE)文件。
+本项目采用MIT许可证，详情请参阅[LICENSE](LICENSE.md)文件。

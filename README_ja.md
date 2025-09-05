@@ -3,9 +3,9 @@
 [![ドキュメント](https://img.shields.io/badge/ドキュメント-Read%20the%20Docs-blue)](https://medaisure.readthedocs.io/)
 [![リーダーボード](https://img.shields.io/badge/リーダーボード-ランキングを表示-brightgreen)](https://medaisure.junaidi.ai)
 
-[English](../README.md) | [中文简体](README_zh.md) | [Bahasa Indonesia](README_id.md)
+[English](README.md) | [中文简体](README_zh.md) | [Bahasa Indonesia](README_id.md)
 
-> **注意**: このドキュメントは自動翻訳です。最新情報については[英語版README](../README.md)を参照してください。
+> **注意**: このドキュメントは自動翻訳です。最新情報については[英語版README](README.md)を参照してください。
 
 ## 概要
 
@@ -13,11 +13,11 @@ MedAISure ベンチマークは、医療分野における大規模言語モデ�
 
 ## 利用方法
 
-詳細な利用方法やインストール手順については、[英語版のドキュメント](../README.md)を参照してください。
+詳細な利用方法やインストール手順については、[英語版のドキュメント](README.md)を参照してください。
 
 ## 貢献
 
-このプロジェクトへの貢献に興味をお持ちの方は、[英語版の貢献ガイド](../README.md#-contributions)をご覧ください。
+このプロジェクトへの貢献に興味をお持ちの方は、[英語版の貢献ガイド](README.md#contributions)をご覧ください。
 
 ## ライセンス
 
