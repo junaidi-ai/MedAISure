@@ -949,13 +949,13 @@
       },
       {
         "id": 16,
-        "title": "Multimodal Support Scaffold (Planned)",
+        "title": "Multimodal Support Scaffold",
         "description": "Design scaffolding for multimodal tasks (text+image) consistent with PRD Phase 3 Expansion, without enabling runtime changes.",
         "details": "- Draft schemas for multimodal inputs (text, image_url/path) and outputs\n- Define placeholder task definitions in bench/tasks (disabled)\n- Add docs page docs/architecture/multimodal.md\n- Outline evaluation path and metric hooks for multimodal, but keep disabled",
         "testStrategy": "- Lint/build checks only\n- Docs presence and link checks",
         "priority": "low",
         "dependencies": [1, 3],
-        "status": "planned",
+        "status": "done",
         "phase": "phase-3",
         "subtasks": []
       },

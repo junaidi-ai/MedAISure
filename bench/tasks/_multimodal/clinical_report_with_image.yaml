@@ -1,0 +1,35 @@
+# Placeholder multimodal task (disabled)
+# This file is intentionally placed under a subdirectory so it is NOT discovered
+# by TaskLoader.discover_tasks() which scans only top-level bench/tasks/ files.
+
+schema_version: 1
+disabled: true
+
+task_type: "summarization"
+name: "Clinical Report With Image (Placeholder)"
+description: "Summarize a clinical document with image context. Scaffold only."
+
+inputs:
+  - document: ""
+    image_path: ""
+expected_outputs:
+  - summary: ""
+
+input_schema:
+  required: ["document", "image_path"]
+output_schema:
+  required: ["summary"]
+
+metrics:
+  - name: "rouge_l"
+  - name: "clinical_relevance"
+  - name: "factual_consistency"
+
+# Minimal illustrative dataset
+# Note: paths are examples only; files are not required for the scaffold.
+dataset:
+  - input:
+      document: "Patient presents with cough and fever."
+      image_path: "data/images/example_chest_xray.png"
+    output:
+      summary: "Findings consistent with pneumonia."

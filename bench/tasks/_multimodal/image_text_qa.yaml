@@ -1,0 +1,34 @@
+# Placeholder multimodal task (disabled)
+# This file is intentionally placed under a subdirectory so it is NOT discovered
+# by TaskLoader.discover_tasks() which scans only top-level bench/tasks/ files.
+
+schema_version: 1
+disabled: true
+
+task_type: "qa"
+name: "Image-Text QA (Placeholder)"
+description: "Visual Question Answering over a medical image. Scaffold only."
+
+inputs:
+  - question: ""
+    image_path: ""
+expected_outputs:
+  - answer: ""
+
+input_schema:
+  required: ["question", "image_path"]
+output_schema:
+  required: ["answer"]
+
+metrics:
+  - name: "accuracy"
+  - name: "clinical_correctness"
+
+# Minimal illustrative dataset
+# Note: paths are examples only; files are not required for the scaffold.
+dataset:
+  - input:
+      question: "What abnormality is shown in the X-ray?"
+      image_path: "data/images/example_chest_xray.png"
+    output:
+      answer: "pneumonia"
