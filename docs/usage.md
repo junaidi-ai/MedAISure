@@ -83,6 +83,52 @@ See also the runnable examples:
 
 > Tip: You can compute a weighted combined score across categories during evaluation. From the CLI, use `--combined-weights` and optionally `--combined-metric-name`. See [CLI combined score](api/cli.md#combined-score-via-cli-typer) and [Metric Categories](metrics/metric_categories.md).
 
+### Category Mapping Overrides (CLI and Config)
+
+You can override the default mapping from raw metric names to high-level categories (diagnostics, safety, communication, summarization). This is useful when your tasks expose custom metric names.
+
+- CLI (inline JSON):
+  ```bash
+  task-master evaluate <model-id> \
+    --tasks <task-id> \
+    --tasks-dir bench/tasks \
+    --category-map '{"diagnostics":["accuracy","exact_match"],"summarization":["rouge_l"]}' \
+    --combined-weights diagnostics=0.7,summarization=0.3
+  ```
+
+- CLI (file path JSON/YAML):
+  ```bash
+  task-master evaluate <model-id> \
+    --tasks <task-id> \
+    --tasks-dir bench/tasks \
+    --category-map-file .taskmaster/configs/category_map.yaml \
+    --combined-weights diagnostics=0.7,summarization=0.3
+  ```
+
+- Config (`BenchmarkConfig`):
+  ```yaml
+  category_map:
+    diagnostics: [accuracy, exact_match]
+    summarization: [rouge_l]
+  ```
+
+- Programmatic:
+  ```python
+  report = h.evaluate(
+      model_id="test-local",
+      task_ids=["medical_qa"],
+      model_type="local",
+      category_map={
+          "diagnostics": ["accuracy", "exact_match"],
+          "summarization": ["rouge_l"],
+      },
+      combined_weights={"diagnostics": 0.7, "summarization": 0.3},
+      combined_metric_name="combined_score",
+  )
+  ```
+
+See details and the tuned default mapping in [Metric Categories](metrics/metric_categories.md).
+
 ### Config-based combined score (YAML/JSON)
 
 For users who prefer config files, you can set `combined_weights` and `combined_metric_name` in a YAML or JSON config and pass it to the Typer CLI via `--config-file`. These map to `bench/cli_typer.BenchmarkConfig`.

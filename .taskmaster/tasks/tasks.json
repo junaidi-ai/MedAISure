@@ -850,7 +850,7 @@
             "description": "Compute Combined Score from component categories with proper error handling.",
             "dependencies": [],
             "details": "- Map metrics to categories\n- Aggregate per-category scores\n- Apply weights and compute final Combined Score",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Deterministic synthetic inputs to validate outputs"
           },
           {

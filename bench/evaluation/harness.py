@@ -123,6 +123,7 @@ class EvaluationHarness:
         report_dir: Optional[str] = None,
         combined_weights: Optional[Dict[str, float]] = None,
         combined_metric_name: Optional[str] = None,
+        category_map: Optional[Dict[str, List[str]]] = None,
         **model_kwargs: Any,
     ) -> BenchmarkReport:
         """Run evaluation on the specified model and tasks.
@@ -354,6 +355,18 @@ class EvaluationHarness:
                 detailed_results=detailed_results,
                 metadata={},
             )
+        # First, compute category aggregates so combined weights over categories
+        # like diagnostics/safety/communication/summarization can resolve even when
+        # tasks only expose raw metrics (e.g., accuracy, rouge_l, etc.).
+        try:
+            # This enriches report.task_scores/overall_scores in-place.
+            self.result_aggregator.add_category_aggregates(
+                run_id, category_map=category_map
+            )
+        except Exception:
+            # Non-fatal: proceed without category aggregation on failure
+            pass
+
         # Compute combined score if configured
         try:
             if combined_weights:

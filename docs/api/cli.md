@@ -71,6 +71,35 @@ Notes:
 - Weights must be non-negative and sum to 1.0 (±1e-6). Invalid inputs will be rejected with a clear error.
 - When a task lacks some categories, remaining present weights are re-normalized by default so scores stay comparable.
 
+### Category mapping overrides
+
+You can override how raw metric names are mapped to high-level categories that feed into the combined score. This is useful when tasks define custom metric keys.
+
+- Inline JSON:
+```bash
+python -m bench.cli_typer evaluate <model-id> \
+  --tasks <task-id> \
+  --tasks-dir tasks \
+  --category-map '{"diagnostics":["accuracy","exact_match"],"summarization":["rouge_l"]}' \
+  --combined-weights diagnostics=0.7,summarization=0.3 \
+  --combined-metric-name combined_score
+```
+
+- JSON/YAML file:
+```bash
+python -m bench.cli_typer evaluate <model-id> \
+  --tasks <task-id> \
+  --tasks-dir tasks \
+  --category-map-file .taskmaster/configs/category_map.yaml \
+  --combined-weights diagnostics=0.7,summarization=0.3 \
+  --combined-metric-name combined_score
+```
+
+- Config file (`BenchmarkConfig`):
+Add a `category_map` section to your config (`--config-file`), and the CLI will use it unless overridden by CLI flags.
+
+See tuned defaults and more examples in `docs/metrics/metric_categories.md`.
+
 ### Config file alternative
 
 You can also set combined score options in a config file that the Typer CLI consumes via `--config-file`. The config maps to `bench/cli_typer.BenchmarkConfig` and supports `combined_weights` and `combined_metric_name`.
@@ -147,3 +176,5 @@ Resolution order: CLI flags > config file > defaults (`diagnostics=0.4`, `safety
 - API model errors: verify `endpoint`, auth (`api_key`/`headers`), and response shape `{ "outputs": [ ... ] }`.
 - Validation errors: use `strict_validation=True` to fail fast and inspect schemas in [Tasks overview](../tasks/overview.md) and [API → Task schema](../api/reference.md#task-schema).
 - Empty metrics: confirm the task defines metrics; see [Metrics overview](../metrics/overview.md) and [API → Metrics (clinical)](../api/reference.md#metrics-clinical).
+
+- Pytest marks missing: running `pytest -c /dev/null` bypasses the project `pytest.ini`, so custom marks like `@pytest.mark.integration` may warn as unknown. Run `pytest` without `-c /dev/null` (or register the mark in a provided `pytest.ini`) to avoid the warning.

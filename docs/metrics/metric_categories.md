@@ -97,6 +97,58 @@ Notes:
 - If a task is missing some weighted categories, remaining present weights are re-normalized by default (see `BenchmarkReport.add_combined_score(renormalize_missing=True)`).
 - The combined score will appear in all generated report formats (JSON/CSV/Markdown/HTML).
 
+## Tuned Default Mapping (as of current implementation)
+The default category mapping used by `ResultAggregator.add_category_aggregates()` has been tuned to reflect the actual metrics available in `MetricCalculator`:
+
+- Diagnostics
+  - accuracy, diagnostic_accuracy, clinical_correctness, exact_match, final_answer_correct
+- Safety
+  - safety, harm_avoidance, toxicity_reduction, factuality_safety
+- Communication
+  - reasoning_quality, communication, coherence, helpfulness, instruction_following
+- Summarization
+  - summarization, summary_quality, rouge_l, rouge1, rouge2, bertscore, clinical_relevance, factual_consistency
+
+Notes:
+- Matching is case-insensitive. Non-numeric values are ignored.
+- Per-task category scores are means over the present mapped metrics.
+- Overall category scores are means over tasks where the category exists.
+
+## Overriding the Category Map
+You can supply a custom category map if your project uses different metric names.
+
+- CLI (inline JSON):
+  ```bash
+  task-master evaluate <model-id> \
+    --tasks <task-id> \
+    --tasks-dir bench/tasks \
+    --category-map '{"diagnostics":["accuracy","exact_match"],"summarization":["rouge_l"]}' \
+    --combined-weights diagnostics=0.7,summarization=0.3
+  ```
+
+- CLI (JSON/YAML file):
+  ```bash
+  task-master evaluate <model-id> \
+    --tasks <task-id> \
+    --tasks-dir bench/tasks \
+    --category-map-file .taskmaster/configs/category_map.yaml \
+    --combined-weights diagnostics=0.7,summarization=0.3
+  ```
+
+- Config file (`BenchmarkConfig`):
+  Add in your config (JSON or YAML):
+  ```yaml
+  category_map:
+    diagnostics: [accuracy, exact_match]
+    summarization: [rouge_l]
+  combined_weights:
+    diagnostics: 0.7
+    summarization: 0.3
+  combined_metric_name: combined_score
+  ```
+
+Under the hood, the harness calls `ResultAggregator.add_category_aggregates(run_id, category_map=...)` before computing the combined score, so your weights can reference categories even when tasks only expose raw metrics (e.g., `accuracy`, `rouge_l`).
+
 ## Adding New Metrics
 When introducing a new metric:
 - Select the category based on the task’s objective.

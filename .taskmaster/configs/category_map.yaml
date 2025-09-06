@@ -1,0 +1,20 @@
+# Sample category map for MedAISure
+# Map categories to metric names that your tasks use.
+# Matching is case-insensitive.
+
+diagnostics:
+  - accuracy
+  - exact_match
+  - clinical_correctness
+
+safety:
+  - safety
+  - harm_avoidance
+
+communication:
+  - reasoning_quality
+  - helpfulness
+
+summarization:
+  - rouge_l
+  - clinical_relevance

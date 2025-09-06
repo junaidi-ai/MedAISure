@@ -154,6 +154,8 @@ class BenchmarkConfig(BaseModel):
     # New: combined score configuration
     combined_weights: Optional[Dict[str, float]] = None
     combined_metric_name: Optional[str] = None
+    # New: category mapping override (category -> list of metric names)
+    category_map: Optional[Dict[str, List[str]]] = None
 
     @classmethod
     def from_file(cls, file_path: Path) -> "BenchmarkConfig":
@@ -384,6 +386,56 @@ def _parse_weights(s: Optional[str]) -> Optional[Dict[str, float]]:
             raise typer.BadParameter(
                 f"Invalid numeric value for '{k.strip()}': '{v.strip()}'"
             )
+    return out
+
+
+def _parse_category_map_inline(s: Optional[str]) -> Optional[Dict[str, List[str]]]:
+    """Parse an inline category map string.
+
+    Supports JSON of the form '{"diagnostics":["accuracy","exact_match"], ...}'.
+    Returns None if s is falsy.
+    """
+    if not s:
+        return None
+    s = s.strip()
+    try:
+        payload = json.loads(s)
+        if isinstance(payload, dict):
+            out: Dict[str, List[str]] = {}
+            for k, v in payload.items():
+                if isinstance(v, list):
+                    out[str(k)] = [str(x) for x in v]
+            return out
+    except Exception:
+        pass
+    # If not valid JSON dict, raise an explicit error to guide users
+    raise typer.BadParameter(
+        '--category-map must be a JSON object string, e.g., \'{"diagnostics":["accuracy","exact_match"]}\''
+    )
+
+
+def _load_category_map_file(path: Optional[Path]) -> Optional[Dict[str, List[str]]]:
+    if not path:
+        return None
+    p = Path(path)
+    if not p.exists():
+        raise typer.BadParameter(f"Category map file not found: {p}")
+    text = p.read_text()
+    try:
+        if p.suffix.lower() in {".yaml", ".yml"}:
+            data = yaml.safe_load(text) or {}
+        else:
+            data = json.loads(text)
+    except Exception as e:
+        raise typer.BadParameter(f"Failed to parse category map file: {e}")
+    if not isinstance(data, dict):
+        raise typer.BadParameter(
+            "Category map file must define an object mapping categories to arrays of metric names"
+        )
+    out: Dict[str, List[str]] = {}
+    for k, v in data.items():
+        if isinstance(v, list):
+            out[str(k)] = [str(x) for x in v]
     return out
 
 
@@ -687,6 +739,21 @@ def evaluate(
     combined_metric_name: Optional[str] = typer.Option(
         None, help="Metric name for the combined score (default: combined_score)"
     ),
+    category_map: Optional[str] = typer.Option(
+        None,
+        help=(
+            "Override category mapping (JSON). Example: '{"
+            "diagnostics"
+            ": ["
+            "accuracy"
+            ", "
+            "exact_match"
+            "]}'"
+        ),
+    ),
+    category_map_file: Optional[Path] = typer.Option(
+        None, help="Path to JSON/YAML file defining category -> [metrics] mapping"
+    ),
 ):
     """Run evaluation on specified model and tasks."""
     _configure_console_if_needed()
@@ -797,6 +864,24 @@ def evaluate(
         or "combined_score"
     )
 
+    # Resolve category map override (CLI > config)
+    resolved_category_map: Optional[Dict[str, List[str]]] = None
+    inline_map = _parse_category_map_inline(category_map) if category_map else None
+    file_map = _load_category_map_file(category_map_file) if category_map_file else None
+    if inline_map is not None:
+        resolved_category_map = inline_map
+    elif file_map is not None:
+        resolved_category_map = file_map
+    elif cfg and cfg.category_map is not None:
+        # Config file may specify mapping directly
+        try:
+            resolved_category_map = {
+                str(k): [str(x) for x in (v or [])]
+                for k, v in dict(cfg.category_map).items()
+            }
+        except Exception:
+            resolved_category_map = None
+
     # Apply environment variables so generators respect settings
     if resolved_html_open_metadata is not None:
         os.environ["MEDAISURE_HTML_OPEN_METADATA"] = (
@@ -835,6 +920,7 @@ def evaluate(
                 report_dir=str(resolved_report_dir) if resolved_report_dir else None,
                 combined_weights=resolved_weights,
                 combined_metric_name=resolved_combined_metric_name,
+                category_map=resolved_category_map,
                 **model_kwargs,
             )
     else:
@@ -852,6 +938,7 @@ def evaluate(
             report_dir=str(resolved_report_dir) if resolved_report_dir else None,
             combined_weights=resolved_weights,
             combined_metric_name=resolved_combined_metric_name,
+            category_map=resolved_category_map,
             **model_kwargs,
         )
 

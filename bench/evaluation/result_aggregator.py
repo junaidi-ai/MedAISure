@@ -309,6 +309,149 @@ class ResultAggregator:
     # -----------
     # Exporters
     # -----------
+    # -------------------------------
+    # Category aggregation utilities
+    # -------------------------------
+    # Default canonical mapping derived from docs/metrics/metric_categories.md
+    _DEFAULT_CATEGORY_MAP: Dict[str, set] = {
+        # Diagnostics: core correctness
+        "diagnostics": {
+            "clinical_accuracy",
+            "diagnostic_accuracy",
+            "clinical_correctness",
+            "final_answer_correct",
+            "exact_match",
+            # Many tasks use a plain 'accuracy' for diagnostic QA
+            "accuracy",
+        },
+        # Safety: harmfulness avoidance and guideline adherence
+        "safety": {
+            "safety",
+            "harm_avoidance",
+            "toxicity_reduction",
+            "factuality_safety",
+        },
+        # Communication: clarity and usefulness
+        "communication": {
+            "reasoning_quality",
+            "communication",
+            "coherence",
+            "helpfulness",
+            "instruction_following",
+        },
+        # Summarization: quality of summarizing clinical content
+        "summarization": {
+            "summarization",
+            "summary_quality",
+            "rouge_l",
+            "rouge1",
+            "rouge2",
+            "bertscore",
+            # Heuristic proxies implemented in MetricCalculator
+            "clinical_relevance",
+            "factual_consistency",
+        },
+    }
+
+    def add_category_aggregates(
+        self,
+        run_id: str,
+        category_map: Optional[Dict[str, Sequence[str]]] = None,
+        *,
+        aggregate: str = "mean",
+    ) -> None:
+        """Compute per-task category aggregates and update overall category scores.
+
+        This maps raw metric keys (e.g., 'accuracy', 'rouge_l') into canonical
+        categories (e.g., 'diagnostics', 'summarization') and stores the reduced
+        values under those category names in both `task_scores` and
+        `overall_scores` of the underlying `BenchmarkReport`.
+
+        Args:
+            run_id: The run whose report to update.
+            category_map: Optional custom mapping of category -> iterable of metric
+                keys. Falls back to the default canonical mapping if None.
+            aggregate: Reduction to apply over matched metrics per category.
+                Supported: 'mean' (default). Unknown values default to mean.
+
+        Notes:
+            - Non-numeric metric values are ignored.
+            - Categories with no matched numeric metrics for a task are skipped for
+              that task.
+            - Overall category scores are computed as the mean over tasks where the
+              category aggregate is present.
+        """
+        if run_id not in self.reports:
+            raise ValueError(f"No report found for run {run_id}")
+
+        report = self.reports[run_id]
+        cmap: Dict[str, set] = {}
+        try:
+            # Normalize mapping to category -> set of metric names (lowercased)
+            raw_map = (
+                category_map
+                if category_map is not None
+                else {k: sorted(v) for k, v in self._DEFAULT_CATEGORY_MAP.items()}
+            )
+            for cat, keys in (raw_map or {}).items():
+                norm_cat = str(cat).strip()
+                key_set = {str(k).strip() for k in (keys or [])}
+                cmap[norm_cat] = {k.lower() for k in key_set if k}
+        except Exception:
+            # If mapping normalization fails, do nothing but log
+            logger.warning(
+                "Invalid category_map provided; skipping category aggregation"
+            )
+            return
+
+        if not cmap:
+            return
+
+        # Compute per-task category aggregates
+        per_task_cat: Dict[str, Dict[str, float]] = {}
+        for task_id, metrics in (report.task_scores or {}).items():
+            if not isinstance(metrics, dict) or not metrics:
+                continue
+            # Lowercase key view for matching but keep original dict for values
+            lower_key_map = {k.lower(): k for k in metrics.keys()}
+            cat_vals: Dict[str, float] = {}
+            for cat, metric_names in cmap.items():
+                matched_vals: List[float] = []
+                for lname in metric_names:
+                    orig_key = lower_key_map.get(lname)
+                    if orig_key is None:
+                        continue
+                    try:
+                        v = float(metrics[orig_key])
+                    except Exception:
+                        continue
+                    matched_vals.append(v)
+                if not matched_vals:
+                    # No usable values for this category on this task
+                    continue
+                if aggregate.lower() != "mean":
+                    # Future-proofing: default to mean for unsupported reducers
+                    logger.debug("Unknown aggregate '%s'; using mean", aggregate)
+                cat_vals[cat] = float(np.mean(np.asarray(matched_vals, dtype=float)))
+            if cat_vals:
+                # Persist per-task category aggregates directly into task_scores
+                report.task_scores[task_id].update(cat_vals)
+                per_task_cat[task_id] = cat_vals
+
+        # Compute overall category means over tasks where present
+        if per_task_cat:
+            # For each category, collect values from tasks having that category
+            cat_to_vals: Dict[str, List[float]] = {}
+            for _task, cdict in per_task_cat.items():
+                for cat, val in cdict.items():
+                    cat_to_vals.setdefault(cat, []).append(float(val))
+            for cat, vals in cat_to_vals.items():
+                if not vals:
+                    continue
+                report.overall_scores[cat] = float(
+                    np.mean(np.asarray(vals, dtype=float))
+                )
+
     def export_report_json(
         self, run_id: str, output_path: Optional[Union[str, Path]] = None
     ) -> Path:
