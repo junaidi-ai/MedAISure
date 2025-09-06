@@ -140,7 +140,33 @@ class TaskLoader:
                             }
                         derived_inputs.append(inp or {})
                         if outp is not None:
-                            derived_outputs.append(outp)
+                            # Enrich outputs for better metric compatibility
+                            enriched = dict(outp)
+                            try:
+                                # If this looks like a communication task, provide summary/note fallbacks
+                                ttype = str(task_data.get("task_type", "")).lower()
+                                if ttype in {"communication", "patient_communication"}:
+                                    # summary should mirror response for ROUGE/factual metrics
+                                    if "response" in outp and "summary" not in enriched:
+                                        enriched["summary"] = outp["response"]
+                                    # build a simple note from input (patient_message + optional context)
+                                    pm = str(
+                                        (inp or {}).get("patient_message", "")
+                                    ).strip()
+                                    ctx = str((inp or {}).get("context", "")).strip()
+                                    if pm or ctx:
+                                        combined = pm if pm else ""
+                                        if ctx:
+                                            combined = (
+                                                f"{combined}\n\nContext: {ctx}"
+                                                if combined
+                                                else f"Context: {ctx}"
+                                            )
+                                        if "note" not in enriched:
+                                            enriched["note"] = combined
+                            except Exception:
+                                pass
+                            derived_outputs.append(enriched)
                 if derived_inputs:
                     inputs = derived_inputs
                 if derived_outputs:
