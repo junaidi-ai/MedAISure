@@ -5,6 +5,8 @@ This guide shows how to run evaluations with the MedAISure framework using the p
 - Core class: `EvaluationHarness` in `bench/evaluation/harness.py`
 - Supporting components: `TaskLoader`, `ModelRunner`, `MetricCalculator`, `ResultAggregator`
 
+> Looking for curated dataset entries (e.g., medaisure-core and planned sets)? See the [Datasets](datasets/overview.md) page to list and inspect datasets via CLI and Python.
+
 ## Quick Start
 
 ```python
@@ -74,6 +76,8 @@ See also the runnable examples:
 ## Task Selection
 
 `EvaluationHarness.list_available_tasks()` scans `tasks_dir` for YAML/JSON files. For advanced loading (file path or URL), use `TaskLoader.load_task()` directly.
+
+For curated dataset registry entries (e.g., medaisure-core and planned sets) and how to list/inspect them via CLI/Python, see the [Datasets](datasets/overview.md) page.
 
 ## Results and Reports
 

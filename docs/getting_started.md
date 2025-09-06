@@ -27,6 +27,8 @@ medaisure evaluate my-model --tasks medical_qa_basic
 medaisure generate-report ./results/my-model_results.json --format md
 ```
 
+> Looking for curated dataset entries like medaisure-core? See the [Datasets](datasets/overview.md) page for how to list and inspect datasets via CLI and Python.
+
 ## Python API
 
 ```python

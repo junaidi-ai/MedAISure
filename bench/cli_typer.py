@@ -34,6 +34,7 @@ from .data import (
     CSVDataset,
     MIMICConnector,
     PubMedConnector,
+    DatasetRegistry,
 )
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -496,6 +497,126 @@ def list_tasks(
         _print("No tasks found.")
         raise typer.Exit(code=0)
     display_task_list(rows)
+
+
+@app.command("list-datasets")
+def list_datasets(
+    registry_path: Optional[Path] = typer.Option(
+        None, help="Path to dataset registry JSON (defaults to package path)"
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output"),
+    with_composition: bool = typer.Option(
+        False, "--with-composition", help="Include composition column in table output"
+    ),
+):
+    """List datasets available in the DatasetRegistry."""
+    _configure_console_if_needed()
+    reg = DatasetRegistry(
+        registry_path=str(registry_path) if registry_path is not None else None
+    )
+    rows = [m.model_dump() for m in reg.list()]
+    if json_output:
+        _print_json(json.dumps(rows))
+        raise typer.Exit(code=0)
+    if not rows:
+        _print("No datasets found.")
+        raise typer.Exit(code=0)
+    # Pretty table
+    table = Table(title="Datasets")
+    table.add_column("ID")
+    table.add_column("Name")
+    table.add_column("Planned")
+    table.add_column("Size", justify="right")
+    table.add_column("Categories")
+    if with_composition:
+        table.add_column("Composition")
+    for r in rows:
+        cats = ", ".join(r.get("task_categories", []) or [])
+        size = "-" if r.get("size") is None else str(r.get("size"))
+        if with_composition:
+            comp = r.get("composition") or {}
+            comp_str = json.dumps(comp, ensure_ascii=False) if comp else "-"
+            table.add_row(
+                str(r.get("id", "-")),
+                str(r.get("name", "")),
+                "yes" if bool(r.get("planned")) else "no",
+                size,
+                cats,
+                comp_str,
+            )
+        else:
+            table.add_row(
+                str(r.get("id", "-")),
+                str(r.get("name", "")),
+                "yes" if bool(r.get("planned")) else "no",
+                size,
+                cats,
+            )
+    if _rich_enabled():
+        console.print(table)
+        _print("Datasets")
+    else:
+        # Plain-text fallback so tests can assert on output without Rich.
+        lines = ["Datasets"]
+        for r in rows:
+            rid = str(r.get("id", "-"))
+            name = str(r.get("name", ""))
+            planned = "yes" if bool(r.get("planned")) else "no"
+            size = "-" if r.get("size") is None else str(r.get("size"))
+            cats = ", ".join(r.get("task_categories", []) or [])
+            lines.append(f"- {rid}")
+            lines.append(f"  name        : {name}")
+            lines.append(f"  planned     : {planned}")
+            lines.append(f"  size        : {size}")
+            lines.append(f"  categories  : {cats}")
+            if with_composition:
+                comp = r.get("composition") or {}
+                comp_str = json.dumps(comp, ensure_ascii=False) if comp else "-"
+                lines.append(f"  composition : {comp_str}")
+        _print("\n".join(lines))
+
+
+@app.command("show-dataset")
+def show_dataset(
+    dataset_id: str = typer.Argument(..., help="Dataset ID"),
+    registry_path: Optional[Path] = typer.Option(
+        None, help="Path to dataset registry JSON (defaults to package path)"
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON output"),
+):
+    """Show details for a single dataset registry entry."""
+    _configure_console_if_needed()
+    reg = DatasetRegistry(
+        registry_path=str(registry_path) if registry_path is not None else None
+    )
+    try:
+        meta = reg.get(dataset_id)
+    except KeyError:
+        _print(f"Dataset not found: {dataset_id}")
+        raise typer.Exit(code=1)
+    payload = meta.model_dump()
+    if json_output:
+        _print_json(json.dumps(payload))
+        raise typer.Exit(code=0)
+    # Pretty print minimal fields
+    table = Table(title=f"Dataset: {payload.get('id', dataset_id)}")
+    table.add_column("Field")
+    table.add_column("Value")
+    table.add_row("name", str(payload.get("name", "")))
+    table.add_row("planned", "yes" if bool(payload.get("planned")) else "no")
+    table.add_row(
+        "size", "-" if payload.get("size") is None else str(payload.get("size"))
+    )
+    table.add_row("categories", ", ".join(payload.get("task_categories", []) or []))
+    table.add_row(
+        "composition",
+        json.dumps(payload.get("composition", {}), ensure_ascii=False),
+    )
+    if _rich_enabled():
+        console.print(table)
+        _print("Dataset Details")
+    else:
+        _print(json.dumps(payload))
 
 
 @app.command("list-models")

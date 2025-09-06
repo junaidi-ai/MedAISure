@@ -1,0 +1,36 @@
+[
+  {
+    "id": "medaisure-core",
+    "name": "MedAISure Core",
+    "description": "Core benchmark dataset registry entry aggregating 200 tasks across Diagnostics, Summarization, and Communication.",
+    "size": 200,
+    "task_categories": ["diagnostics", "summarization", "communication"],
+    "source_links": [],
+    "composition": {"diagnostics": 100, "summarization": 50, "communication": 50},
+    "planned": false
+  },
+  {
+    "id": "medaisure-hard",
+    "name": "MedAISure Hard (Planned)",
+    "description": "Planned dataset for challenging, adversarial, or edge diagnostic cases.",
+    "planned": true,
+    "task_categories": ["diagnostics"],
+    "source_links": []
+  },
+  {
+    "id": "medaisure-specialty",
+    "name": "MedAISure Specialty (Planned)",
+    "description": "Planned dataset for specialty subdomains (e.g., cardiology, radiology).",
+    "planned": true,
+    "task_categories": ["diagnostics", "summarization", "communication"],
+    "source_links": []
+  },
+  {
+    "id": "medaisure-multimodal",
+    "name": "MedAISure Multimodal (Planned)",
+    "description": "Planned dataset for multimodal tasks (text + images).",
+    "planned": true,
+    "task_categories": ["diagnostics", "communication"],
+    "source_links": []
+  }
+]

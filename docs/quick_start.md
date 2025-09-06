@@ -33,6 +33,8 @@ List available tasks via CLI:
 medaisure-benchmark list --json
 ```
 
+For curated dataset registry entries (e.g., medaisure-core and planned sets) and how to list/inspect them via CLI/Python, see the [Datasets](datasets/overview.md) page.
+
 ## 2) Docker (CPU)
 
 ```bash

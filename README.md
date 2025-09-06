@@ -103,6 +103,26 @@ Also see local docs in this repo:
 - Configuration: [docs/configuration.md](docs/configuration.md)
 - Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
 - Performance Tips: [docs/performance.md](docs/performance.md)
+- Datasets: [docs/datasets/overview.md](docs/datasets/overview.md)
+
+### Datasets quick usage
+
+List datasets via CLI (Typer):
+
+```bash
+python -m bench.cli_typer list-datasets
+python -m bench.cli_typer show-dataset medaisure-core --json
+```
+
+Python API:
+
+```python
+from bench.data import get_default_registry
+reg = get_default_registry()
+print([d.id for d in reg.list()])
+core = reg.get("medaisure-core")
+print(core.name, core.size, core.composition)
+```
 
 Environment variables:
 

@@ -13,6 +13,7 @@ from .local import JSONDataset, CSVDataset
 from .medical import MIMICConnector, PubMedConnector
 from .preprocess import DataPreprocessor
 from .security import SecureDataHandler
+from .dataset_registry import DatasetRegistry, DatasetMeta, get_default_registry
 
 __all__ = [
     "DatasetConnector",
@@ -24,4 +25,7 @@ __all__ = [
     "PubMedConnector",
     "DataPreprocessor",
     "SecureDataHandler",
+    "DatasetRegistry",
+    "DatasetMeta",
+    "get_default_registry",
 ]

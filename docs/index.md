@@ -10,15 +10,17 @@ Get started here:
 - [Quick Start](quick_start.md)
 - [Usage Guide](usage.md)
 - [Architecture Overview](architecture.md)
+- [Datasets](datasets/overview.md)
 
 Key areas:
 
 - [Tasks Overview](tasks/overview.md)
 - [Models Guide](models/model_interface.md)
 - [Metrics Overview](metrics/overview.md)
+- [Datasets](datasets/overview.md)
 - [API Reference](api/overview.md)
 
 Project links:
 
-- GitHub Repository: https://github.com/junaidi-ai/MedAISure
-- Issue Tracker: https://github.com/junaidi-ai/MedAISure/issues
+- [GitHub Repository](https://github.com/junaidi-ai/MedAISure)
+- [Issue Tracker](https://github.com/junaidi-ai/MedAISure/issues)

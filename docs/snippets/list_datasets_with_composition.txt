@@ -1,0 +1,25 @@
+Datasets
+- medaisure-core
+  name        : MedAISure Core
+  planned     : no
+  size        : 200
+  categories  : diagnostics, summarization, communication
+  composition : {"diagnostics": 100, "summarization": 50, "communication": 50}
+- medaisure-hard
+  name        : MedAISure Hard (Planned)
+  planned     : yes
+  size        : -
+  categories  : diagnostics
+  composition : -
+- medaisure-multimodal
+  name        : MedAISure Multimodal (Planned)
+  planned     : yes
+  size        : -
+  categories  : diagnostics, communication
+  composition : -
+- medaisure-specialty
+  name        : MedAISure Specialty (Planned)
+  planned     : yes
+  size        : -
+  categories  : diagnostics, summarization, communication
+  composition : -

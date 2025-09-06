@@ -875,7 +875,7 @@
           1,
           3
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -883,7 +883,7 @@
             "description": "Introduce a DatasetRegistry with schema-validated entries.",
             "dependencies": [],
             "details": "- Registry class and JSON schema\n- CRUD for dataset entries\n- Basic CLI/Python API to list datasets",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Schema validation and list command tests"
           },
           {
@@ -892,7 +892,7 @@
             "description": "Add composition and loader stubs for the 200-task core set.",
             "dependencies": [],
             "details": "- Composition metadata (counts per category)\n- Loader interfaces and validation hooks\n- Example listing command output",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Loader stub tests and metadata checks"
           }
         ]

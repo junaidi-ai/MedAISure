@@ -16,13 +16,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install docs dependencies
+      - name: Install docs and project dependencies
         run: |
           python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          # Ensure mkdocs plugins are present
           pip install mkdocs-material mkdocstrings[python]
-      - name: Build docs (strict)
+      - name: Capture CLI snippets and build docs
         run: |
-          mkdocs build --strict
+          make docs
       - name: Upload Pages artifact (site)
         uses: actions/upload-pages-artifact@v3
         with:

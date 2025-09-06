@@ -31,6 +31,8 @@ nav:
       - Medical QA: tasks/medical_qa.md
       - Diagnostic Reasoning: tasks/diagnostic_reasoning.md
       - Clinical Summarization: tasks/clinical_summarization.md
+  - Datasets:
+      - Overview: datasets/overview.md
   - API Reference:
       - Overview: api/overview.md
       - Python API: api/reference.md
@@ -76,6 +78,7 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.emoji
+  - pymdownx.snippets
 
 plugins:
   - search
