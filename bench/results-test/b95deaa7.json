@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "model_id": "sshleifer/tiny-gpt2",
+  "timestamp": "2025-09-06 03:37:14.965071+00:00",
+  "overall_scores": {
+    "rouge_l": 0.0,
+    "clinical_relevance": 0.0,
+    "summarization": 0.0
+  },
+  "task_scores": {
+    "patient_communication_basic": {
+      "rouge_l": 0.0,
+      "clinical_relevance": 0.0,
+      "summarization": 0.0
+    },
+    "patient_communication_triage": {
+      "rouge_l": 0.0,
+      "clinical_relevance": 0.0,
+      "summarization": 0.0
+    }
+  },
+  "detailed_results": [
+    {
+      "schema_version": 1,
+      "model_id": "sshleifer/tiny-gpt2",
+      "task_id": "patient_communication_basic",
+      "inputs": [],
+      "model_outputs": [],
+      "metrics_results": {
+        "rouge_l": 0.0,
+        "clinical_relevance": 0.0
+      },
+      "metadata": {
+        "error": "1 validation error for EvaluationResult\nmetrics_results\n  Value error, metrics_results values must be finite numbers [type=value_error, input_value={'rouge_l': nan, 'clinical_relevance': nan}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error",
+        "note": "Placeholder result due to evaluation failure"
+      },
+      "timestamp": "2025-09-06 03:37:14.965071+00:00"
+    },
+    {
+      "schema_version": 1,
+      "model_id": "sshleifer/tiny-gpt2",
+      "task_id": "patient_communication_triage",
+      "inputs": [],
+      "model_outputs": [],
+      "metrics_results": {
+        "rouge_l": 0.0,
+        "clinical_relevance": 0.0
+      },
+      "metadata": {
+        "error": "1 validation error for EvaluationResult\nmetrics_results\n  Value error, metrics_results values must be finite numbers [type=value_error, input_value={'rouge_l': nan, 'clinical_relevance': nan}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error",
+        "note": "Placeholder result due to evaluation failure"
+      },
+      "timestamp": "2025-09-06 03:37:15.249946+00:00"
+    }
+  ],
+  "metadata": {
+    "run_id": "b95deaa7",
+    "start_time": "2025-09-06T03:37:14.965071+00:00",
+    "model_name": "sshleifer/tiny-gpt2",
+    "total_time_seconds": 0.6781497001647949,
+    "num_tasks": 2,
+    "batch_size": 2,
+    "model_type": "huggingface",
+    "combined_weights": {},
+    "combined_metric_name": "combined_score",
+    "hf_task": "text-generation",
+    "generation_kwargs": {
+      "max_new_tokens": 16
+    }
+  }
+}

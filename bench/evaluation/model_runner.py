@@ -617,18 +617,42 @@ class ModelRunner(Generic[M, T, R]):
                     )
                     # Select input text field based on task type
                     if hf_task == "summarization":
-                        # Prefer common clinical note fields
+                        # Prefer common clinical note fields and communication messages
                         def _extract_text(d: Dict[str, Any]) -> str:
-                            for key in ("document", "text", "note"):
+                            for key in ("document", "text", "note", "patient_message"):
                                 v = d.get(key)
                                 if isinstance(v, str) and v.strip():
                                     return v
+                            # Combine fields if present (e.g., patient_message + context)
+                            pm = str(d.get("patient_message", "")).strip()
+                            ctx = str(d.get("context", "")).strip()
+                            if pm and ctx:
+                                return f"{pm}\n\nContext: {ctx}"
+                            if pm:
+                                return pm
                             # Fallback to stringified input
                             return str(d)
 
                         texts = [_extract_text(item) for item in batch]
                     else:
-                        texts = [item.get("text", "") for item in batch]
+                        # For text-generation or other tasks, prefer 'text' but fall back to common fields
+                        def _extract_text_generic(d: Dict[str, Any]) -> str:
+                            txt = str(d.get("text", "")).strip()
+                            if txt:
+                                return txt
+                            for key in ("patient_message", "document", "note"):
+                                v = d.get(key)
+                                if isinstance(v, str) and v.strip():
+                                    return v
+                            pm = str(d.get("patient_message", "")).strip()
+                            ctx = str(d.get("context", "")).strip()
+                            if pm and ctx:
+                                return f"{pm}\n\nContext: {ctx}"
+                            if pm:
+                                return pm
+                            return str(d)
+
+                        texts = [_extract_text_generic(item) for item in batch]
 
                     # Pass generation kwargs for generative tasks
                     call_kwargs: Dict[str, Any] = {}

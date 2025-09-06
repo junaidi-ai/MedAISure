@@ -943,7 +943,7 @@
         "testStrategy": "- Unit tests for data loading and schema validation\n- Metric calculation sanity tests\n- Integration test through harness with a small HF model",
         "priority": "high",
         "dependencies": [1, 2, 3, 4],
-        "status": "planned",
+        "status": "in-progress",
         "phase": "phase-2",
         "subtasks": []
       },

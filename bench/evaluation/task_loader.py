@@ -111,18 +111,53 @@ class TaskLoader:
                 elif isinstance(m, dict) and "name" in m:
                     metrics.append(str(m["name"]))
 
+            # Derive inputs/expected_outputs from dataset if not explicitly provided
+            inputs = list(task_data.get("inputs", []) or [])
+            expected_outputs = list(task_data.get("expected_outputs", []) or [])
+            dataset_rows = list(task_data.get("dataset", []) or [])
+            if not inputs and dataset_rows:
+                derived_inputs: list[dict] = []
+                derived_outputs: list[dict] = []
+                for rec in dataset_rows:
+                    if isinstance(rec, dict):
+                        inp = (
+                            rec.get("input")
+                            if isinstance(rec.get("input"), dict)
+                            else None
+                        )
+                        outp = (
+                            rec.get("output")
+                            if isinstance(rec.get("output"), dict)
+                            else None
+                        )
+                        if inp is None:
+                            # If flat record with known keys, best-effort use the record itself
+                            # but only if dict-like and not empty
+                            inp = {
+                                k: v
+                                for k, v in rec.items()
+                                if k not in {"output", "label", "id"}
+                            }
+                        derived_inputs.append(inp or {})
+                        if outp is not None:
+                            derived_outputs.append(outp)
+                if derived_inputs:
+                    inputs = derived_inputs
+                if derived_outputs:
+                    expected_outputs = derived_outputs
+
             # Create and cache the task with all required fields
             task = MedicalTask(
                 task_id=task_id if isinstance(task_id, str) else str(task_id),
                 task_type=TaskType(task_data.get("task_type", "qa")),
                 name=task_data.get("name", f"Task {task_id}"),
                 description=task_data.get("description", ""),
-                inputs=task_data.get("inputs", []),
-                expected_outputs=task_data.get("expected_outputs", []),
+                inputs=inputs,
+                expected_outputs=expected_outputs,
                 metrics=metrics,
                 input_schema=task_data.get("input_schema", {}),
                 output_schema=task_data.get("output_schema", {}),
-                dataset=task_data.get("dataset", []),
+                dataset=dataset_rows,
             )
 
             # Ensure schemas have sensible defaults per TaskType if unspecified
