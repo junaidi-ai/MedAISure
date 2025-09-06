@@ -4,6 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![codecov](https://codecov.io/gh/medaisure/medaisure-benchmark/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/medaisure/medaisure-benchmark)
+[![Tests](https://github.com/junaidi-ai/MedAISure/actions/workflows/tests.yml/badge.svg)](https://github.com/junaidi-ai/MedAISure/actions/workflows/tests.yml)
+[![Docs](https://github.com/junaidi-ai/MedAISure/actions/workflows/docs.yml/badge.svg)](https://github.com/junaidi-ai/MedAISure/actions/workflows/docs.yml)
 
 A comprehensive framework for evaluating Large Language Models (LLMs) in healthcare applications. The MedAISure Benchmark provides a standardized way to assess model performance on various medical NLP tasks.
 

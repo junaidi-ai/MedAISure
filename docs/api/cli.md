@@ -39,6 +39,36 @@ PY
 
 ## Combined score via CLI (Typer)
 
+## Quick Commands
+
+Copy these commands and adjust placeholders as needed.
+
+```bash
+# Evaluate and export a leaderboard submission (in one step)
+python -m bench.cli_typer evaluate <model-id> \
+  --tasks <task-id> \
+  --tasks-dir bench/tasks \
+  --model-type huggingface \
+  --output-dir results \
+  --format json --save-results \
+  --export-submission results/submission.json \
+  --export-submission-include-reasoning
+
+# Build a submission from a saved report (include reasoning)
+python -m bench.cli_typer generate-submission \
+  --run-id <run-id> \
+  --results-dir ./results \
+  --out submission.json \
+  --include-reasoning
+
+# Build a submission from a saved report (no reasoning)
+python -m bench.cli_typer generate-submission \
+  --run-id <run-id> \
+  --results-dir ./results \
+  --out submission.json \
+  --no-include-reasoning
+```
+
 The Typer-based CLI supports computing a weighted combined score across categories using `--combined-weights` and `--combined-metric-name`. The weights can be provided as JSON or comma-separated `key=value` pairs. See `bench/cli_typer.py` for details.
 
 - JSON weights:
@@ -147,6 +177,73 @@ python -m bench.cli_typer evaluate test-local \
 ```
 
 Resolution order: CLI flags > config file > defaults (`diagnostics=0.4`, `safety=0.3`, `communication=0.2`, `summarization=0.1`).
+
+## Leaderboard submission export
+
+Generate a validated submission JSON from a saved evaluation report. The tool will try `./results/<run-id>.json` first, then scan `--results-dir` for a matching `metadata.run_id`.
+
+```bash
+# Include reasoning traces (default)
+python -m bench.cli_typer generate-submission \
+  --run-id <run-id> \
+  --results-dir ./results \
+  --out submission.json \
+  --include-reasoning
+
+# Or explicitly disable reasoning traces
+python -m bench.cli_typer generate-submission \
+  --run-id <run-id> \
+  --results-dir ./results \
+  --out submission.json \
+  --no-include-reasoning
+```
+
+Notes:
+- The submission contains per-task arrays of items with `input_id`, `prediction` (dict), and optional `reasoning` string (if present in outputs and `--include-reasoning` is enabled).
+- The output is validated against a lightweight schema before writing.
+
+### generate-submission --help
+
+```text
+--8<-- "snippets/generate_submission_help.txt"
+```
+
+### evaluate --help
+
+The `evaluate` command supports exporting the leaderboard submission directly from the in-memory report using `--export-submission` and `--export-submission-include-reasoning/--no-export-submission-include-reasoning`.
+
+```text
+--8<-- "snippets/evaluate_help.txt"
+```
+
+### Sample: evaluate with export-submission
+
+```text
+--8<-- "snippets/evaluate_export_sample.txt"
+```
+
+> Note: The sample output above is generated using a lightweight dummy harness to keep docs deterministic and avoid heavy model downloads during CI. Your output will vary based on the model, tasks, and configuration you use.
+
+### Troubleshooting
+
+If `generate-submission` fails because it can’t find a run by ID (or the results directory is wrong), you’ll see an error similar to this:
+
+```text
+--8<-- "snippets/generate_submission_error.txt"
+```
+
+#### Common pitfalls
+
+- **Wrong results directory**
+  - Ensure `--results-dir` points to where `<run-id>.json` is saved (default is `./results`)
+- **Mismatched run ID**
+  - Verify the `run_id` in your report metadata matches the one you pass to `--run-id`
+- **File permissions**
+  - Confirm you can read from `--results-dir` and write to `--out`
+- **Missing dependencies**
+  - Install requirements: `pip install -r requirements.txt` (includes `jsonschema` for strict validation)
+- **Validation errors**
+  - The CLI prints the failing field; compare against the [Submission Schema](../submission_schema.md)
 
 ## Key parameters (map to EvaluationHarness.evaluate)
 

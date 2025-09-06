@@ -1,0 +1,13 @@
+
+ Usage: python -m bench.cli_typer generate-submission [OPTIONS]
+
+ Generate a leaderboard submission JSON from a saved report by run ID.
+
+
+╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --run-id                                         TEXT  Run ID to export [default: None] [required]                              │
+│    --results-dir                                    PATH  Directory where evaluation reports are saved [default: results]          │
+│ *  --out                                            PATH  Path to write the submission JSON [default: None] [required]             │
+│    --include-reasoning    --no-include-reasoning          Include reasoning traces when present [default: include-reasoning]       │
+│    --help                                                 Show this message and exit.                                              │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

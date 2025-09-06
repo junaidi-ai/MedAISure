@@ -38,7 +38,11 @@ nav:
       - Python API: api/reference.md
       - Core API: api/core_api.md
       - CLI: api/cli.md
+      - Submission Schema: submission_schema.md
+  - Leaderboard:
+      - How to Submit: leaderboard/how_to_submit.md
   - Docker: docker.md
+  - FAQ: faq.md
   - Testing:
       - Overview: testing.md
       - Guide: testing_guide.md

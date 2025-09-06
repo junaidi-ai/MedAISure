@@ -29,6 +29,9 @@ import yaml
 from .evaluation.harness import EvaluationHarness
 from .models.benchmark_report import BenchmarkReport
 from .reports import ReportFactory
+from .leaderboard.submission import (
+    build_and_validate_submission,
+)
 from .data import (
     JSONDataset,
     CSVDataset,
@@ -863,17 +866,20 @@ def evaluate(
     category_map: Optional[str] = typer.Option(
         None,
         help=(
-            "Override category mapping (JSON). Example: '{"
-            "diagnostics"
-            ": ["
-            "accuracy"
-            ", "
-            "exact_match"
-            "]}'"
+            'Override category mapping (JSON). Example: \'{"diagnostics":["accuracy","exact_match"]}\''
         ),
     ),
     category_map_file: Optional[Path] = typer.Option(
         None, help="Path to JSON/YAML file defining category -> [metrics] mapping"
+    ),
+    export_submission: Optional[Path] = typer.Option(
+        None,
+        help=(
+            "If provided, write a leaderboard submission JSON for this run to the given path"
+        ),
+    ),
+    export_submission_include_reasoning: bool = typer.Option(
+        True, help="Include reasoning traces in submission when present"
     ),
 ):
     """Run evaluation on specified model and tasks."""
@@ -884,6 +890,7 @@ def evaluate(
         with _status(f"Loading config: {config_file}..."):
             cfg = BenchmarkConfig.from_file(config_file)
 
+    # Effective model type and output directory
     model_type = model_type or (cfg.model_type if cfg else "huggingface")
     out_dir = Path(cfg.output_dir if cfg else output_dir)
 
@@ -891,6 +898,7 @@ def evaluate(
     if (not tasks) and cfg and cfg.tasks:
         tasks = cfg.tasks
 
+    # Validate tasks directory and build harness
     _ensure_exists(tasks_dir, kind="tasks directory")
     harness = EvaluationHarness(tasks_dir=str(tasks_dir), results_dir=str(out_dir))
 
@@ -928,19 +936,17 @@ def evaluate(
         if reg_entry.get("api_key"):
             model_kwargs["api_key"] = reg_entry["api_key"]
         if reg_entry.get("timeout") is not None:
-            model_kwargs["timeout"] = reg_entry["timeout"]
+            model_kwargs["timeout"] = float(reg_entry["timeout"])
         if reg_entry.get("max_retries") is not None:
-            model_kwargs["max_retries"] = reg_entry["max_retries"]
+            model_kwargs["max_retries"] = int(reg_entry["max_retries"])
         if reg_entry.get("backoff_factor") is not None:
-            model_kwargs["backoff_factor"] = reg_entry["backoff_factor"]
+            model_kwargs["backoff_factor"] = float(reg_entry["backoff_factor"])
 
-    # Resolve config if provided
+    # Resolve config-derived options
     resolved_extra_reports = extra_report
     resolved_report_dir: Optional[Path] = report_dir
-    # HTML prefs (CLI > config)
     resolved_html_open_metadata: Optional[bool] = html_open_metadata
     resolved_html_preview_limit: Optional[int] = html_preview_limit
-
     if cfg and resolved_extra_reports is None:
         resolved_extra_reports = cfg.extra_reports
     if cfg and resolved_report_dir is None and cfg.report_dir:
@@ -1132,6 +1138,20 @@ def evaluate(
         except Exception as e:
             _print(f"Failed to export extra reports: {e}")
 
+    # Optionally export a leaderboard submission directly from this in-memory report
+    if export_submission is not None:
+        try:
+            payload = build_and_validate_submission(
+                report, include_reasoning=export_submission_include_reasoning
+            )
+            export_submission.parent.mkdir(parents=True, exist_ok=True)
+            export_submission.write_text(
+                json.dumps(payload, indent=2, ensure_ascii=False)
+            )
+            _print(f"Saved submission: {export_submission}")
+        except Exception as e:
+            _print(f"Failed to export submission: {e}")
+
     # Print a concise JSON summary to stdout (use JSON string to handle datetimes)
     if _rich_enabled():
         _print_json(report.to_json(indent=2, exclude={"detailed_results"}))
@@ -1226,6 +1246,57 @@ def generate_report(
     with _status("Writing file..."):
         output_file.write_text(content)
     _print(f"Generated report: {output_file}")
+
+
+@app.command("generate-submission")
+def generate_submission(
+    run_id: str = typer.Option(..., "--run-id", help="Run ID to export"),
+    results_dir: Path = typer.Option(
+        Path("./results"), help="Directory where evaluation reports are saved"
+    ),
+    output_file: Path = typer.Option(
+        ..., "--out", help="Path to write the submission JSON"
+    ),
+    include_reasoning: bool = typer.Option(
+        True, help="Include reasoning traces when present"
+    ),
+):
+    """Generate a leaderboard submission JSON from a saved report by run ID."""
+    _configure_console_if_needed()
+    # Resolve input report path; default naming: <run_id>.json
+    _ensure_exists(results_dir, kind="results directory")
+    candidate = results_dir / f"{run_id}.json"
+    report: BenchmarkReport
+    if candidate.exists():
+        with _status(f"Loading report: {candidate} ..."):
+            report = BenchmarkReport.from_file(candidate)
+    else:
+        # Fallback: scan for a report whose metadata.run_id matches
+        found: Optional[Path] = None
+        for p in results_dir.glob("*.json"):
+            try:
+                tmp = BenchmarkReport.from_file(p)
+                if str(tmp.metadata.get("run_id", "")) == str(run_id):
+                    found = p
+                    report = tmp
+                    break
+            except Exception:
+                continue
+        if not found:
+            _print(f"Could not find report for run_id={run_id} in {results_dir}")
+            raise typer.Exit(code=1)
+
+    # Build and validate submission
+    with _status("Building submission..."):
+        payload = build_and_validate_submission(
+            report, include_reasoning=include_reasoning
+        )
+    # Write output
+    _ensure_not_dir(output_file, label="output")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with _status(f"Writing submission: {output_file} ..."):
+        output_file.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
+    _print(f"Saved submission: {output_file}")
 
 
 # -----------------------------
@@ -1348,6 +1419,7 @@ app.command("list_tasks")(list_tasks)
 app.command("register_model")(register_model)
 app.command("generate_report")(generate_report)
 app.command("list_models")(list_models)
+app.command("generate_submission")(generate_submission)
 
 
 def main() -> None:

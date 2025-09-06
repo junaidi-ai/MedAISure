@@ -10,6 +10,11 @@ import numpy as np
 
 from ..models.benchmark_report import BenchmarkReport
 from ..models.evaluation_result import EvaluationResult
+from ..leaderboard.submission import (
+    build_submission_from_report,
+    build_and_validate_submission,
+    validate_submission,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -467,6 +472,58 @@ class ResultAggregator:
         """
         report = self.get_report(run_id)
         return self.save_report(report, output_path)
+
+    def export_leaderboard_submission(
+        self,
+        run_id: str,
+        output_path: Union[str, Path],
+        *,
+        include_reasoning: bool = True,
+        validate: bool = True,
+    ) -> Path:
+        """Export a leaderboard submission JSON for a given run.
+
+        This builds a submission payload from the underlying BenchmarkReport's
+        detailed results, optionally validates it against the lightweight
+        submission schema, and writes it to ``output_path``.
+
+        Example:
+            >>> ra = ResultAggregator()
+            >>> er = EvaluationResult(model_id="m", task_id="t", inputs=[{}], model_outputs=[{"answer": 1}], metrics_results={"acc": 1.0})
+            >>> ra.add_evaluation_result(er, run_id="r")
+            >>> p = ra.export_leaderboard_submission("r", "results/submission.json")  # doctest: +ELLIPSIS
+            >>> p.suffix
+            '.json'
+        """
+        report = self.get_report(run_id)
+        # Build payload and validate if requested
+        if validate:
+            payload = build_and_validate_submission(
+                report, include_reasoning=include_reasoning
+            )
+        else:
+            payload = build_submission_from_report(
+                report, include_reasoning=include_reasoning
+            )
+            try:
+                # Best-effort validation to surface warnings in logs without raising
+                validate_submission(payload)
+            except Exception as e:
+                logger.warning("Submission validation warning: %s", e)
+
+        out = Path(output_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import json as _json
+
+            out.write_text(
+                _json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            return out
+        except Exception as e:
+            msg = f"Failed to export submission to {out}: {e}"
+            logger.error(msg)
+            raise ValueError(msg) from e
 
     def export_report_csv(self, run_id: str, output_path: Union[str, Path]) -> Path:
         """Export a report to CSV with per-task rows and an overall row.

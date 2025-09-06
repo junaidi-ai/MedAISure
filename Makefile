@@ -10,7 +10,7 @@
 # Build docs locally
 .docs-build:
 	@echo "Building MkDocs site..."
-	@mkdocs build
+	@mkdocs build --strict
 
 # Serve docs locally (blocking)
 .docs-serve:

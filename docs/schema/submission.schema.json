@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://junaidi-ai.github.io/MedAISure/schema/submission.schema.json",
+  "title": "MedAISure Leaderboard Submission",
+  "type": "object",
+  "required": ["schema_version", "run_id", "model_id", "created_at", "submissions"],
+  "properties": {
+    "schema_version": {"type": "integer", "minimum": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "model_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string"},
+    "submissions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["task_id", "items"],
+        "properties": {
+          "task_id": {"type": "string", "minLength": 1},
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["input_id", "prediction"],
+              "properties": {
+                "input_id": {"type": "string", "minLength": 1},
+                "prediction": {"type": "object", "minProperties": 1},
+                "reasoning": {"type": "string", "minLength": 1}
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -211,3 +211,44 @@ If `cache_dir` is set, predictions per task are cached to JSON (`<run_id>_<task_
 - `on_metrics(task_id, metrics_dict)`
 
 See their usage throughout `EvaluationHarness.evaluate()`.
+
+## End-to-End: Evaluate and Export Leaderboard Submission
+
+You can produce a submission-ready JSON either directly during evaluation or from a saved report afterwards.
+
+### Option A: Export submission during evaluation (no reload)
+
+```bash
+python -m bench.cli_typer evaluate <model-id> \
+  --tasks <task-id> \
+  --tasks-dir bench/tasks \
+  --model-type huggingface \
+  --output-dir results \
+  --format json --save-results \
+  --export-submission results/submission.json \
+  --export-submission-include-reasoning
+```
+
+This will run the evaluation, save the primary report to `results/<run_id>.json`, and write a validated submission JSON to `results/submission.json`.
+
+### Option B: Generate submission from a saved report
+
+```bash
+# Include reasoning traces (default)
+python -m bench.cli_typer generate-submission \
+  --run-id <run-id> \
+  --results-dir ./results \
+  --out submission.json \
+  --include-reasoning
+
+# Or explicitly disable reasoning traces
+python -m bench.cli_typer generate-submission \
+  --run-id <run-id> \
+  --results-dir ./results \
+  --out submission.json \
+  --no-include-reasoning
+```
+
+The tool tries `./results/<run-id>.json` first, then scans `--results-dir` for a report whose `metadata.run_id` matches.
+
+For the submission schema details and examples, see [Submission Schema](submission_schema.md).
