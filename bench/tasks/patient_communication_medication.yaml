@@ -1,0 +1,41 @@
+name: "Patient Communication: Medication Counseling"
+description: "Generate safe counseling responses about medication use, side effects, and interactions (non-diagnostic)."
+task_type: "communication"
+input_schema:
+  type: "object"
+  properties:
+    patient_message:
+      type: "string"
+      description: "Patient question about a medication or side effects"
+    context:
+      type: "string"
+      description: "Optional context (e.g., age, comorbidities, other meds)"
+  required: ["patient_message"]
+output_schema:
+  type: "object"
+  properties:
+    response:
+      type: "string"
+      description: "Clear, empathetic, safety-conscious guidance"
+  required: ["response"]
+metrics:
+  - name: "rouge_l"
+  - name: "clinical_relevance"
+
+dataset:
+  - id: 1
+    input:
+      patient_message: "I'm taking amoxicillin and now have diarrhea. Should I stop?"
+      context: "Adult, no other details"
+    output:
+      response: "Mild diarrhea can occur with antibiotics. Stay hydrated. If you develop severe diarrhea, fever, blood in stools, or symptoms persist, contact your clinician. Do not stop or change antibiotics without medical advice unless you have severe symptoms."
+  - id: 2
+    input:
+      patient_message: "Can I drink alcohol while on metronidazole?"
+    output:
+      response: "It's recommended to avoid alcohol during treatment with metronidazole and for at least 72 hours after completing it because it can cause nausea, vomiting, flushing, and rapid heartbeat."
+  - id: 3
+    input:
+      patient_message: "I missed one dose of my blood pressure pill (lisinopril). What should I do?"
+    output:
+      response: "If it's close to your next dose, skip the missed dose and resume your regular schedule. Do not double up. If you have dizziness, chest pain, or severe headache, seek medical care."
