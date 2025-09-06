@@ -3,5 +3,11 @@
     "path": "/tmp/dummy.bin",
     "type": "local",
     "module": "tests.fixtures.simple_local_model"
+  },
+  "test-local": {
+    "type": "local",
+    "path": "/tmp/medaisure_dummy_model.bin",
+    "module": "tests.fixtures.simple_local_model",
+    "load_func": "load_model"
   }
 }

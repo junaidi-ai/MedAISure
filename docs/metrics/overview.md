@@ -25,6 +25,28 @@ This section summarizes metric categories and how scores are computed and aggreg
 
 For how individual metric keys map into high-level categories used by our combined score, see [Metric Categories](./metric_categories.md). To compute a weighted combined score from the CLI, see [Combined score via CLI](../api/cli.md#combined-score-via-cli-typer).
 
+## Combined Score Formula
+The combined score aggregates multiple category metrics into a single index. It is computed by `BenchmarkReport.add_combined_score()` using a weighted mean over the set of metrics present for each task.
+
+Let `W = { (k, w_k) }` be the configured weights and `M_t = { (k, v_{t,k}) }` be the available metric values for task `t` (e.g., `diagnostics`, `safety`, `communication`, `summarization`). The per-task combined score is:
+
+```
+combined_t = sum_{k in present(t)} (w_k / Z_t) * v_{t,k}
+```
+
+Where:
+- `present(t) = { k in W | k exists in task t's metrics }`
+- `Z_t = sum_{k in present(t)} w_k` (renormalization factor)
+
+Notes:
+- If a task is missing some weighted categories, we renormalize the remaining weights so they still sum to 1.0 across the present categories (`renormalize_missing=True`).
+- The overall combined score is the mean of `combined_t` across tasks where it can be computed.
+- The metric name defaults to `combined_score`, but can be customized via CLI/config.
+
+Appearance in reports:
+- JSON: Included under `overall_scores[combined_metric_name]` and each `task_scores[task_id][combined_metric_name]`.
+- Markdown/HTML: Prominently highlighted in the Overall section, along with the configured weights, followed by the full metric listings.
+
 ## Deep links (API)
 - Python API → Metrics (clinical): api/reference.md#metrics-clinical
   - `ClinicalAccuracyMetric.calculate`

@@ -833,7 +833,7 @@
           1,
           4
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -859,7 +859,7 @@
             "description": "Render Combined Score in JSON/MD/HTML reports and docs.",
             "dependencies": [],
             "details": "- Update report generators\n- Add documentation blurb on formula",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Snapshot tests for rendered reports"
           }
         ]

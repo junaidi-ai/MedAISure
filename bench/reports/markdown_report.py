@@ -23,7 +23,32 @@ class MarkdownReportGenerator(ReportGenerator):
         lines.append(f"# Benchmark Report: {br.model_id}")
         lines.append(f"Generated at: {br.timestamp}\n")
 
+        # Prefer highlighting combined score (if present) before the full table
+        combined_metric_name = str(
+            (br.metadata or {}).get("combined_metric_name", "combined_score")
+        )
+        combined_weights = (br.metadata or {}).get("combined_weights", {}) or {}
+
+        # Overall scores section
         lines.append("## Overall Scores")
+        # If combined score exists, show a highlighted block first
+        if combined_metric_name in (br.overall_scores or {}):
+            try:
+                cval = float(br.overall_scores[combined_metric_name])
+                lines.append(f"> [!NOTE]\n> **{combined_metric_name}**: {cval:.4f}")
+            except Exception:
+                lines.append(
+                    f"> [!NOTE]\n> **{combined_metric_name}**: {br.overall_scores.get(combined_metric_name)}"
+                )
+            if combined_weights:
+                # Render weights in a compact inline list
+                weights_kv = ", ".join(
+                    f"{k}={float(v):.3f}" for k, v in combined_weights.items()
+                )
+                lines.append(f"> Weights: {weights_kv}")
+            lines.append("")
+
+        # Render all overall metrics (including combined again for completeness)
         for metric, score in (br.overall_scores or {}).items():
             lines.append(f"- **{metric}**: {float(score):.4f}")
         lines.append("")

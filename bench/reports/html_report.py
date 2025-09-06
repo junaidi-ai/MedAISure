@@ -132,6 +132,45 @@ class HTMLReportGenerator(ReportGenerator):
                 parts.append(detail_html)
             return "\n".join(parts)
 
+        # Pull combined score metadata for highlighting
+        combined_metric_name = str(
+            (br.metadata or {}).get("combined_metric_name", "combined_score")
+        )
+        combined_weights = (br.metadata or {}).get("combined_weights", {}) or {}
+
+        # Optional highlighted combined score block
+        def render_combined_note():
+            if combined_metric_name in (br.overall_scores or {}):
+                try:
+                    cval = float(
+                        (br.overall_scores or {}).get(combined_metric_name, 0.0)
+                    )
+                    ctext = f"{cval:.4f}"
+                except Exception:
+                    ctext = escape(
+                        str((br.overall_scores or {}).get(combined_metric_name))
+                    )
+                weights_text = ""
+                if combined_weights:
+                    try:
+                        kv = ", ".join(
+                            f"{escape(str(k))}={float(v):.3f}"
+                            for k, v in combined_weights.items()
+                        )
+                    except Exception:
+                        kv = ", ".join(
+                            f"{escape(str(k))}={escape(str(v))}"
+                            for k, v in combined_weights.items()
+                        )
+                    weights_text = f'<div class="badge">Weights: {kv}</div>'
+                return (
+                    f'<div class="section">'
+                    f'<div class="badge"><strong>{escape(combined_metric_name)}</strong>: {ctext}</div>'
+                    f"{weights_text}"
+                    f"</div>"
+                )
+            return ""
+
         html = f"""
 <!doctype html>
 <html lang=\"en\">
@@ -147,6 +186,7 @@ class HTMLReportGenerator(ReportGenerator):
 
   <div class=\"section\">
     <h2>Overall Scores</h2>
+    {render_combined_note()}
     <table class=\"table\">
       <thead><tr><th>Metric</th><th>Score</th></tr></thead>
       <tbody>
