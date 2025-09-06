@@ -36,6 +36,8 @@ nav:
       - Patient Communication: tasks/patient_communication.md
   - Datasets:
       - Overview: datasets/overview.md
+      - Hard: datasets/hard.md
+      - Specialty: datasets/specialty.md
   - API Reference:
       - Overview: api/overview.md
       - Python API: api/reference.md

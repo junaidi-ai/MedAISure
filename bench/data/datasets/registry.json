@@ -11,19 +11,23 @@
   },
   {
     "id": "medaisure-hard",
-    "name": "MedAISure Hard (Planned)",
-    "description": "Planned dataset for challenging, adversarial, or edge diagnostic cases.",
-    "planned": true,
-    "task_categories": ["diagnostics"],
-    "source_links": []
+    "name": "MedAISure Hard",
+    "description": "Challenging/adversarial cases emphasizing edge conditions and safety-critical diagnostic reasoning.",
+    "size": 60,
+    "task_categories": ["diagnostics", "summarization", "communication"],
+    "source_links": [],
+    "composition": {"diagnostics": 40, "summarization": 10, "communication": 10},
+    "planned": false
   },
   {
     "id": "medaisure-specialty",
-    "name": "MedAISure Specialty (Planned)",
-    "description": "Planned dataset for specialty subdomains (e.g., cardiology, radiology).",
-    "planned": true,
+    "name": "MedAISure Specialty",
+    "description": "Specialty-focused tasks drawn from subdomains (e.g., cardiology, neurology, oncology, radiology).",
+    "size": 80,
     "task_categories": ["diagnostics", "summarization", "communication"],
-    "source_links": []
+    "source_links": [],
+    "composition": {"diagnostics": 40, "summarization": 20, "communication": 20},
+    "planned": false
   },
   {
     "id": "medaisure-multimodal",

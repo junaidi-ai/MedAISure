@@ -1,0 +1,37 @@
+task_type: "diagnostic_reasoning"
+name: "Diagnostic Reasoning - Radiology"
+description: "Given radiology-oriented cases, predict the most likely diagnosis."
+input_schema:
+  type: "object"
+  properties:
+    case:
+      type: "string"
+      description: "Clinical vignette or imaging-oriented presentation."
+  required: ["case"]
+output_schema:
+  type: "object"
+  properties:
+    diagnosis:
+      type: "string"
+      description: "Predicted diagnosis label."
+    confidence:
+      type: "number"
+      minimum: 0.0
+      maximum: 1.0
+  required: ["diagnosis"]
+metrics:
+  - name: "diagnostic_accuracy"
+    description: "Accuracy over diagnosis labels."
+  - name: "reasoning_quality"
+    description: "Heuristic reasoning quality score."
+
+dataset:
+  - id: 1
+    case: "Lung nodule with spiculated margins on CT in a 65-year-old smoker."
+    diagnosis: "primary_lung_carcinoma"
+  - id: 2
+    case: "Punched-out lytic bone lesions on skull X-ray in a patient with anemia."
+    diagnosis: "multiple_myeloma"
+  - id: 3
+    case: "Dilated loop of small bowel with air-fluid levels and step-ladder pattern."
+    diagnosis: "small_bowel_obstruction"

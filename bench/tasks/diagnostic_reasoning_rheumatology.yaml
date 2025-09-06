@@ -1,0 +1,37 @@
+task_type: "diagnostic_reasoning"
+name: "Diagnostic Reasoning - Rheumatology"
+description: "Given rheumatology-related presentations, predict the most likely diagnosis."
+input_schema:
+  type: "object"
+  properties:
+    case:
+      type: "string"
+      description: "Clinical vignette or presentation."
+  required: ["case"]
+output_schema:
+  type: "object"
+  properties:
+    diagnosis:
+      type: "string"
+      description: "Predicted diagnosis label."
+    confidence:
+      type: "number"
+      minimum: 0.0
+      maximum: 1.0
+  required: ["diagnosis"]
+metrics:
+  - name: "diagnostic_accuracy"
+    description: "Accuracy over diagnosis labels."
+  - name: "reasoning_quality"
+    description: "Heuristic reasoning quality score."
+
+dataset:
+  - id: 1
+    case: "Morning stiffness >1 hour, symmetric MCP and PIP joint swelling, positive RF and anti-CCP."
+    diagnosis: "rheumatoid_arthritis"
+  - id: 2
+    case: "Photosensitive malar rash, oral ulcers, arthritis, proteinuria, positive ANA and anti-dsDNA."
+    diagnosis: "systemic_lupus_erythematosus"
+  - id: 3
+    case: "Acute monoarthritis of first MTP joint, needle-shaped negatively birefringent crystals."
+    diagnosis: "gout"

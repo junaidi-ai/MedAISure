@@ -1,0 +1,37 @@
+task_type: "diagnostic_reasoning"
+name: "Diagnostic Reasoning - Gastroenterology"
+description: "Given gastroenterology-related presentations, predict the most likely diagnosis."
+input_schema:
+  type: "object"
+  properties:
+    case:
+      type: "string"
+      description: "Clinical vignette or presentation."
+  required: ["case"]
+output_schema:
+  type: "object"
+  properties:
+    diagnosis:
+      type: "string"
+      description: "Predicted diagnosis label."
+    confidence:
+      type: "number"
+      minimum: 0.0
+      maximum: 1.0
+  required: ["diagnosis"]
+metrics:
+  - name: "diagnostic_accuracy"
+    description: "Accuracy over diagnosis labels."
+  - name: "reasoning_quality"
+    description: "Heuristic reasoning quality score."
+
+dataset:
+  - id: 1
+    case: "RUQ pain, fever, jaundice; ultrasound shows dilated common bile duct."
+    diagnosis: "ascending_cholangitis"
+  - id: 2
+    case: "Postprandial abdominal pain, weight loss; fear of eating; normal EGD; CT shows SMA stenosis."
+    diagnosis: "chronic_mesenteric_ischemia"
+  - id: 3
+    case: "Episodic dysphagia to solids and liquids, chest pain, corkscrew esophagus on barium swallow."
+    diagnosis: "diffuse_esophageal_spasm"

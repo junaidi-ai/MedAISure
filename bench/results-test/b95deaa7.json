@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "model_id": "sshleifer/tiny-gpt2",
-  "timestamp": "2025-09-06 03:37:14.965071+00:00",
+  "timestamp": "2025-09-06 04:28:54.577703+00:00",
   "overall_scores": {
     "rouge_l": 0.0,
     "clinical_relevance": 0.0,
@@ -34,7 +34,7 @@
         "error": "1 validation error for EvaluationResult\nmetrics_results\n  Value error, metrics_results values must be finite numbers [type=value_error, input_value={'rouge_l': nan, 'clinical_relevance': nan}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error",
         "note": "Placeholder result due to evaluation failure"
       },
-      "timestamp": "2025-09-06 03:37:14.965071+00:00"
+      "timestamp": "2025-09-06 04:28:54.577703+00:00"
     },
     {
       "schema_version": 1,
@@ -50,14 +50,14 @@
         "error": "1 validation error for EvaluationResult\nmetrics_results\n  Value error, metrics_results values must be finite numbers [type=value_error, input_value={'rouge_l': nan, 'clinical_relevance': nan}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/value_error",
         "note": "Placeholder result due to evaluation failure"
       },
-      "timestamp": "2025-09-06 03:37:15.249946+00:00"
+      "timestamp": "2025-09-06 04:28:54.820635+00:00"
     }
   ],
   "metadata": {
     "run_id": "b95deaa7",
-    "start_time": "2025-09-06T03:37:14.965071+00:00",
+    "start_time": "2025-09-06T04:28:54.577703+00:00",
     "model_name": "sshleifer/tiny-gpt2",
-    "total_time_seconds": 0.6781497001647949,
+    "total_time_seconds": 0.4516563415527344,
     "num_tasks": 2,
     "batch_size": 2,
     "model_type": "huggingface",
@@ -65,7 +65,7 @@
     "combined_metric_name": "combined_score",
     "hf_task": "text-generation",
     "generation_kwargs": {
-      "max_new_tokens": 16
+      "max_new_tokens": 8
     }
   }
 }

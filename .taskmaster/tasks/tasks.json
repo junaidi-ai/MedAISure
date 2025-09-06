@@ -961,13 +961,13 @@
       },
       {
         "id": 17,
-        "title": "Implement Specialty and Hard Datasets (Planned)",
+        "title": "Implement Specialty and Hard Datasets",
         "description": "Implement concrete task bundles for MedAISure-Hard and MedAISure-Specialty per PRD Phase 3 Expansion.",
         "details": "- Define dataset compositions and selection criteria\n- Implement loaders and validation hooks\n- Add representative tasks for at least two specialties\n- Extend docs and CLI listing\n- Ensure compatibility with combined score aggregation",
         "testStrategy": "- Registry and loader unit tests\n- Composition metadata validation\n- End-to-end harness smoke test with placeholder data",
         "priority": "medium",
         "dependencies": [1, 3, 8, 12],
-        "status": "planned",
+        "status": "in-progress",
         "phase": "phase-3",
         "subtasks": []
       }

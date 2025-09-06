@@ -1,0 +1,37 @@
+task_type: "diagnostic_reasoning"
+name: "Diagnostic Reasoning - Oncology"
+description: "Given oncology-related presentations, predict the most likely diagnosis."
+input_schema:
+  type: "object"
+  properties:
+    case:
+      type: "string"
+      description: "Clinical vignette or presentation."
+  required: ["case"]
+output_schema:
+  type: "object"
+  properties:
+    diagnosis:
+      type: "string"
+      description: "Predicted diagnosis label."
+    confidence:
+      type: "number"
+      minimum: 0.0
+      maximum: 1.0
+  required: ["diagnosis"]
+metrics:
+  - name: "diagnostic_accuracy"
+    description: "Accuracy over diagnosis labels."
+  - name: "reasoning_quality"
+    description: "Heuristic reasoning quality score."
+
+dataset:
+  - id: 1
+    case: "Painless jaundice, weight loss, Courvoisier sign in a 65-year-old."
+    diagnosis: "pancreatic_cancer"
+  - id: 2
+    case: "Smoker with persistent cough, hemoptysis, cavitary lesion in upper lobe on X-ray."
+    diagnosis: "squamous_cell_carcinoma_lung"
+  - id: 3
+    case: "Young woman with painless thyroid nodule, orphan Annie eye nuclei on pathology."
+    diagnosis: "papillary_thyroid_carcinoma"

@@ -5,11 +5,25 @@ This page documents the Dataset Registry for MedAISure and how to list and inspe
 The registry currently includes:
 
 - medaisure-core: 200-task composition (Diagnostics 100, Summarization 50, Communication 50)
-- medaisure-hard (planned)
-- medaisure-specialty (planned)
+- medaisure-hard: 60-task composition (Diagnostics 40, Summarization 10, Communication 10)
+- medaisure-specialty: 80-task composition (Diagnostics 40, Summarization 20, Communication 20)
 - medaisure-multimodal (planned)
 
 Registry entries are stored in `bench/data/datasets/registry.json` and validated by the `DatasetMeta` schema.
+
+Examples (Python):
+
+```python
+from bench.data.datasets import medaisure_hard as hard
+from bench.data.datasets import medaisure_specialty as spec
+
+# Validate registry entries (raises on inconsistency)
+hard.validate()
+spec.validate()
+
+print(hard.get_composition())
+print(spec.get_composition())
+```
 
 ## CLI Usage (Typer)
 
