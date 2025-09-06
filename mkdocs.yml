@@ -31,6 +31,7 @@ nav:
       - Medical QA: tasks/medical_qa.md
       - Diagnostic Reasoning: tasks/diagnostic_reasoning.md
       - Clinical Summarization: tasks/clinical_summarization.md
+      - Patient Communication: tasks/patient_communication.md
   - Datasets:
       - Overview: datasets/overview.md
   - API Reference:

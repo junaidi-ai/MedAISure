@@ -1,0 +1,55 @@
+name: "Patient Communication: Basic Responses"
+description: "Generate empathetic, clear patient-facing responses to common medical questions."
+task_type: "communication"
+input_schema:
+  type: "object"
+  properties:
+    patient_message:
+      type: "string"
+      description: "The patient's question or concern in natural language"
+    context:
+      type: "string"
+      description: "Optional clinical context for the response"
+  required: ["patient_message"]
+output_schema:
+  type: "object"
+  properties:
+    response:
+      type: "string"
+      description: "Model-generated, patient-friendly response"
+  required: ["response"]
+metrics:
+  - name: "rouge_l"
+    description: "Overlap with reference responses"
+  - name: "clinical_relevance"
+    description: "Appropriateness and alignment with clinical guidance"
+
+dataset:
+  - id: 1
+    input:
+      patient_message: "I have a sore throat and a fever. Do I need antibiotics?"
+      context: "Adult, otherwise healthy"
+    output:
+      response: "Many sore throats are caused by viruses and get better on their own. If your symptoms last more than a few days, are severe, or you have trouble breathing, please see a clinician. Antibiotics help only for certain bacterial infections like strep throat after testing. Stay hydrated, rest, and you may use pain relievers or throat lozenges."
+  - id: 2
+    input:
+      patient_message: "My BP today was 150/95. Is that dangerous?"
+    output:
+      response: "A single high reading can happen for many reasons. It’s best to check your blood pressure several times over a few days. If multiple readings remain above 140/90, please contact your clinician to discuss next steps. If you have chest pain, severe headache, or vision changes, seek urgent care."
+  - id: 3
+    input:
+      patient_message: "Can I take ibuprofen while breastfeeding?"
+    output:
+      response: "Ibuprofen is generally considered compatible with breastfeeding at usual doses. However, please confirm with your clinician if you have kidney problems, stomach ulcers, or are taking other medications."
+  - id: 4
+    input:
+      patient_message: "I tested positive for COVID-19. What should I do?"
+      context: "Symptoms: mild cough, no risk factors"
+    output:
+      response: "For mild symptoms, rest, fluids, and over-the-counter medications can help. Isolate to reduce spread and follow local public health guidance. If you develop trouble breathing, chest pain, confusion, or bluish lips/face, seek urgent care."
+  - id: 5
+    input:
+      patient_message: "My child has a fever of 38.5°C. Should I worry?"
+      context: "Child, 4 years old"
+    output:
+      response: "Many childhood fevers are due to viral infections and improve within a few days. You can offer fluids and consider acetaminophen if your child is uncomfortable. If the fever lasts more than 3 days, your child is very sleepy, dehydrated, or you notice a rash or breathing trouble, contact your pediatrician."

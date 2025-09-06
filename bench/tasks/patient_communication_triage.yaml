@@ -1,0 +1,51 @@
+name: "Patient Communication: Triage Advice"
+description: "Generate clear, empathetic triage guidance for patient-reported symptoms (non-diagnostic)."
+task_type: "communication"
+input_schema:
+  type: "object"
+  properties:
+    patient_message:
+      type: "string"
+      description: "Patient message describing symptoms or concerns"
+    age:
+      type: "integer"
+      description: "Optional age to guide general triage phrasing"
+    risk_factors:
+      type: "string"
+      description: "Optional known risks (e.g., pregnancy, heart disease)"
+  required: ["patient_message"]
+output_schema:
+  type: "object"
+  properties:
+    response:
+      type: "string"
+      description: "Patient-friendly guidance including red flags and next steps"
+  required: ["response"]
+metrics:
+  - name: "rouge_l"
+    description: "Overlap with reference guidance"
+  - name: "clinical_relevance"
+    description: "Appropriateness and safety of triage advice"
+
+dataset:
+  - id: 1
+    input:
+      patient_message: "I have chest pain for the last 20 minutes."
+    output:
+      response: "Chest pain can be serious. If the pain is severe, spreads to your arm/jaw/back, or you feel short of breath, dizzy, or sweaty, please seek emergency care now. If symptoms are mild but do not improve quickly, contact your clinician today."
+  - id: 2
+    input:
+      patient_message: "I cut my finger while cooking. It's bleeding a little."
+    output:
+      response: "Rinse with clean water, apply an antiseptic if available, and press with a clean cloth to stop bleeding. If the cut is deep, edges are gaping, you see signs of infection, or bleeding doesn’t stop after 10–15 minutes, seek care."
+  - id: 3
+    input:
+      patient_message: "I feel lightheaded when I stand up."
+    output:
+      response: "This can happen due to dehydration or sudden position changes. Try standing up slowly and drink fluids. If you faint, have chest pain, shortness of breath, or it persists, please contact a clinician."
+  - id: 4
+    input:
+      patient_message: "I have a rash after starting a new antibiotic."
+    risk_factors: "Penicillin allergy"
+    output:
+      response: "Stop the medication and contact your clinician to discuss alternatives. If you have swelling of the lips/face, trouble breathing, or feel faint, seek emergency care immediately."
